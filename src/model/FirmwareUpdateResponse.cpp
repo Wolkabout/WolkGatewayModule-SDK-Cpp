@@ -39,4 +39,4 @@ const WolkOptional<FirmwareUpdateResponse::ErrorCode>& FirmwareUpdateResponse::g
 {
     return m_errorCode;
 }
-}
+}    // namespace wolkabout

@@ -1,3 +1,9 @@
 out/
 dependencies/
 tests/
+
+*.config
+*.creator
+*.files
+*.includes
+*.user

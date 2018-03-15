@@ -19,7 +19,6 @@
 #include "ActuatorStatusProvider.h"
 #include "FileHandler.h"
 #include "InboundMessageHandler.h"
-#include "OutboundDataService.h"
 #include "Wolk.h"
 #include "connectivity/ConnectivityService.h"
 #include "connectivity/mqtt/MqttConnectivityService.h"
@@ -28,6 +27,7 @@
 #include "model/FirmwareUpdateCommand.h"
 #include "persistence/Persistence.h"
 #include "persistence/inmemory/InMemoryPersistence.h"
+#include "service/DataService.h"
 #include "service/FileDownloadService.h"
 #include "service/FirmwareUpdateService.h"
 
@@ -44,14 +44,26 @@ WolkBuilder& WolkBuilder::host(const std::string& host)
 }
 
 WolkBuilder& WolkBuilder::actuationHandler(
-  const std::function<void(const std::string&, const std::string&)>& actuationHandler)
+  const std::function<void(const std::string&, const std::string&, const std::string&)>& actuationHandler)
+{
+    m_actuationHandlerLambda = actuationHandler;
+    return *this;
+}
+
+WolkBuilder& WolkBuilder::actuationHandler(std::shared_ptr<ActuationHandler> actuationHandler)
 {
     m_actuationHandler = actuationHandler;
     return *this;
 }
 
 WolkBuilder& WolkBuilder::actuatorStatusProvider(
-  const std::function<ActuatorStatus(const std::string&)>& actuatorStatusProvider)
+  const std::function<ActuatorStatus(const std::string&, const std::string&)>& actuatorStatusProvider)
+{
+    m_actuatorStatusProviderLambda = actuatorStatusProvider;
+    return *this;
+}
+
+WolkBuilder& WolkBuilder::actuatorStatusProvider(std::shared_ptr<ActuatorStatusProvider> actuatorStatusProvider)
 {
     m_actuatorStatusProvider = actuatorStatusProvider;
     return *this;
@@ -70,105 +82,45 @@ WolkBuilder& WolkBuilder::withPersistence(std::shared_ptr<Persistence> persisten
     return *this;
 }
 
-WolkBuilder& WolkBuilder::withFirmwareUpdate(const std::string& firmwareVersion,
-                                             std::weak_ptr<FirmwareInstaller> installer,
-                                             const std::string& firmwareDownloadDirectory,
-                                             uint_fast64_t maxFirmwareFileSize,
-                                             std::uint_fast64_t maxFirmwareFileChunkSize)
-{
-    return withFirmwareUpdate(firmwareVersion, installer, firmwareDownloadDirectory, maxFirmwareFileSize,
-                              maxFirmwareFileChunkSize, std::weak_ptr<UrlFileDownloader>());
-}
-
-WolkBuilder& WolkBuilder::withFirmwareUpdate(const std::string& firmwareVersion,
-                                             std::weak_ptr<FirmwareInstaller> installer,
-                                             const std::string& firmwareDownloadDirectory,
-                                             uint_fast64_t maxFirmwareFileSize,
-                                             std::uint_fast64_t maxFirmwareFileChunkSize,
-                                             std::weak_ptr<UrlFileDownloader> urlDownloader)
-{
-    m_firmwareVersion = firmwareVersion;
-    m_firmwareDownloadDirectory = firmwareDownloadDirectory;
-    m_maxFirmwareFileSize = maxFirmwareFileSize;
-    m_maxFirmwareFileChunkSize = maxFirmwareFileChunkSize;
-    m_firmwareInstaller = installer;
-    m_urlFileDownloader = urlDownloader;
-    return *this;
-}
-
 std::unique_ptr<Wolk> WolkBuilder::build() const
 {
-    if (m_device.getKey().empty())
+    if (!m_actuationHandlerLambda || m_actuationHandler)
     {
-        throw std::logic_error("No device key present.");
+        throw std::logic_error("Actuation handler not set.");
     }
 
-    if (m_device.getActuatorReferences().size() != 0)
+    if (!m_actuatorStatusProviderLambda || m_actuatorStatusProvider)
     {
-        if (!m_actuationHandler)
-        {
-            throw std::logic_error("Actuation handler not set.");
-        }
-
-        if (!m_actuatorStatusProvider)
-        {
-            throw std::logic_error("Actuator status provider not set.");
-        }
+        throw std::logic_error("Actuator status provider not set.");
     }
 
-    auto mqttClient = std::make_shared<PahoMqttClient>();
-    auto connectivityService = std::make_shared<MqttConnectivityService>(mqttClient, m_device, m_host);
+    auto wolk = std::unique_ptr<Wolk>(new Wolk());
 
-    auto inboundMessageHandler = std::make_shared<InboundMessageHandler>(m_device);
-    auto outboundServiceDataHandler = std::make_shared<OutboundDataService>(m_device, connectivityService);
+    wolk->m_persistence = m_persistence;
 
-    auto wolk = std::unique_ptr<Wolk>(
-      new Wolk(connectivityService, m_persistence, inboundMessageHandler, outboundServiceDataHandler, m_device));
+    wolk->m_connectivityService.reset(new MqttConnectivityService(std::make_shared<PahoMqttClient>(), "", "", m_host));
 
-    wolk->m_actuationHandler = m_actuationHandler;
+    wolk->m_inboundMessageHandler.reset(new InboundGatewayMessageHandler());
 
-    wolk->m_actuatorStatusProvider = m_actuatorStatusProvider;
-
-    wolk->m_fileDownloadService = std::make_shared<FileDownloadService>(
-      m_maxFirmwareFileSize, m_maxFirmwareFileChunkSize, std::unique_ptr<FileHandler>(new FileHandler()),
-      outboundServiceDataHandler);
-
-    if (m_firmwareInstaller.lock() != nullptr)
-    {
-        wolk->m_firmwareUpdateService = std::make_shared<FirmwareUpdateService>(
-          m_firmwareVersion, m_firmwareDownloadDirectory, m_maxFirmwareFileSize, outboundServiceDataHandler,
-          wolk->m_fileDownloadService, m_urlFileDownloader, m_firmwareInstaller);
-    }
-
-    inboundMessageHandler->setActuatorSetCommandHandler(
-      [&](const ActuatorSetCommand& actuatorCommand) -> void { wolk->handleSetActuator(actuatorCommand); });
-
-    inboundMessageHandler->setActuatorGetCommandHandler(
-      [&](const ActuatorGetCommand& actuatorCommand) -> void { wolk->handleGetActuator(actuatorCommand); });
-
-    inboundMessageHandler->setRegistrationResponseHandler(
-      [&](std::shared_ptr<DeviceRegistrationResponse> response) -> void {
-          wolk->handleRegistrationResponse(response);
-      });
-
-    std::weak_ptr<FileDownloadService> fileDownloadService_weak{wolk->m_fileDownloadService};
-    inboundMessageHandler->setBinaryDataHandler([=](const BinaryData& binaryData) -> void {
-        if (auto handler = fileDownloadService_weak.lock())
-        {
-            handler->handleBinaryData(binaryData);
-        }
+    wolk->m_connectivityManager = std::make_shared<Wolk::ConnectivityFacade>(*wolk->m_inboundMessageHandler, [&] {
+        // wolk->m_platformPublisher->disconnected();
+        wolk->connect();
     });
 
-    std::weak_ptr<FirmwareUpdateService> firmwareUpdateService_weak{wolk->m_firmwareUpdateService};
-    inboundMessageHandler->setFirmwareUpdateCommandHandler(
-      [=](const FirmwareUpdateCommand& firmwareUpdateCommand) -> void {
-          if (auto handler = firmwareUpdateService_weak.lock())
-          {
-              handler->handleFirmwareUpdateCommand(firmwareUpdateCommand);
-          }
-      });
+    wolk->m_connectivityService->setListener(wolk->m_connectivityManager);
 
-    connectivityService->setListener(std::dynamic_pointer_cast<ConnectivityServiceListener>(inboundMessageHandler));
+    wolk->m_actuationHandler = std::make_shared<decltype(m_actuationHandlerLambda)>(m_actuationHandlerLambda);
+    // TODO !!!
+    wolk->m_actuatorStatusProvider =
+      std::make_shared<decltype(m_actuatorStatusProviderLambda)>(m_actuatorStatusProviderLambda);
+
+    wolk->m_dataService =
+      std::make_shared<DataService>(*wolk->m_dataProtocol, *wolk->m_persistence, *wolk->m_connectivityService,
+                                    *wolk->m_actuationHandler, *wolk->m_actuatorStatusProvider);
+
+    wolk->m_inboundMessageHandler->addListener(wolk->m_dataService);
+
+    wolk->m_connectivityService->setListener(wolk->m_connectivityManager);
 
     return wolk;
 }
@@ -178,14 +130,5 @@ wolkabout::WolkBuilder::operator std::unique_ptr<Wolk>() const
     return build();
 }
 
-WolkBuilder::WolkBuilder(Device device)
-: m_host{WOLK_DEMO_HOST}
-, m_device{std::move(device)}
-, m_persistence{new InMemoryPersistence()}
-, m_firmwareVersion{""}
-, m_firmwareDownloadDirectory{""}
-, m_maxFirmwareFileSize{0}
-, m_maxFirmwareFileChunkSize{0}
-{
-}
-}
+WolkBuilder::WolkBuilder() : m_host{MESSAGE_BUS_HOST}, m_persistence{new InMemoryPersistence()} {}
+}    // namespace wolkabout

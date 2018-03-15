@@ -15,7 +15,7 @@
  */
 
 #include "Configuration.h"
-#include "connectivity/json/RegistrationProtocol.h"
+#include "protocol/json/RegistrationProtocol.h"
 #include "utilities/FileSystemUtils.h"
 #include "utilities/json.hpp"
 

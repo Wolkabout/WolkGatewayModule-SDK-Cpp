@@ -62,6 +62,6 @@ private:
     std::map<std::string, std::vector<std::shared_ptr<Alarm>>> m_alarms;
     std::map<std::string, std::shared_ptr<ActuatorStatus>> m_actuatorStatuses;
 };
-}
+}    // namespace wolkabout
 
 #endif

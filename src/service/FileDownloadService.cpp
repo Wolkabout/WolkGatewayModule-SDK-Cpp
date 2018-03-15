@@ -287,4 +287,4 @@ void FileDownloadService::DownloadState::abort()
 {
     m_service.m_fileHandler->clear();
 }
-}
+}    // namespace wolkabout

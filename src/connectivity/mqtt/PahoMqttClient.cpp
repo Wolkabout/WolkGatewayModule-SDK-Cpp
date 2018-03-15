@@ -173,4 +173,4 @@ void PahoMqttClient::message_arrived(mqtt::const_message_ptr msg)
 }
 
 void PahoMqttClient::delivery_complete(mqtt::delivery_token_ptr /* tok */) {}
-}
+}    // namespace wolkabout

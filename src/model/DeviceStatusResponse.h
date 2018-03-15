@@ -14,14 +14,29 @@
  * limitations under the License.
  */
 
-#include "MqttClient.h"
-
-#include <utility>
+#ifndef DEVICESTATUSRESPONSE_H
+#define DEVICESTATUSRESPONSE_H
 
 namespace wolkabout
 {
-void MqttClient::onMessageReceived(MqttClient::OnMessageReceivedCallback onMessageReceived)
+class DeviceStatusResponse
 {
-    m_onMessageReceived = std::move(onMessageReceived);
-}
+public:
+    enum class Status
+    {
+        CONNECTED,
+        OFFLINE,
+        SLEEP,
+        SERVICE
+    };
+
+    DeviceStatusResponse(DeviceStatusResponse::Status status);
+
+    DeviceStatusResponse::Status getStatus() const;
+
+private:
+    const DeviceStatusResponse::Status m_status;
+};
 }    // namespace wolkabout
+
+#endif    // DEVICESTATUSRESPONSE_H

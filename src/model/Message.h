@@ -24,16 +24,16 @@ namespace wolkabout
 class Message
 {
 public:
-    Message(std::string content, std::string topic);
+    Message(std::string content, std::string channel);
     virtual ~Message() = default;
 
     const std::string& getContent() const;
-    const std::string& getTopic() const;
+    const std::string& getChannel() const;
 
 private:
     std::string m_content;
-    std::string m_topic;
+    std::string m_channel;
 };
-}
+}    // namespace wolkabout
 
 #endif

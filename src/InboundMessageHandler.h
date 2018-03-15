@@ -17,61 +17,35 @@
 #ifndef INBOUNDMESSAGEHANDLER_H
 #define INBOUNDMESSAGEHANDLER_H
 
-#include "connectivity/ConnectivityService.h"
-#include "model/ActuatorCommand.h"
-#include "model/ActuatorGetCommand.h"
-#include "model/ActuatorSetCommand.h"
-#include "model/BinaryData.h"
-#include "model/Device.h"
-#include "model/DeviceRegistrationResponseDto.h"
-#include "model/FirmwareUpdateCommand.h"
-#include "utilities/CommandBuffer.h"
-
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace wolkabout
 {
-class InboundMessageHandler : public ConnectivityServiceListener
+class Message;
+class Protocol;
+
+class MessageListener
 {
 public:
-    InboundMessageHandler(Device device);
-
-    void messageReceived(const std::string& topic, const std::string& message) override;
-
-    const std::vector<std::string>& getTopics() const override;
-
-    void setActuatorSetCommandHandler(std::function<void(ActuatorSetCommand)> handler);
-
-    void setActuatorGetCommandHandler(std::function<void(ActuatorGetCommand)> handler);
-
-    void setBinaryDataHandler(std::function<void(BinaryData)> handler);
-
-    void setFirmwareUpdateCommandHandler(std::function<void(FirmwareUpdateCommand)> handler);
-
-    void setRegistrationResponseHandler(std::function<void(std::shared_ptr<DeviceRegistrationResponse>)> handler);
-
-private:
-    void addToCommandBuffer(std::function<void()> command);
-
-    Device m_device;
-
-    std::unique_ptr<CommandBuffer> m_commandBuffer;
-
-    std::vector<std::string> m_subscriptionList;
-
-    std::function<void(ActuatorSetCommand)> m_actuationSetHandler;
-    std::function<void(ActuatorGetCommand)> m_actuationGetHandler;
-    std::function<void(BinaryData)> m_binaryDataHandler;
-    std::function<void(FirmwareUpdateCommand)> m_firmwareUpdateHandler;
-    std::function<void(std::shared_ptr<DeviceRegistrationResponse>)> m_registrationResponseHandler;
-
-    static const constexpr char* ACTUATION_GET_TOPIC_ROOT = "p2d/actuator_get/d/";
-    static const constexpr char* ACTUATION_SET_TOPIC_ROOT = "p2d/actuator_set/d/";
-    static const constexpr char* REGISTRATION_RESPONSE_ROOT = "p2d/registration/d/";
-    static const constexpr char* FIRMWARE_UPDATE_TOPIC_ROOT = "service/commands/firmware/";
-    static const constexpr char* BINARY_TOPIC_ROOT = "service/binary/";
+    virtual ~MessageListener() = default;
+    virtual void messageReceived(std::shared_ptr<Message> message) = 0;
+    virtual const Protocol& getProtocol() = 0;
 };
-}
+
+class InboundMessageHandler
+{
+public:
+    virtual ~InboundMessageHandler() = default;
+
+    virtual void messageReceived(const std::string& channel, const std::string& message) = 0;
+
+    virtual std::vector<std::string> getChannels() const = 0;
+
+    virtual void addListener(std::weak_ptr<MessageListener> listener) = 0;
+};
+}    // namespace wolkabout
 
 #endif    // INBOUNDMESSAGEHANDLER_H

@@ -36,6 +36,6 @@ public:
 
     virtual ~RegistrationResponseHandler() = default;
 };
-}
+}    // namespace wolkabout
 
 #endif    // REGISTRATIONRESPONSEHANDLER_H

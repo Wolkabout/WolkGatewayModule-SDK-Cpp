@@ -14,30 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef OUTBOUNDDATASERVICE_H
-#define OUTBOUNDDATASERVICE_H
-
-#include "OutboundServiceDataHandler.h"
-#include "model/Device.h"
-#include <memory>
+#include "model/DeviceStatusResponse.h"
 
 namespace wolkabout
 {
-class ConnectivityService;
+DeviceStatusResponse::DeviceStatusResponse(DeviceStatusResponse::Status status) : m_status{status} {}
 
-class OutboundDataService : public OutboundServiceDataHandler
+DeviceStatusResponse::Status DeviceStatusResponse::getStatus() const
 {
-public:
-    OutboundDataService(Device device, std::shared_ptr<ConnectivityService> connectivityService);
-
-    void addFirmwareUpdateResponse(const FirmwareUpdateResponse& response) override;
-    void addFilePacketRequest(const FilePacketRequest& request) override;
-
-private:
-    Device m_device;
-
-    std::shared_ptr<ConnectivityService> m_connectivityService;
-};
+    return m_status;
 }
-
-#endif    // OUTBOUNDDATASERVICE_H
+}    // namespace wolkabout

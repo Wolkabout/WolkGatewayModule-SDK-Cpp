@@ -69,4 +69,4 @@ bool Timer::running() const
 {
     return m_isRunning || (m_worker && m_worker->joinable());
 }
-}
+}    // namespace wolkabout

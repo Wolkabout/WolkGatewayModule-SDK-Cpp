@@ -45,6 +45,6 @@ public:
 protected:
     OnMessageReceivedCallback m_onMessageReceived;
 };
-}
+}    // namespace wolkabout
 
 #endif

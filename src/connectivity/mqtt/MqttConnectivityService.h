@@ -30,7 +30,8 @@ namespace wolkabout
 class MqttConnectivityService : public ConnectivityService
 {
 public:
-    MqttConnectivityService(std::shared_ptr<MqttClient> mqttClient, Device device, std::string host);
+    MqttConnectivityService(std::shared_ptr<MqttClient> mqttClient, std::string key, std::string password,
+                            std::string host);
     virtual ~MqttConnectivityService() = default;
 
     bool connect() override;
@@ -42,14 +43,16 @@ public:
 
 private:
     std::shared_ptr<MqttClient> m_mqttClient;
-    Device m_device;
-    std::string m_host;
+
+    const std::string m_key;
+    const std::string m_password;
+    const std::string m_host;
 
     std::atomic_bool m_connected;
 
     static const constexpr char* LAST_WILL_TOPIC_ROOT = "lastwill/";
     static const constexpr char* TRUST_STORE = "ca.crt";
 };
-}
+}    // namespace wolkabout
 
 #endif

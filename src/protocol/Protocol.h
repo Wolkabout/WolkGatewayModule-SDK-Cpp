@@ -14,27 +14,31 @@
  * limitations under the License.
  */
 
-#ifndef JSONDTOPARSER_H
-#define JSONDTOPARSER_H
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
 
 #include <string>
+#include <vector>
 
 namespace wolkabout
 {
-class SensorReading;
-class Alarm;
-class ActuatorStatus;
-class ActuatorSetCommand;
-class FirmwareUpdateCommand;
-
-class JsonParser
+class Protocol
 {
 public:
-    JsonParser() = delete;
+    enum class Type
+    {
+        DATA,
+        REGISTRATION,
+        FIRMWARE_UPDATE
+    };
 
-    static bool fromJson(const std::string& jsonString, ActuatorSetCommand& actuatorCommand);
-    static bool fromJson(const std::string& jsonString, FirmwareUpdateCommand& firmwareUpdateCommand);
+    virtual ~Protocol() = default;
+
+    virtual Type getType() const = 0;
+    virtual const std::string& getName() const = 0;
+    virtual const std::vector<std::string>& getInboundChannels() const = 0;
+    virtual std::string extractDeviceKeyFromChannel(const std::string& topic) const = 0;
 };
-}
+}    // namespace wolkabout
 
 #endif

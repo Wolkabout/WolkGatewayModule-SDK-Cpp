@@ -31,7 +31,9 @@ public:
 
     virtual void messageReceived(const std::string& topic, const std::string& message) = 0;
 
-    virtual const std::vector<std::string>& getTopics() const = 0;
+    virtual void connectionLost() = 0;
+
+    virtual std::vector<std::string> getChannels() const = 0;
 };
 
 class Message;
@@ -52,6 +54,6 @@ public:
 protected:
     std::weak_ptr<ConnectivityServiceListener> m_listener;
 };
-}
+}    // namespace wolkabout
 
 #endif

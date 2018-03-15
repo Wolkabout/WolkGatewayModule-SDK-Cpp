@@ -36,15 +36,16 @@ enum class LogLevel
 /**
  * @brief Converts a log level from string.
  * @param level log level as string
- * @return coresponding log level (supported: ERROR, WARN, INFO, DEBUG and TRACE. All other will be considered as ERROR)
+ * @return coresponding log level (supported: ERROR, WARN, INFO, DEBUG and
+ * TRACE. All other will be considered as ERROR)
  */
 wolkabout::LogLevel from_string(std::string level);
 
 /**
  * @brief The Logger class
  *
- * Abstract class that should be extended by specific logger. Logger is accessed as a signeton. But this single instance
- * must be set via #setInstance.
+ * Abstract class that should be extended by specific logger. Logger is accessed
+ * as a signeton. But this single instance must be set via #setInstance.
  */
 class Logger
 {
@@ -128,13 +129,13 @@ template <typename T> Log& Log::operator<<(T value)
     return *this;
 }
 
-#define METHOD_INFO __FILE__ << ":" << __func__ << ":" << __LINE__
+#define METHOD_INFO __FILE__ << ":" << __func__ << ":" << __LINE__ << ": "
 
 #define PREPEND_NAMED_SCOPE(logLevel) wolkabout::LogLevel::logLevel
 
 #define LOG_(level)                       \
     if (wolkabout::Logger::getInstance()) \
-    (*wolkabout::Logger::getInstance()) += wolkabout::Log(level)
+    (*wolkabout::Logger::getInstance()) += wolkabout::Log(level) << METHOD_INFO
 
 #define LOG(level) LOG_(PREPEND_NAMED_SCOPE(level))
 }    // namespace wolkabout

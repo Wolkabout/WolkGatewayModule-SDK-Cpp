@@ -555,7 +555,8 @@ std::shared_ptr<DeviceRegistrationRequest> RegistrationProtocol::makeRegistratio
     }
     catch (...)
     {
-        LOG(DEBUG) << "Registration protocol: Unable to deserialize device registration request: "
+        LOG(DEBUG) << "Registration protocol: Unable to deserialize device "
+                      "registration request: "
                    << message->getContent();
         return nullptr;
     }
@@ -606,19 +607,21 @@ std::shared_ptr<DeviceRegistrationResponse> RegistrationProtocol::makeRegistrati
         }();
 
         // TODO method to get reference
-        const size_t referencePosition = message->getTopic().find_last_of('/');
+        const size_t referencePosition = message->getChannel().find_last_of('/');
         if (referencePosition == std::string::npos)
         {
             throw std::logic_error("");
         }
 
-        const std::string reference = message->getTopic().substr(referencePosition + 1);
+        const std::string reference = message->getChannel().substr(referencePosition + 1);
 
         return std::make_shared<DeviceRegistrationResponse>(reference, result);
     }
     catch (...)
     {
-        LOG(DEBUG) << "Registration protocol: Unable to parse DeviceRegistrationResponseDto: " << message->getContent();
+        LOG(DEBUG) << "Registration protocol: Unable to parse "
+                      "DeviceRegistrationResponseDto: "
+                   << message->getContent();
         return nullptr;
     }
 }

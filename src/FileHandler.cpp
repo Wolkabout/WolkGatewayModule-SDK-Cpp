@@ -75,4 +75,4 @@ FileHandler::StatusCode FileHandler::saveFile(const std::string& filePath) const
 
     return FileHandler::StatusCode::FILE_HANDLING_ERROR;
 }
-}
+}    // namespace wolkabout

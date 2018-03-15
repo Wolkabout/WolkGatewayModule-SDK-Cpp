@@ -31,7 +31,7 @@ public:
 
     static bool contains(const std::string& string, const std::string& substring);
 
-    static std::vector<std::string> tokenize(const std::string& string, const std::string& delimiters);
+    static std::vector<std::string> tokenize(const std::string& string, const std::string& delimiter);
 
     static bool startsWith(const std::string& string, const std::string& prefix);
 
@@ -39,12 +39,22 @@ public:
 
     static void removeTrailingWhitespace(std::string& string);
 
+    static std::string removePrefix(const std::string& string, const std::string& prefix);
+
+    static std::string removeSufix(const std::string& string, const std::string& sufix);
+
+    static std::string removeSubstring(const std::string& string, const std::string& substring);
+
     static bool isBase64(unsigned char c);
 
     static std::string base64Encode(const char* bytesToEncode, unsigned int len);
 
     static std::string base64Decode(const std::string& encodedString);
+
+    static bool mqttTopicMatch(const std::string& wildcardTopic, const std::string& topic);
+
+    static std::string toUpperCase(const std::string& string);
 };
-}
+}    // namespace wolkabout
 
 #endif

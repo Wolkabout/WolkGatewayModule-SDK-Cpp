@@ -26,7 +26,11 @@
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
 #include "model/DeviceRegistrationResponseDto.h"
+#include "protocol/DataProtocol.h"
+#include "service/DataService.h"
 #include "utilities/CommandBuffer.h"
+
+#include "InboundGatewayMessageHandler.h"
 
 #include <functional>
 #include <memory>
@@ -35,6 +39,10 @@
 
 namespace wolkabout
 {
+typedef std::function<void(const std::string&, const std::string&, const std::string&)> ActuationHandlerFunctor;
+typedef std::function<ActuatorStatus(const std::string&, const std::string&)> ActuationStatusProviderFunctor;
+
+class DataService;
 class ConnectivityService;
 class InboundMessageHandler;
 class FirmwareUpdateService;
@@ -49,15 +57,17 @@ public:
     virtual ~Wolk() = default;
 
     /**
-     * @brief Initiates wolkabout::WolkBuilder that configures device to connect to WolkAbout IoT Cloud
+     * @brief Initiates wolkabout::WolkBuilder that configures device to connect
+     * to WolkAbout IoT Cloud
      * @param device wolkabout::Device
      * @return wolkabout::WolkBuilder instance
      */
-    static WolkBuilder newBuilder(Device device);
+    static WolkBuilder newBuilder();
 
     /**
      * @brief Publishes sensor reading to WolkAbout IoT Cloud<br>
-     *        This method is thread safe, and can be called from multiple thread simultaneously
+     *        This method is thread safe, and can be called from multiple thread
+     * simultaneously
      * @param reference Sensor reference
      * @param value Sensor value<br>
      *              Supported types:<br>
@@ -76,26 +86,29 @@ public:
      * @param rtc Reading POSIX time - Number of seconds since 01/01/1970<br>
      *            If omitted current POSIX time is adopted
      */
-    template <typename T> void addSensorReading(const std::string& reference, T value, unsigned long long int rtc = 0);
+    template <typename T>
+    void addSensorReading(const std::string& deviceKey, const std::string& reference, T value,
+                          unsigned long long int rtc = 0);
 
     /**
      * @brief Publishes alarm to WolkAbout IoT Cloud<br>
-     *        This method is thread safe, and can be called from multiple thread simultaneously
+     *        This method is thread safe, and can be called from multiple thread
+     * simultaneously
      * @param reference Alarm reference
      * @param value Alarm value
-     * @param rtc POSIX time at which event occurred - Number of seconds since 01/01/1970<br>
-     *            If omitted current POSIX time is adopted
+     * @param rtc POSIX time at which event occurred - Number of seconds since
+     * 01/01/1970<br> If omitted current POSIX time is adopted
      */
-    void addAlarm(const std::string& reference, const std::string& value, unsigned long long int rtc = 0);
+    void addAlarm(const std::string& deviceKey, const std::string& reference, const std::string& value,
+                  unsigned long long int rtc = 0);
 
     /**
-     * @brief Invokes ActuatorStatusProvider callback to obtain actuator status<br>
-     *        This method is thread safe, and can be called from multiple thread simultaneously
+     * @brief Invokes ActuatorStatusProvider callback to obtain actuator
+     * status<br> This method is thread safe, and can be called from multiple
+     * thread simultaneously
      * @param Actuator reference
      */
-    void publishActuatorStatus(const std::string& reference);
-
-    void registerDevice(const Device& device);
+    void publishActuatorStatus(const std::string& deviceKey, const std::string& reference);
 
     /**
      * @brief connect Establishes connection with WolkAbout IoT platform
@@ -112,49 +125,72 @@ public:
      */
     void publish();
 
-private:
-    static const constexpr unsigned int PUBLISH_BATCH_ITEMS_COUNT = 50;
+    /**
+     * @brief publish Publishes data
+     */
+    void publish(const std::string& deviceKey);
 
-    Wolk(std::shared_ptr<ConnectivityService> connectivityService, std::shared_ptr<Persistence> persistence,
-         std::shared_ptr<InboundMessageHandler> inboundMessageHandler,
-         std::shared_ptr<OutboundServiceDataHandler> outboundServiceDataHandler, Device device);
+    /**
+     * @brief addDevice
+     * @param device
+     */
+    bool addDevice(const Device& device);
+
+    /**
+     * @brief removeDevice
+     * @param deviceKey
+     */
+    void removeDevice(const std::string& deviceKey);
+
+private:
+    class ConnectivityFacade;
+
+    Wolk();
 
     void addToCommandBuffer(std::function<void()> command);
 
     static unsigned long long int currentRtc();
 
-    void publishActuatorStatuses();
-    void publishAlarms();
-    void publishSensorReadings();
-
-    void addActuatorStatus(std::shared_ptr<ActuatorStatus> actuatorStatus);
-
-    void handleGetActuator(const ActuatorGetCommand& actuatorCommand);
-    void handleSetActuator(const ActuatorSetCommand& actuatorCommand);
+    void registerDevices();
+    void registerDevice(const Device& device);
 
     void handleRegistrationResponse(std::shared_ptr<DeviceRegistrationResponse> response);
 
-    void publishFirmwareVersion();
+    std::unique_ptr<ConnectivityService> m_connectivityService;
 
-    std::shared_ptr<ConnectivityService> m_connectivityService;
+    std::unique_ptr<DataProtocol> m_dataProtocol;
     std::shared_ptr<Persistence> m_persistence;
 
-    std::shared_ptr<InboundMessageHandler> m_inboundMessageHandler;
-    std::shared_ptr<OutboundServiceDataHandler> m_outboundServiceDataHandler;
+    std::unique_ptr<InboundGatewayMessageHandler> m_inboundMessageHandler;
 
-    std::shared_ptr<FirmwareUpdateService> m_firmwareUpdateService;
-    std::shared_ptr<FileDownloadService> m_fileDownloadService;
+    std::shared_ptr<ConnectivityFacade> m_connectivityManager;
 
-    Device m_device;
+    std::shared_ptr<ActuationHandlerFunctor> m_actuationHandler;
 
-    std::function<void(const std::string&, const std::string&)> m_actuationHandler;
-
-    std::function<ActuatorStatus(const std::string&)> m_actuatorStatusProvider;
+    std::shared_ptr<ActuationStatusProviderFunctor> m_actuatorStatusProvider;
 
     std::function<void(const std::string&, DeviceRegistrationResponse::Result)> m_registrationResponseHandler;
 
+    std::shared_ptr<DataService> m_dataService;
+
+    std::map<std::string, Device> m_devices;
+
     std::unique_ptr<CommandBuffer> m_commandBuffer;
+
+    class ConnectivityFacade : public ConnectivityServiceListener
+    {
+    public:
+        ConnectivityFacade(InboundMessageHandler& handler, std::function<void()> connectionLostHandler);
+
+        void messageReceived(const std::string& channel, const std::string& message) override;
+        void connectionLost() override;
+        std::vector<std::string> getChannels() const override;
+
+    private:
+        InboundMessageHandler& m_messageHandler;
+        std::function<void()> m_connectionLostHandler;
+    };
 };
-}
+}    // namespace wolkabout
 
 #endif

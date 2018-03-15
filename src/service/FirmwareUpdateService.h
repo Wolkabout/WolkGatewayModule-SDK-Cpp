@@ -149,6 +149,6 @@ private:
 
     static const constexpr char* FIRMWARE_VERSION_FILE = ".dfu-version";
 };
-}
+}    // namespace wolkabout
 
 #endif    // FIRMWAREUPDATESERVICE_H
