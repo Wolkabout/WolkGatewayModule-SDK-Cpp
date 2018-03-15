@@ -134,7 +134,7 @@ public:
      * @brief addDevice
      * @param device
      */
-    bool addDevice(const Device& device);
+    void addDevice(const Device& device);
 
     /**
      * @brief removeDevice
@@ -156,6 +156,11 @@ private:
 
     void registerDevices();
     void registerDevice(const Device& device);
+
+    bool deviceExists(const std::string& deviceKey);
+    bool sensorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
+    bool alarmDefinedForDevice(const std::string& deviceKey, const std::string& reference);
+    bool actuatorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
 
     void handleRegistrationResponse(std::shared_ptr<DeviceRegistrationResponse> response);
 

@@ -49,8 +49,13 @@ public:
                            ActuatorStatus::State state);
 
     void publishSensorReadings();
+    void publishSensorReadings(const std::string& deviceKey);
+
     void publishAlarms();
+    void publishAlarms(const std::string& deviceKey);
+
     void publishActuatorStatuses();
+    void publishActuatorStatuses(const std::string& deviceKey);
 
 private:
     std::string makePersistenceKey(const std::string& deviceKey, const std::string& reference);

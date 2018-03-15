@@ -54,7 +54,21 @@ void Wolk::addSensorReading(const std::string& deviceKey, const std::string& ref
         rtc = Wolk::currentRtc();
     }
 
-    addToCommandBuffer([=]() -> void { m_dataService->addSensorReading(deviceKey, reference, value, rtc); });
+    addToCommandBuffer([=]() -> void {
+        if (!deviceExists(deviceKey))
+        {
+            LOG(ERROR) << "Device does not exist: " << deviceKey;
+            return;
+        }
+
+        if (!sensorDefinedForDevice(deviceKey, reference))
+        {
+            LOG(ERROR) << "Sensor does not exist for device: " << deviceKey << ", " << reference;
+            return;
+        }
+
+        m_dataService->addSensorReading(deviceKey, reference, value, rtc);
+    });
 }
 
 template <typename T>
@@ -101,31 +115,27 @@ void Wolk::addAlarm(const std::string& deviceKey, const std::string& reference, 
         rtc = Wolk::currentRtc();
     }
 
-    addToCommandBuffer([=]() -> void { m_dataService->addAlarm(deviceKey, reference, value, rtc); });
+    addToCommandBuffer([=]() -> void {
+        if (!deviceExists(deviceKey))
+        {
+            LOG(ERROR) << "Device does not exist: " << deviceKey;
+            return;
+        }
+
+        if (!alarmDefinedForDevice(deviceKey, reference))
+        {
+            LOG(ERROR) << "Alarm does not exist for device: " << deviceKey << ", " << reference;
+            return;
+        }
+
+        m_dataService->addAlarm(deviceKey, reference, value, rtc);
+    });
 }
 
 void Wolk::publishActuatorStatus(const std::string& deviceKey, const std::string& reference)
 {
-    addToCommandBuffer([=]() -> void {
-        const ActuatorStatus actuatorStatus = m_actuatorStatusProvider->operator()(deviceKey, reference);
-
-        m_dataService->addActuatorStatus(deviceKey, reference, actuatorStatus.getValue(), actuatorStatus.getState());
-        m_dataService->publishActuatorStatuses();
-    });
+    handleActuatorGetCommand(deviceKey, reference);
 }
-
-void Wolk::registerDevice(const Device& device)
-{
-    DeviceRegistrationRequest request{device};
-    auto message = RegistrationProtocol::make(device.getKey(), request);
-
-    if (message)
-    {
-        addToCommandBuffer([=]() -> void { m_connectivityService->publish(message); });
-    }
-}
-
-void Wolk::registerDevices() {}
 
 void Wolk::connect()
 {
@@ -166,26 +176,46 @@ void Wolk::publish()
     });
 }
 
-bool Wolk::addDevice(const Device& device)
+void Wolk::publish(const std::string& deviceKey)
 {
-    const std::string deviceKey = device.getKey();
-    if (auto it = m_devices.find(deviceKey) != m_devices.end())
-    {
-        LOG(ERROR) << "Device with key '" << deviceKey << "' was already added";
-        return false;
-    }
+    addToCommandBuffer([=]() -> void {
+        if (!deviceExists(deviceKey))
+        {
+            LOG(ERROR) << "Device does not exist: " << deviceKey;
+            return;
+        }
 
-    m_devices[deviceKey] = device;
-    return true;
+        m_dataService->publishActuatorStatuses(deviceKey);
+        m_dataService->publishAlarms(deviceKey);
+        m_dataService->publishSensorReadings(deviceKey);
+    });
+}
+
+void Wolk::addDevice(const Device& device)
+{
+    addToCommandBuffer([=] {
+        const std::string deviceKey = device.getKey();
+        if (auto it = m_devices.find(deviceKey) != m_devices.end())
+        {
+            LOG(ERROR) << "Device with key '" << deviceKey << "' was already added";
+            return;
+        }
+
+        m_devices[deviceKey] = device;
+
+        registerDevice(device);
+    });
 }
 
 void Wolk::removeDevice(const std::string& deviceKey)
 {
-    auto it = m_devices.find(deviceKey);
-    if (it != m_devices.end())
-    {
-        m_devices.erase(it);
-    }
+    addToCommandBuffer([=] {
+        auto it = m_devices.find(deviceKey);
+        if (it != m_devices.end())
+        {
+            m_devices.erase(it);
+        }
+    });
 }
 
 Wolk::Wolk()
@@ -207,6 +237,18 @@ unsigned long long Wolk::currentRtc()
 void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& reference, const std::string& value)
 {
     addToCommandBuffer([=] {
+        if (!deviceExists(key))
+        {
+            LOG(ERROR) << "Device does not exist: " << key;
+            return;
+        }
+
+        if (!actuatorDefinedForDevice(key, reference))
+        {
+            LOG(ERROR) << "Actuator does not exist for device: " << key << ", " << reference;
+            return;
+        }
+
         m_actuationHandler->operator()(key, reference, value);
         const ActuatorStatus actuatorStatus = m_actuatorStatusProvider->operator()(key, reference);
 
@@ -218,11 +260,96 @@ void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& r
 void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& reference)
 {
     addToCommandBuffer([=] {
+        if (!deviceExists(key))
+        {
+            LOG(ERROR) << "Device does not exist: " << key;
+            return;
+        }
+
+        if (!actuatorDefinedForDevice(key, reference))
+        {
+            LOG(ERROR) << "Actuator does not exist for device: " << key << ", " << reference;
+            return;
+        }
+
         const ActuatorStatus actuatorStatus = m_actuatorStatusProvider->operator()(key, reference);
 
         m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
         m_dataService->publishActuatorStatuses();
     });
+}
+
+void Wolk::registerDevice(const Device& device)
+{
+    addToCommandBuffer([=] {
+        DeviceRegistrationRequest request{device};
+        auto message = RegistrationProtocol::make(device.getKey(), request);
+
+        if (message)
+        {
+            addToCommandBuffer([=]() -> void { m_connectivityService->publish(message); });
+        }
+    });
+}
+
+void Wolk::registerDevices()
+{
+    addToCommandBuffer([=] {
+        for (const auto& kvp : m_devices)
+        {
+            registerDevice(kvp.second);
+        }
+    });
+}
+
+bool Wolk::deviceExists(const std::string& deviceKey)
+{
+    auto it = m_devices.find(deviceKey);
+    return it != m_devices.end();
+}
+
+bool Wolk::sensorDefinedForDevice(const std::string& deviceKey, const std::string& reference)
+{
+    auto it = m_devices.find(deviceKey);
+    if (it == m_devices.end())
+    {
+        return false;
+    }
+
+    const auto sensors = it->second.getManifest().getSensors();
+    auto sensorIt = std::find_if(sensors.begin(), sensors.end(),
+                                 [&](const SensorManifest& manifest) { return manifest.getReference() == reference; });
+
+    return sensorIt != sensors.end();
+}
+
+bool Wolk::alarmDefinedForDevice(const std::string& deviceKey, const std::string& reference)
+{
+    auto it = m_devices.find(deviceKey);
+    if (it == m_devices.end())
+    {
+        return false;
+    }
+
+    const auto alarms = it->second.getManifest().getAlarms();
+    auto alarmIt = std::find_if(alarms.begin(), alarms.end(),
+                                [&](const AlarmManifest& manifest) { return manifest.getReference() == reference; });
+
+    return alarmIt != alarms.end();
+}
+
+bool Wolk::actuatorDefinedForDevice(const std::string& deviceKey, const std::string& reference)
+{
+    auto it = m_devices.find(deviceKey);
+    if (it == m_devices.end())
+    {
+        return false;
+    }
+
+    const auto actuators = it->second.getActuatorReferences();
+    auto actuatorIt = std::find(actuators.begin(), actuators.end(), reference);
+
+    return actuatorIt != actuators.end();
 }
 
 void Wolk::handleRegistrationResponse(std::shared_ptr<DeviceRegistrationResponse> response)
