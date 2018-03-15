@@ -114,9 +114,12 @@ std::unique_ptr<Wolk> WolkBuilder::build() const
     wolk->m_actuatorStatusProvider =
       std::make_shared<decltype(m_actuatorStatusProviderLambda)>(m_actuatorStatusProviderLambda);
 
-    wolk->m_dataService =
-      std::make_shared<DataService>(*wolk->m_dataProtocol, *wolk->m_persistence, *wolk->m_connectivityService,
-                                    *wolk->m_actuationHandler, *wolk->m_actuatorStatusProvider);
+    wolk->m_dataService = std::make_shared<DataService>(
+      *wolk->m_dataProtocol, *wolk->m_persistence, *wolk->m_connectivityService,
+      [&](const std::string& key, const std::string& reference, const std::string& value) {
+          wolk->handleActuatorSetCommand(key, reference, value);
+      },
+      [&](const std::string& key, const std::string& reference) { wolk->handleActuatorGetCommand(key, reference); });
 
     wolk->m_inboundMessageHandler->addListener(wolk->m_dataService);
 

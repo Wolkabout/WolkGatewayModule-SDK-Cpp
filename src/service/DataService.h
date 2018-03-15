@@ -23,17 +23,18 @@
 
 namespace wolkabout
 {
-class OutboundMessageHandler;
 class DataProtocol;
 class Persistence;
 class ConnectivityService;
+
+typedef std::function<void(const std::string&, const std::string&, const std::string&)> ActuatorSetHandler;
+typedef std::function<void(const std::string&, const std::string&)> ActuatorGetHandler;
 
 class DataService : public MessageListener
 {
 public:
     DataService(DataProtocol& protocol, Persistence& persistence, ConnectivityService& connectivityService,
-                std::function<void(const std::string&, const std::string&, const std::string&)>& actuationHandler,
-                std::function<ActuatorStatus(const std::string&, const std::string&)>& actuatorStatusProvider);
+                const ActuatorSetHandler& actuatorSetHandler, const ActuatorGetHandler& actuatorGetHandler);
 
     void messageReceived(std::shared_ptr<Message> message) override;
     const Protocol& getProtocol() override;
@@ -44,7 +45,8 @@ public:
     void addAlarm(const std::string& deviceKey, const std::string& reference, const std::string& value,
                   unsigned long long int rtc);
 
-    void acquireActuatorStatus(const std::string& deviceKey, const std::string& reference);
+    void addActuatorStatus(const std::string& deviceKey, const std::string& reference, const std::string& value,
+                           ActuatorStatus::State state);
 
     void publishSensorReadings();
     void publishAlarms();
@@ -58,8 +60,8 @@ private:
     Persistence& m_persistence;
     ConnectivityService& m_connectivityService;
 
-    std::function<void(const std::string&, const std::string&, const std::string&)>& m_actuationHandler;
-    std::function<ActuatorStatus(const std::string&, const std::string&)>& m_actuatorStatusProvider;
+    ActuatorSetHandler m_actuatorSetHandler;
+    ActuatorGetHandler m_actuatorGetHandler;
 
     static const std::string PERSISTENCE_KEY_DELIMITER;
     static const constexpr unsigned int PUBLISH_BATCH_ITEMS_COUNT = 50;

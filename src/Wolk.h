@@ -151,6 +151,9 @@ private:
 
     static unsigned long long int currentRtc();
 
+    void handleActuatorSetCommand(const std::string& key, const std::string& reference, const std::string& value);
+    void handleActuatorGetCommand(const std::string& key, const std::string& reference);
+
     void registerDevices();
     void registerDevice(const Device& device);
 

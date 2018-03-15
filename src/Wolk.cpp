@@ -107,7 +107,9 @@ void Wolk::addAlarm(const std::string& deviceKey, const std::string& reference, 
 void Wolk::publishActuatorStatus(const std::string& deviceKey, const std::string& reference)
 {
     addToCommandBuffer([=]() -> void {
-        m_dataService->acquireActuatorStatus(deviceKey, reference);
+        const ActuatorStatus actuatorStatus = m_actuatorStatusProvider->operator()(deviceKey, reference);
+
+        m_dataService->addActuatorStatus(deviceKey, reference, actuatorStatus.getValue(), actuatorStatus.getState());
         m_dataService->publishActuatorStatuses();
     });
 }
@@ -161,11 +163,6 @@ void Wolk::publish()
         m_dataService->publishActuatorStatuses();
         m_dataService->publishAlarms();
         m_dataService->publishSensorReadings();
-
-        if (!m_persistence->isEmpty())
-        {
-            publish();
-        }
     });
 }
 
@@ -205,6 +202,27 @@ unsigned long long Wolk::currentRtc()
 {
     auto duration = std::chrono::system_clock::now().time_since_epoch();
     return static_cast<unsigned long long>(std::chrono::duration_cast<std::chrono::seconds>(duration).count());
+}
+
+void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& reference, const std::string& value)
+{
+    addToCommandBuffer([=] {
+        m_actuationHandler->operator()(key, reference, value);
+        const ActuatorStatus actuatorStatus = m_actuatorStatusProvider->operator()(key, reference);
+
+        m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
+        m_dataService->publishActuatorStatuses();
+    });
+}
+
+void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& reference)
+{
+    addToCommandBuffer([=] {
+        const ActuatorStatus actuatorStatus = m_actuatorStatusProvider->operator()(key, reference);
+
+        m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
+        m_dataService->publishActuatorStatuses();
+    });
 }
 
 void Wolk::handleRegistrationResponse(std::shared_ptr<DeviceRegistrationResponse> response)

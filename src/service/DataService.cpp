@@ -28,15 +28,13 @@ namespace wolkabout
 {
 const std::string DataService::PERSISTENCE_KEY_DELIMITER = "+";
 
-DataService::DataService(
-  DataProtocol& protocol, Persistence& persistence, ConnectivityService& connectivityService,
-  std::function<void(const std::string&, const std::string&, const std::string&)>& actuationHandler,
-  std::function<ActuatorStatus(const std::string&, const std::string&)>& actuatorStatusProvider)
+DataService::DataService(DataProtocol& protocol, Persistence& persistence, ConnectivityService& connectivityService,
+                         const ActuatorSetHandler& actuatorSetHandler, const ActuatorGetHandler& actuatorGetHandler)
 : m_protocol{protocol}
 , m_persistence{persistence}
 , m_connectivityService{connectivityService}
-, m_actuationHandler{actuationHandler}
-, m_actuatorStatusProvider{actuatorStatusProvider}
+, m_actuatorSetHandler{actuatorSetHandler}
+, m_actuatorGetHandler{actuatorGetHandler}
 {
 }
 
@@ -58,7 +56,7 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
             return;
         }
 
-        ActuatorStatus status = m_actuatorStatusProvider(deviceKey, command->getReference());
+        m_actuatorGetHandler(deviceKey, command->getReference());
     }
     else if (m_protocol.isActuatorSetMessage(message->getChannel()))
     {
@@ -69,7 +67,7 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
             return;
         }
 
-        m_actuationHandler(deviceKey, command->getReference(), command->getValue());
+        m_actuatorSetHandler(deviceKey, command->getReference(), command->getValue());
     }
     else
     {
@@ -98,12 +96,10 @@ void DataService::addAlarm(const std::string& deviceKey, const std::string& refe
     m_persistence.putAlarm(makePersistenceKey(deviceKey, reference), alarm);
 }
 
-void DataService::acquireActuatorStatus(const std::string& deviceKey, const std::string& reference)
+void DataService::addActuatorStatus(const std::string& deviceKey, const std::string& reference,
+                                    const std::string& value, ActuatorStatus::State state)
 {
-    const ActuatorStatus actuatorStatus = m_actuatorStatusProvider.operator()(deviceKey, reference);
-
-    auto actuatorStatusWithRef =
-      std::make_shared<ActuatorStatus>(actuatorStatus.getValue(), reference, actuatorStatus.getState());
+    auto actuatorStatusWithRef = std::make_shared<ActuatorStatus>(value, reference, state);
 
     m_persistence.putActuatorStatus(makePersistenceKey(deviceKey, reference), actuatorStatusWithRef);
 }
@@ -118,6 +114,7 @@ void DataService::publishSensorReadings()
         if (pair.first.empty() || pair.second.empty())
         {
             LOG(ERROR) << "Unable to parse persistence key: " << key;
+            m_persistence.removeSensorReadings(key, PUBLISH_BATCH_ITEMS_COUNT);
             break;
         }
 
@@ -127,6 +124,11 @@ void DataService::publishSensorReadings()
         {
             m_persistence.removeSensorReadings(key, PUBLISH_BATCH_ITEMS_COUNT);
         }
+    }
+
+    if (!m_persistence.getSensorReadingsKeys().empty())
+    {
+        publishSensorReadings();
     }
 }
 
@@ -140,6 +142,7 @@ void DataService::publishAlarms()
         if (pair.first.empty() || pair.second.empty())
         {
             LOG(ERROR) << "Unable to parse persistence key: " << key;
+            m_persistence.removeAlarms(key, PUBLISH_BATCH_ITEMS_COUNT);
             break;
         }
 
@@ -149,6 +152,11 @@ void DataService::publishAlarms()
         {
             m_persistence.removeAlarms(key, PUBLISH_BATCH_ITEMS_COUNT);
         }
+    }
+
+    if (!m_persistence.getAlarmsKeys().empty())
+    {
+        publishAlarms();
     }
 }
 
@@ -162,6 +170,7 @@ void DataService::publishActuatorStatuses()
         if (pair.first.empty() || pair.second.empty())
         {
             LOG(ERROR) << "Unable to parse persistence key: " << key;
+            m_persistence.removeActuatorStatus(key);
             break;
         }
 
@@ -171,6 +180,11 @@ void DataService::publishActuatorStatuses()
         {
             m_persistence.removeActuatorStatus(key);
         }
+    }
+
+    if (!m_persistence.getGetActuatorStatusesKeys().empty())
+    {
+        publishActuatorStatuses();
     }
 }
 
