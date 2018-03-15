@@ -17,25 +17,19 @@
 #ifndef DEVICESTATUSRESPONSE_H
 #define DEVICESTATUSRESPONSE_H
 
+#include "model/DeviceStatus.h"
+
 namespace wolkabout
 {
 class DeviceStatusResponse
 {
 public:
-    enum class Status
-    {
-        CONNECTED,
-        OFFLINE,
-        SLEEP,
-        SERVICE
-    };
+    DeviceStatusResponse(DeviceStatus status);
 
-    DeviceStatusResponse(DeviceStatusResponse::Status status);
-
-    DeviceStatusResponse::Status getStatus() const;
+    DeviceStatus getStatus() const;
 
 private:
-    const DeviceStatusResponse::Status m_status;
+    const DeviceStatus m_status;
 };
 }    // namespace wolkabout
 

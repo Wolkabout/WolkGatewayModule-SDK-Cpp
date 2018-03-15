@@ -14,14 +14,29 @@
  * limitations under the License.
  */
 
-#include "model/DeviceStatusResponse.h"
+#ifndef STATUSPROTOCOL_H
+#define STATUSPROTOCOL_H
+
+#include "protocol/Protocol.h"
+#include <memory>
+#include <string>
 
 namespace wolkabout
 {
-DeviceStatusResponse::DeviceStatusResponse(DeviceStatus status) : m_status{status} {}
+class DeviceStatusRequest;
+class DeviceStatusResponse;
+class Message;
 
-DeviceStatus DeviceStatusResponse::getStatus() const
+class StatusProtocol : public Protocol
 {
-    return m_status;
-}
+public:
+    virtual bool isStatusRequestMessage(const std::string& topic) const = 0;
+
+    virtual std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
+                                                 std::shared_ptr<DeviceStatusResponse> response) const = 0;
+
+    inline Type getType() const override final { return Protocol::Type::STATUS; }
+};
 }    // namespace wolkabout
+
+#endif    // STATUSPROTOCOL_H

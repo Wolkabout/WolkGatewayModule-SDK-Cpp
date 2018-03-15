@@ -25,6 +25,7 @@
 #include "model/DeviceRegistrationRequestDto.h"
 #include "protocol/json/RegistrationProtocol.h"
 #include "service/DataService.h"
+#include "service/DeviceStatusService.h"
 #include "service/FirmwareUpdateService.h"
 #include "utilities/Logger.h"
 
@@ -135,6 +136,11 @@ void Wolk::addAlarm(const std::string& deviceKey, const std::string& reference, 
 void Wolk::publishActuatorStatus(const std::string& deviceKey, const std::string& reference)
 {
     handleActuatorGetCommand(deviceKey, reference);
+}
+
+void Wolk::addDeviceStatus(const std::string& deviceKey, DeviceStatus status)
+{
+    addToCommandBuffer([=] { m_deviceStatusService->publishDeviceStatus(deviceKey, status); });
 }
 
 void Wolk::connect()
@@ -278,6 +284,8 @@ void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& r
         m_dataService->publishActuatorStatuses();
     });
 }
+
+void Wolk::handleDeviceStatusRequest(const std::string& key) {}
 
 void Wolk::registerDevice(const Device& device)
 {

@@ -29,7 +29,8 @@ public:
     {
         DATA,
         REGISTRATION,
-        FIRMWARE_UPDATE
+        FIRMWARE_UPDATE,
+        STATUS
     };
 
     virtual ~Protocol() = default;

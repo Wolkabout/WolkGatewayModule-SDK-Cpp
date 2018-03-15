@@ -26,8 +26,9 @@
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
 #include "model/DeviceRegistrationResponseDto.h"
+#include "model/DeviceStatus.h"
 #include "protocol/DataProtocol.h"
-#include "service/DataService.h"
+#include "protocol/StatusProtocol.h"
 #include "utilities/CommandBuffer.h"
 
 #include "InboundGatewayMessageHandler.h"
@@ -42,8 +43,9 @@ namespace wolkabout
 typedef std::function<void(const std::string&, const std::string&, const std::string&)> ActuationHandlerFunctor;
 typedef std::function<ActuatorStatus(const std::string&, const std::string&)> ActuationStatusProviderFunctor;
 
-class DataService;
 class ConnectivityService;
+class DataService;
+class DeviceStatusService;
 class InboundMessageHandler;
 class FirmwareUpdateService;
 class FileDownloadService;
@@ -111,6 +113,12 @@ public:
     void publishActuatorStatus(const std::string& deviceKey, const std::string& reference);
 
     /**
+     * @brief addDeviceStatus
+     * @param status
+     */
+    void addDeviceStatus(const std::string& deviceKey, DeviceStatus status);
+
+    /**
      * @brief connect Establishes connection with WolkAbout IoT platform
      */
     void connect();
@@ -153,6 +161,7 @@ private:
 
     void handleActuatorSetCommand(const std::string& key, const std::string& reference, const std::string& value);
     void handleActuatorGetCommand(const std::string& key, const std::string& reference);
+    void handleDeviceStatusRequest(const std::string& key);
 
     void registerDevices();
     void registerDevice(const Device& device);
@@ -167,6 +176,7 @@ private:
     std::unique_ptr<ConnectivityService> m_connectivityService;
 
     std::unique_ptr<DataProtocol> m_dataProtocol;
+    std::unique_ptr<StatusProtocol> m_statusProtocol;
     std::shared_ptr<Persistence> m_persistence;
 
     std::unique_ptr<InboundGatewayMessageHandler> m_inboundMessageHandler;
@@ -180,6 +190,8 @@ private:
     std::function<void(const std::string&, DeviceRegistrationResponse::Result)> m_registrationResponseHandler;
 
     std::shared_ptr<DataService> m_dataService;
+
+    std::shared_ptr<DeviceStatusService> m_deviceStatusService;
 
     std::map<std::string, Device> m_devices;
 

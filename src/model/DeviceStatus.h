@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-#include "model/DeviceStatusResponse.h"
+#ifndef DEVICESTATUS_H
+#define DEVICESTATUS_H
 
 namespace wolkabout
 {
-DeviceStatusResponse::DeviceStatusResponse(DeviceStatus status) : m_status{status} {}
-
-DeviceStatus DeviceStatusResponse::getStatus() const
+enum class DeviceStatus
 {
-    return m_status;
+    CONNECTED,
+    OFFLINE,
+    SLEEP,
+    SERVICE
+};
 }
-}    // namespace wolkabout
+
+#endif    // DEVICESTATUS_H

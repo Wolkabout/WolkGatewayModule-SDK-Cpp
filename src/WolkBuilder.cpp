@@ -27,7 +27,9 @@
 #include "model/FirmwareUpdateCommand.h"
 #include "persistence/Persistence.h"
 #include "persistence/inmemory/InMemoryPersistence.h"
+#include "protocol/json/JsonStatusProtocol.h"
 #include "service/DataService.h"
+#include "service/DeviceStatusService.h"
 #include "service/FileDownloadService.h"
 #include "service/FirmwareUpdateService.h"
 
@@ -96,6 +98,8 @@ std::unique_ptr<Wolk> WolkBuilder::build() const
 
     auto wolk = std::unique_ptr<Wolk>(new Wolk());
 
+    wolk->m_statusProtocol.reset(new JsonStatusProtocol());
+
     wolk->m_persistence = m_persistence;
 
     wolk->m_connectivityService.reset(new MqttConnectivityService(std::make_shared<PahoMqttClient>(), "", "", m_host));
@@ -121,7 +125,12 @@ std::unique_ptr<Wolk> WolkBuilder::build() const
       },
       [&](const std::string& key, const std::string& reference) { wolk->handleActuatorGetCommand(key, reference); });
 
+    wolk->m_deviceStatusService =
+      std::make_shared<DeviceStatusService>(*wolk->m_statusProtocol, *wolk->m_connectivityService,
+                                            [&](const std::string& key) { wolk->handleDeviceStatusRequest(key); });
+
     wolk->m_inboundMessageHandler->addListener(wolk->m_dataService);
+    wolk->m_inboundMessageHandler->addListener(wolk->m_deviceStatusService);
 
     wolk->m_connectivityService->setListener(wolk->m_connectivityManager);
 
