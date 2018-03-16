@@ -74,20 +74,19 @@ WolkBuilder& WolkBuilder::actuatorStatusProvider(std::shared_ptr<ActuatorStatusP
     return *this;
 }
 
-WolkBuilder& WolkBuilder::registrationResponseHandler(
-  const std::function<void(const std::string&, DeviceRegistrationResponse::Result)>& registrationResponseHandler)
+WolkBuilder& WolkBuilder::withPersistence(std::unique_ptr<Persistence> persistence)
 {
-    m_registrationResponseHandler = registrationResponseHandler;
+    m_persistence.reset(persistence.release());
     return *this;
 }
 
-WolkBuilder& WolkBuilder::withPersistence(std::shared_ptr<Persistence> persistence)
+WolkBuilder& WolkBuilder::withDataProtocol(std::unique_ptr<DataProtocol> protocol)
 {
-    m_persistence = persistence;
+    m_dataProtocol.reset(protocol.release());
     return *this;
 }
 
-std::unique_ptr<Wolk> WolkBuilder::build() const
+std::unique_ptr<Wolk> WolkBuilder::build()
 {
     if (!m_actuationHandlerLambda || m_actuationHandler)
     {
@@ -101,12 +100,11 @@ std::unique_ptr<Wolk> WolkBuilder::build() const
 
     auto wolk = std::unique_ptr<Wolk>(new Wolk());
 
-    wolk->m_dataProtocol.reset(new JsonProtocol());
+    wolk->m_dataProtocol.reset(m_dataProtocol.release());
+    wolk->m_statusProtocol.reset(m_statusProtocol.release());
+    wolk->m_registrationProtocol.reset(m_registrationProtocol.release());
 
-    wolk->m_statusProtocol.reset(new JsonStatusProtocol());
-    wolk->m_registrationProtocol.reset(new JsonRegistrationProtocol());
-
-    wolk->m_persistence = m_persistence;
+    wolk->m_persistence.reset(m_persistence.release());
 
     wolk->m_connectivityService.reset(new MqttConnectivityService(std::make_shared<PahoMqttClient>(), "", "", m_host));
 
@@ -151,10 +149,17 @@ std::unique_ptr<Wolk> WolkBuilder::build() const
     return wolk;
 }
 
-wolkabout::WolkBuilder::operator std::unique_ptr<Wolk>() const
+wolkabout::WolkBuilder::operator std::unique_ptr<Wolk>()
 {
     return build();
 }
 
-WolkBuilder::WolkBuilder() : m_host{MESSAGE_BUS_HOST}, m_persistence{new InMemoryPersistence()} {}
+WolkBuilder::WolkBuilder()
+: m_host{MESSAGE_BUS_HOST}
+, m_persistence{new InMemoryPersistence()}
+, m_dataProtocol{new JsonProtocol()}
+, m_statusProtocol{new JsonStatusProtocol()}
+, m_registrationProtocol{new JsonRegistrationProtocol()}
+{
+}
 }    // namespace wolkabout

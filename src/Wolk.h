@@ -181,7 +181,8 @@ private:
     std::unique_ptr<DataProtocol> m_dataProtocol;
     std::unique_ptr<StatusProtocol> m_statusProtocol;
     std::unique_ptr<RegistrationProtocol> m_registrationProtocol;
-    std::shared_ptr<Persistence> m_persistence;
+
+    std::unique_ptr<Persistence> m_persistence;
 
     std::unique_ptr<InboundGatewayMessageHandler> m_inboundMessageHandler;
 

@@ -34,6 +34,9 @@ namespace wolkabout
 class Wolk;
 class UrlFileDownloader;
 class FirmwareInstaller;
+class DataProtocol;
+class StatusProtocol;
+class RegistrationProtocol;
 
 class WolkBuilder final
 {
@@ -94,23 +97,20 @@ public:
     WolkBuilder& actuatorStatusProvider(std::shared_ptr<ActuatorStatusProvider> actuatorStatusProvider);
 
     /**
-     * @brief Sets registration response handler
-     * @param registrationResponseHandler Callable that handles registration
-     * responses
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides
-     * fluent interface)
-     */
-    WolkBuilder& registrationResponseHandler(
-      const std::function<void(const std::string&, DeviceRegistrationResponse::Result)>& registrationResponseHandler);
-
-    /**
      * @brief Sets underlying persistence mechanism to be used<br>
      *        Sample in-memory persistence is used as default
      * @param persistence std::shared_ptr to wolkabout::Persistence implementation
      * @return Reference to current wolkabout::WolkBuilder instance (Provides
      * fluent interface)
      */
-    WolkBuilder& withPersistence(std::shared_ptr<Persistence> persistence);
+    WolkBuilder& withPersistence(std::unique_ptr<Persistence> persistence);
+
+    /**
+     * @brief withDataProtocol Defines which data protocol to use
+     * @param Protocol unique_ptr to wolkabout::DataProtocol implementation
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     */
+    WolkBuilder& withDataProtocol(std::unique_ptr<DataProtocol> protocol);
 
     /**
      * @brief Builds Wolk instance
@@ -122,13 +122,13 @@ public:
      * @throws std::logic_error if actuation handler is not set, and
      * wolkabout::Device has actuator references
      */
-    std::unique_ptr<Wolk> build() const;
+    std::unique_ptr<Wolk> build();
 
     /**
      * @brief operator std::unique_ptr<Wolk> Conversion to wolkabout::wolk as
      * result returns std::unique_ptr to built wolkabout::Wolk instance
      */
-    operator std::unique_ptr<Wolk>() const;
+    operator std::unique_ptr<Wolk>();
 
 private:
     std::string m_host;
@@ -139,9 +139,11 @@ private:
     std::function<ActuatorStatus(const std::string&, const std::string&)> m_actuatorStatusProviderLambda;
     std::shared_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
 
-    std::function<void(const std::string&, DeviceRegistrationResponse::Result)> m_registrationResponseHandler;
+    std::unique_ptr<Persistence> m_persistence;
 
-    std::shared_ptr<Persistence> m_persistence;
+    std::unique_ptr<DataProtocol> m_dataProtocol;
+    std::unique_ptr<StatusProtocol> m_statusProtocol;
+    std::unique_ptr<RegistrationProtocol> m_registrationProtocol;
 
     static const constexpr char* MESSAGE_BUS_HOST = "tcp://localhost:1883";
 };
