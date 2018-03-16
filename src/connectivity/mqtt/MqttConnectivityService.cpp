@@ -25,6 +25,9 @@ MqttConnectivityService::MqttConnectivityService(std::shared_ptr<MqttClient> mqt
 , m_key(std::move(key))
 , m_password(std::move(password))
 , m_host(std::move(host))
+, m_lastWillChannel("")
+, m_lastWillPayload("")
+, m_lastWillRetain(false)
 , m_connected(false)
 {
     m_mqttClient->onMessageReceived([this](std::string topic, std::string message) -> void {
@@ -37,7 +40,7 @@ MqttConnectivityService::MqttConnectivityService(std::shared_ptr<MqttClient> mqt
 
 bool MqttConnectivityService::connect()
 {
-    m_mqttClient->setLastWill(LAST_WILL_TOPIC_ROOT + m_key, "Gone offline");
+    m_mqttClient->setLastWill(m_lastWillChannel, m_lastWillPayload, m_lastWillRetain);
     bool isConnected = m_mqttClient->connect(m_key, m_password, TRUST_STORE, m_host, m_key);
     if (isConnected)
     {
@@ -59,13 +62,26 @@ void MqttConnectivityService::disconnect()
     m_mqttClient->disconnect();
 }
 
+bool MqttConnectivityService::reconnect()
+{
+    disconnect();
+    return connect();
+}
+
 bool MqttConnectivityService::isConnected()
 {
     return m_mqttClient->isConnected();
 }
 
-bool MqttConnectivityService::publish(std::shared_ptr<Message> outboundMessage)
+bool MqttConnectivityService::publish(std::shared_ptr<Message> outboundMessage, bool persistent)
 {
-    return m_mqttClient->publish(outboundMessage->getChannel(), outboundMessage->getContent());
+    return m_mqttClient->publish(outboundMessage->getChannel(), outboundMessage->getContent(), persistent);
+}
+
+void MqttConnectivityService::setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage, bool persistent)
+{
+    m_lastWillChannel = outboundMessage->getChannel();
+    m_lastWillPayload = outboundMessage->getContent();
+    m_lastWillRetain = persistent;
 }
 }    // namespace wolkabout

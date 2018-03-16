@@ -44,10 +44,13 @@ public:
 
     virtual bool connect() = 0;
     virtual void disconnect() = 0;
+    virtual bool reconnect() = 0;
 
     virtual bool isConnected() = 0;
 
-    virtual bool publish(std::shared_ptr<Message> outboundMessage) = 0;
+    virtual bool publish(std::shared_ptr<Message> outboundMessage, bool persistent = false) = 0;
+
+    virtual void setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage, bool persistent = false) = 0;
 
     void setListener(std::weak_ptr<ConnectivityServiceListener> listener);
 

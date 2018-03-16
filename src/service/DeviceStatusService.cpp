@@ -65,4 +65,17 @@ void DeviceStatusService::publishDeviceStatus(const std::string& deviceKey, Devi
         LOG(INFO) << "Status not published for device: " << deviceKey;
     }
 }
+
+void DeviceStatusService::devicesUpdated(const std::vector<std::string>& deviceKeys)
+{
+    auto lastWillMessage = m_protocol.makeLastWillMessage(deviceKeys);
+
+    if (!lastWillMessage)
+    {
+        LOG(WARN) << "Unable to make lastwill message";
+        return;
+    }
+
+    m_connectivityService.setUncontrolledDisonnectMessage(lastWillMessage);
+}
 }

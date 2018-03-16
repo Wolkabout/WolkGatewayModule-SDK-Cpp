@@ -36,10 +36,13 @@ public:
 
     bool connect() override;
     void disconnect() override;
+    bool reconnect() override;
 
     bool isConnected() override;
 
-    bool publish(std::shared_ptr<Message> outboundMessage) override;
+    bool publish(std::shared_ptr<Message> outboundMessage, bool persistent) override;
+
+    void setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage, bool persistent) override;
 
 private:
     std::shared_ptr<MqttClient> m_mqttClient;
@@ -48,9 +51,12 @@ private:
     const std::string m_password;
     const std::string m_host;
 
+    std::string m_lastWillChannel;
+    std::string m_lastWillPayload;
+    bool m_lastWillRetain;
+
     std::atomic_bool m_connected;
 
-    static const constexpr char* LAST_WILL_TOPIC_ROOT = "lastwill/";
     static const constexpr char* TRUST_STORE = "ca.crt";
 };
 }    // namespace wolkabout

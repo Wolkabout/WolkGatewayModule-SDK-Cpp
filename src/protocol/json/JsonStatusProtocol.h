@@ -34,6 +34,8 @@ public:
     std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
                                          std::shared_ptr<DeviceStatusResponse> response) const override;
 
+    std::shared_ptr<Message> makeLastWillMessage(const std::vector<std::string>& deviceKeys) const override;
+
     static const std::string STATUS_RESPONSE_STATE_FIELD;
     static const std::string STATUS_RESPONSE_STATUS_CONNECTED;
     static const std::string STATUS_RESPONSE_STATUS_SLEEP;
@@ -47,7 +49,7 @@ private:
     static const std::string CHANNEL_WILDCARD;
     static const std::string DEVICE_PATH_PREFIX;
 
-    static const std::string LAST_WILL_TOPIC_ROOT;
+    static const std::string LAST_WILL_TOPIC;
     static const std::string DEVICE_STATUS_REQUEST_TOPIC_ROOT;
     static const std::string DEVICE_STATUS_RESPONSE_TOPIC_ROOT;
 

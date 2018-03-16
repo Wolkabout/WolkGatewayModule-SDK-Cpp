@@ -114,6 +114,7 @@ std::unique_ptr<Wolk> WolkBuilder::build() const
 
     wolk->m_connectivityManager = std::make_shared<Wolk::ConnectivityFacade>(*wolk->m_inboundMessageHandler, [&] {
         // wolk->m_platformPublisher->disconnected();
+        wolk->m_connected = false;
         wolk->connect();
     });
 

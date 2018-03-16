@@ -32,7 +32,7 @@ const std::string JsonStatusProtocol::CHANNEL_DELIMITER = "/";
 const std::string JsonStatusProtocol::CHANNEL_WILDCARD = "#";
 const std::string JsonStatusProtocol::DEVICE_PATH_PREFIX = "d/";
 
-const std::string JsonStatusProtocol::LAST_WILL_TOPIC_ROOT = "lastwill/";
+const std::string JsonStatusProtocol::LAST_WILL_TOPIC = "lastwill";
 const std::string JsonStatusProtocol::DEVICE_STATUS_REQUEST_TOPIC_ROOT = "p2d/status/";
 const std::string JsonStatusProtocol::DEVICE_STATUS_RESPONSE_TOPIC_ROOT = "d2p/status/";
 
@@ -112,6 +112,27 @@ std::shared_ptr<Message> JsonStatusProtocol::makeMessage(const std::string& devi
     const std::string payload = jPayload.dump();
 
     return std::make_shared<Message>(payload, topic);
+}
+
+std::shared_ptr<Message> JsonStatusProtocol::makeLastWillMessage(const std::vector<std::string>& deviceKeys) const
+{
+    LOG(TRACE) << METHOD_INFO;
+
+    if (deviceKeys.size() == 1)
+    {
+        const std::string topic = LAST_WILL_TOPIC + CHANNEL_DELIMITER + deviceKeys.front();
+        const std::string payload = "";
+
+        return std::make_shared<Message>(payload, topic);
+    }
+    else
+    {
+        const std::string topic = LAST_WILL_TOPIC;
+        const json jPayload(deviceKeys);
+        const std::string payload = jPayload.dump();
+
+        return std::make_shared<Message>(payload, topic);
+    }
 }
 
 std::string JsonStatusProtocol::extractDeviceKeyFromChannel(const std::string& topic) const

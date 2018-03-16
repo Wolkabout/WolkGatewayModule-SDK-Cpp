@@ -168,6 +168,7 @@ private:
     void registerDevices();
     void registerDevice(const Device& device);
 
+    std::vector<std::string> getDeviceKeys();
     bool deviceExists(const std::string& deviceKey);
     bool sensorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     bool alarmDefinedForDevice(const std::string& deviceKey, const std::string& reference);
@@ -199,6 +200,8 @@ private:
     std::shared_ptr<DeviceRegistrationService> m_deviceRegistrationService;
 
     std::map<std::string, Device> m_devices;
+
+    std::atomic_bool m_connected;
 
     std::unique_ptr<CommandBuffer> m_commandBuffer;
 

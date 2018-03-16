@@ -135,7 +135,7 @@ template <typename T> Log& Log::operator<<(T value)
 
 #define LOG_(level)                       \
     if (wolkabout::Logger::getInstance()) \
-    (*wolkabout::Logger::getInstance()) += wolkabout::Log(level) << METHOD_INFO
+    (*wolkabout::Logger::getInstance()) += wolkabout::Log(level)
 
 #define LOG(level) LOG_(PREPEND_NAMED_SCOPE(level))
 }    // namespace wolkabout

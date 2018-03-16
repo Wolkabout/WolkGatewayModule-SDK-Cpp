@@ -54,6 +54,8 @@ void ConsoleLogger::logEntry(Log& log)
         }
         }
     }
+
+    std::cout << "\n";
 }
 
 void ConsoleLogger::setLogLevel(wolkabout::LogLevel level)

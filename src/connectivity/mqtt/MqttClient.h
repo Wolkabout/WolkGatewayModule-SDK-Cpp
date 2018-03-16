@@ -35,10 +35,10 @@ public:
 
     virtual bool isConnected() = 0;
 
-    virtual void setLastWill(const std::string& topic, const std::string& message) = 0;
+    virtual void setLastWill(const std::string& topic, const std::string& message, bool retained = false) = 0;
 
     virtual bool subscribe(const std::string& topic) = 0;
-    virtual bool publish(const std::string& topic, const std::string& message) = 0;
+    virtual bool publish(const std::string& topic, const std::string& message, bool retained = false) = 0;
 
     void onMessageReceived(OnMessageReceivedCallback onMessageReceived);
 

@@ -40,6 +40,8 @@ public:
 
     void publishDeviceStatus(const std::string& deviceKey, DeviceStatus status);
 
+    void devicesUpdated(const std::vector<std::string>& deviceKeys);
+
 private:
     StatusProtocol& m_protocol;
     ConnectivityService& m_connectivityService;

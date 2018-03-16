@@ -35,6 +35,8 @@ public:
     virtual std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
                                                  std::shared_ptr<DeviceStatusResponse> response) const = 0;
 
+    virtual std::shared_ptr<Message> makeLastWillMessage(const std::vector<std::string>& deviceKeys) const = 0;
+
     inline Type getType() const override final { return Protocol::Type::STATUS; }
 };
 }    // namespace wolkabout

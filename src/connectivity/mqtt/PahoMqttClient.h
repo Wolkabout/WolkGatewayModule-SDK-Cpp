@@ -38,16 +38,17 @@ public:
 
     bool isConnected() override;
 
-    void setLastWill(const std::string& topic, const std::string& message) override;
+    void setLastWill(const std::string& topic, const std::string& message, bool retained) override;
 
     bool subscribe(const std::string& topic) override;
-    bool publish(const std::string& topic, const std::string& message) override;
+    bool publish(const std::string& topic, const std::string& message, bool retained) override;
 
 private:
     std::atomic_bool m_isConnected;
 
     std::string m_lastWillTopic;
     std::string m_lastWillMessage;
+    bool m_lastWillRetain;
 
     std::unique_ptr<mqtt::async_client> m_client;
 

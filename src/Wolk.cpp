@@ -140,7 +140,15 @@ void Wolk::publishActuatorStatus(const std::string& deviceKey, const std::string
 
 void Wolk::addDeviceStatus(const std::string& deviceKey, DeviceStatus status)
 {
-    addToCommandBuffer([=] { m_deviceStatusService->publishDeviceStatus(deviceKey, status); });
+    addToCommandBuffer([=] {
+        if (!deviceExists(deviceKey))
+        {
+            LOG(ERROR) << "Device does not exist: " << deviceKey;
+            return;
+        }
+
+        m_deviceStatusService->publishDeviceStatus(deviceKey, status);
+    });
 }
 
 void Wolk::connect()
@@ -148,6 +156,7 @@ void Wolk::connect()
     addToCommandBuffer([=]() -> void {
         if (m_connectivityService->connect())
         {
+            m_connected = true;
             registerDevices();
 
             for (const auto& kvp : m_devices)
@@ -170,7 +179,10 @@ void Wolk::connect()
 
 void Wolk::disconnect()
 {
-    addToCommandBuffer([=]() -> void { m_connectivityService->disconnect(); });
+    addToCommandBuffer([=]() -> void {
+        m_connected = false;
+        m_connectivityService->disconnect();
+    });
 }
 
 void Wolk::publish()
@@ -201,7 +213,7 @@ void Wolk::addDevice(const Device& device)
 {
     addToCommandBuffer([=] {
         const std::string deviceKey = device.getKey();
-        if (auto it = m_devices.find(deviceKey) != m_devices.end())
+        if (deviceExists(deviceKey))
         {
             LOG(ERROR) << "Device with key '" << deviceKey << "' was already added";
             return;
@@ -209,7 +221,13 @@ void Wolk::addDevice(const Device& device)
 
         m_devices[deviceKey] = device;
 
-        registerDevice(device);
+        m_deviceStatusService->devicesUpdated(getDeviceKeys());
+
+        if (m_connected)
+        {
+            registerDevice(device);
+            m_connectivityService->reconnect();
+        }
     });
 }
 
@@ -224,7 +242,7 @@ void Wolk::removeDevice(const std::string& deviceKey)
     });
 }
 
-Wolk::Wolk()
+Wolk::Wolk() : m_connected{false}
 {
     m_commandBuffer = std::unique_ptr<CommandBuffer>(new CommandBuffer());
 }
@@ -306,6 +324,17 @@ void Wolk::registerDevices()
             registerDevice(kvp.second);
         }
     });
+}
+
+std::vector<std::string> Wolk::getDeviceKeys()
+{
+    std::vector<std::string> keys;
+    for (const auto& kvp : m_devices)
+    {
+        keys.push_back(kvp.first);
+    }
+
+    return keys;
 }
 
 bool Wolk::deviceExists(const std::string& deviceKey)

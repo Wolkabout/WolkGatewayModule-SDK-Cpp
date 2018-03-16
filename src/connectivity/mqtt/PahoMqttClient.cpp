@@ -28,7 +28,10 @@ const unsigned short PahoMqttClient::MQTT_ACTION_COMPLETITION_TIMEOUT_MSEC = 200
 const unsigned short PahoMqttClient::MQTT_KEEP_ALIVE_SEC = 60;
 const unsigned short PahoMqttClient::MQTT_QOS = 2;
 
-PahoMqttClient::PahoMqttClient() : m_isConnected(false), m_lastWillTopic(""), m_lastWillMessage("") {}
+PahoMqttClient::PahoMqttClient()
+: m_isConnected(false), m_lastWillTopic(""), m_lastWillMessage(""), m_lastWillRetain(false)
+{
+}
 
 bool PahoMqttClient::connect(const std::string& username, const std::string& password, const std::string& trustStore,
                              const std::string& host, const std::string& clientId)
@@ -58,7 +61,7 @@ bool PahoMqttClient::connect(const std::string& username, const std::string& pas
         mqtt::will_options willOptions;
         willOptions.set_payload(m_lastWillMessage);
         willOptions.set_qos(MQTT_QOS);
-        willOptions.set_retained(false);
+        willOptions.set_retained(m_lastWillRetain);
         willOptions.set_topic(m_lastWillTopic);
         connectOptions.set_will(willOptions);
     }
@@ -85,7 +88,14 @@ void PahoMqttClient::disconnect()
 {
     if (m_isConnected)
     {
-        m_client->disconnect();
+        try
+        {
+            m_isConnected = false;
+            m_client->disconnect();
+        }
+        catch (mqtt::exception&)
+        {
+        }
     }
 }
 
@@ -94,10 +104,11 @@ bool PahoMqttClient::isConnected()
     return m_isConnected;
 }
 
-void PahoMqttClient::setLastWill(const std::string& topic, const std::string& message)
+void PahoMqttClient::setLastWill(const std::string& topic, const std::string& message, bool retained)
 {
     m_lastWillTopic = topic;
     m_lastWillMessage = message;
+    m_lastWillRetain = retained;
 }
 
 bool PahoMqttClient::subscribe(const std::string& topic)
@@ -125,7 +136,7 @@ bool PahoMqttClient::subscribe(const std::string& topic)
     return true;
 }
 
-bool PahoMqttClient::publish(const std::string& topic, const std::string& message)
+bool PahoMqttClient::publish(const std::string& topic, const std::string& message, bool retained)
 {
     if (!m_isConnected)
     {
@@ -140,6 +151,7 @@ bool PahoMqttClient::publish(const std::string& topic, const std::string& messag
 
         mqtt::message_ptr pubmsg = mqtt::make_message(topic, message.c_str(), strlen(message.c_str()));
         pubmsg->set_qos(MQTT_QOS);
+        pubmsg->set_retained(retained);
 
         mqtt::token_ptr token = m_client->publish(pubmsg);
         token->wait_for(std::chrono::milliseconds(MQTT_ACTION_COMPLETITION_TIMEOUT_MSEC));
