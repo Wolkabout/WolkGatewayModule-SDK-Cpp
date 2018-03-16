@@ -20,8 +20,13 @@
 
 namespace wolkabout
 {
-void MqttClient::onMessageReceived(MqttClient::OnMessageReceivedCallback onMessageReceived)
+void MqttClient::onMessageReceived(MqttClient::OnMessageReceivedCallback callback)
 {
-    m_onMessageReceived = std::move(onMessageReceived);
+    m_onMessageReceived = std::move(callback);
+}
+
+void MqttClient::onConnectionLost(MqttClient::OnConnectionLostCallback callback)
+{
+    m_onConnectionLost = std::move(callback);
 }
 }    // namespace wolkabout

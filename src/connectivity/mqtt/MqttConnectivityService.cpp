@@ -36,6 +36,13 @@ MqttConnectivityService::MqttConnectivityService(std::shared_ptr<MqttClient> mqt
             handler->messageReceived(topic, message);
         }
     });
+
+    m_mqttClient->onConnectionLost([this]() -> void {
+        if (auto handler = m_listener.lock())
+        {
+            handler->connectionLost();
+        }
+    });
 }
 
 bool MqttConnectivityService::connect()
