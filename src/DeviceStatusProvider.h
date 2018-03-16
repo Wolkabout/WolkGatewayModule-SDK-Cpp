@@ -13,37 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef DEVICESTATUSPROVIDER_H
+#define DEVICESTATUSPROVIDER_H
 
-#ifndef ACTUATORCOMMAND_H
-#define ACTUATORCOMMAND_H
+#include "model/DeviceStatus.h"
 
 #include <string>
 
 namespace wolkabout
 {
-class ActuatorCommand
+class DeviceStatusProvider
 {
 public:
-    enum class Type
-    {
-        SET,
-        STATUS
-    };
+    virtual ~DeviceStatusProvider() = default;
 
-    ActuatorCommand();
-    ActuatorCommand(ActuatorCommand::Type type, std::string reference, std::string value);
-
-    virtual ~ActuatorCommand() = default;
-
-    ActuatorCommand::Type getType() const;
-    const std::string& getReference() const;
-    const std::string& getValue() const;
+    DeviceStatus operator()(const std::string& deviceKey) { return getStatus(deviceKey); }
 
 private:
-    ActuatorCommand::Type m_type;
-    std::string m_reference;
-    std::string m_value;
+    /**
+     * @brief Device status provider callback<br>
+     *        Must be implemented as non blocking<br>
+     *        Must be implemented as thread safe
+     * @param deviceKey Key of the device which has the acuator
+     * @param reference Actuator reference
+     * @return DeviceStatus of requested actuator
+     */
+    virtual DeviceStatus getStatus(const std::string& deviceKey) = 0;
 };
 }    // namespace wolkabout
 
-#endif
+#endif    // DEVICESTATUSPROVIDER_H

@@ -54,7 +54,6 @@ private:
     static const std::string CHANNEL_DELIMITER;
     static const std::string CHANNEL_WILDCARD;
 
-    static const std::string GATEWAY_TYPE;
     static const std::string DEVICE_TYPE;
     static const std::string REFERENCE_TYPE;
     static const std::string DEVICE_TO_PLATFORM_TYPE;

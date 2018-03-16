@@ -35,7 +35,6 @@ const std::string JsonProtocol::NAME = "JsonProtocol";
 const std::string JsonProtocol::CHANNEL_DELIMITER = "/";
 const std::string JsonProtocol::CHANNEL_WILDCARD = "#";
 
-const std::string JsonProtocol::GATEWAY_TYPE = "g";
 const std::string JsonProtocol::DEVICE_TYPE = "d";
 const std::string JsonProtocol::REFERENCE_TYPE = "r";
 const std::string JsonProtocol::DEVICE_TO_PLATFORM_TYPE = "d2p";

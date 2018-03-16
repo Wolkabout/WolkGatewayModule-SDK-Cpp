@@ -32,6 +32,8 @@ class InboundGatewayMessageHandler : public InboundMessageHandler
 public:
     InboundGatewayMessageHandler();
 
+    ~InboundGatewayMessageHandler();
+
     void messageReceived(const std::string& channel, const std::string& message) override;
 
     std::vector<std::string> getChannels() const override;

@@ -26,6 +26,11 @@ namespace wolkabout
 {
 InboundGatewayMessageHandler::InboundGatewayMessageHandler() : m_commandBuffer{new CommandBuffer()} {}
 
+InboundGatewayMessageHandler::~InboundGatewayMessageHandler()
+{
+    m_commandBuffer->stop();
+}
+
 void InboundGatewayMessageHandler::messageReceived(const std::string& channel, const std::string& payload)
 {
     LOG(TRACE) << "Message received on channel: '" << channel << "' : '" << payload << "'";

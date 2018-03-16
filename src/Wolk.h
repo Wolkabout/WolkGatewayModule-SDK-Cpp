@@ -19,10 +19,8 @@
 
 #include "ActuationHandler.h"
 #include "ActuatorStatusProvider.h"
+#include "InboundGatewayMessageHandler.h"
 #include "WolkBuilder.h"
-#include "model/ActuatorCommand.h"
-#include "model/ActuatorGetCommand.h"
-#include "model/ActuatorSetCommand.h"
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
 #include "model/DeviceRegistrationResponse.h"
@@ -32,18 +30,14 @@
 #include "protocol/StatusProtocol.h"
 #include "utilities/CommandBuffer.h"
 
-#include "InboundGatewayMessageHandler.h"
-
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace wolkabout
 {
-typedef std::function<void(const std::string&, const std::string&, const std::string&)> ActuationHandlerFunctor;
-typedef std::function<ActuatorStatus(const std::string&, const std::string&)> ActuationStatusProviderFunctor;
-
 class ConnectivityService;
 class DataService;
 class DeviceStatusService;
@@ -51,14 +45,13 @@ class DeviceRegistrationService;
 class InboundMessageHandler;
 class FirmwareUpdateService;
 class FileDownloadService;
-class OutboundServiceDataHandler;
 
 class Wolk
 {
     friend class WolkBuilder;
 
 public:
-    virtual ~Wolk() = default;
+    ~Wolk();
 
     /**
      * @brief Initiates wolkabout::WolkBuilder that configures device to connect
@@ -188,16 +181,17 @@ private:
 
     std::shared_ptr<ConnectivityFacade> m_connectivityManager;
 
-    std::shared_ptr<ActuationHandlerFunctor> m_actuationHandler;
+    std::function<void(const std::string&, const std::string&, const std::string&)> m_actuationHandlerLambda;
+    std::shared_ptr<ActuationHandler> m_actuationHandler;
 
-    std::shared_ptr<ActuationStatusProviderFunctor> m_actuatorStatusProvider;
+    std::function<ActuatorStatus(const std::string&, const std::string&)> m_actuatorStatusProviderLambda;
+    std::shared_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
 
-    std::function<DeviceStatus(const std::string&)> m_deviceStatusProvider;
+    std::function<DeviceStatus(const std::string&)> m_deviceStatusProviderLambda;
+    std::shared_ptr<DeviceStatusProvider> m_deviceStatusProvider;
 
     std::shared_ptr<DataService> m_dataService;
-
     std::shared_ptr<DeviceStatusService> m_deviceStatusService;
-
     std::shared_ptr<DeviceRegistrationService> m_deviceRegistrationService;
 
     std::map<std::string, Device> m_devices;

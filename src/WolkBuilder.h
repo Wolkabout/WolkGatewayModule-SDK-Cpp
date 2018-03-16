@@ -19,9 +19,11 @@
 
 #include "ActuationHandler.h"
 #include "ActuatorStatusProvider.h"
+#include "DeviceStatusProvider.h"
 #include "connectivity/ConnectivityService.h"
+#include "model/ActuatorStatus.h"
 #include "model/Device.h"
-#include "model/DeviceRegistrationResponse.h"
+#include "model/DeviceStatus.h"
 #include "persistence/Persistence.h"
 
 #include <cstdint>
@@ -97,6 +99,24 @@ public:
     WolkBuilder& actuatorStatusProvider(std::shared_ptr<ActuatorStatusProvider> actuatorStatusProvider);
 
     /**
+     * @brief Sets device status provider
+     * @param deviceStatusProvider Callable that provides DeviceStatus by device key
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
+     */
+    WolkBuilder& deviceStatusProvider(
+      const std::function<DeviceStatus(const std::string& deviceKey)>& deviceStatusProvider);
+
+    /**
+     * @brief Sets device status provider
+     * @param deviceStatusProvider Implementation that provides DeviceStatus
+     * by device key
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
+     */
+    WolkBuilder& deviceStatusProvider(std::shared_ptr<DeviceStatusProvider> deviceStatusProvider);
+
+    /**
      * @brief Sets underlying persistence mechanism to be used<br>
      *        Sample in-memory persistence is used as default
      * @param persistence std::shared_ptr to wolkabout::Persistence implementation
@@ -138,6 +158,9 @@ private:
 
     std::function<ActuatorStatus(const std::string&, const std::string&)> m_actuatorStatusProviderLambda;
     std::shared_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
+
+    std::function<DeviceStatus(const std::string&)> m_deviceStatusProviderLambda;
+    std::shared_ptr<DeviceStatusProvider> m_deviceStatusProvider;
 
     std::unique_ptr<Persistence> m_persistence;
 

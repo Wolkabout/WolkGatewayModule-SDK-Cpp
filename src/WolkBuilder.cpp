@@ -52,12 +52,14 @@ WolkBuilder& WolkBuilder::actuationHandler(
   const std::function<void(const std::string&, const std::string&, const std::string&)>& actuationHandler)
 {
     m_actuationHandlerLambda = actuationHandler;
+    m_actuationHandler.reset();
     return *this;
 }
 
 WolkBuilder& WolkBuilder::actuationHandler(std::shared_ptr<ActuationHandler> actuationHandler)
 {
     m_actuationHandler = actuationHandler;
+    m_actuationHandlerLambda = nullptr;
     return *this;
 }
 
@@ -65,12 +67,29 @@ WolkBuilder& WolkBuilder::actuatorStatusProvider(
   const std::function<ActuatorStatus(const std::string&, const std::string&)>& actuatorStatusProvider)
 {
     m_actuatorStatusProviderLambda = actuatorStatusProvider;
+    m_actuatorStatusProvider.reset();
     return *this;
 }
 
 WolkBuilder& WolkBuilder::actuatorStatusProvider(std::shared_ptr<ActuatorStatusProvider> actuatorStatusProvider)
 {
     m_actuatorStatusProvider = actuatorStatusProvider;
+    m_actuatorStatusProviderLambda = nullptr;
+    return *this;
+}
+
+WolkBuilder& WolkBuilder::deviceStatusProvider(
+  const std::function<DeviceStatus(const std::string& deviceKey)>& deviceStatusProvider)
+{
+    m_deviceStatusProviderLambda = deviceStatusProvider;
+    m_deviceStatusProvider.reset();
+    return *this;
+}
+
+WolkBuilder& WolkBuilder::deviceStatusProvider(std::shared_ptr<DeviceStatusProvider> deviceStatusProvider)
+{
+    m_deviceStatusProvider = deviceStatusProvider;
+    m_deviceStatusProviderLambda = nullptr;
     return *this;
 }
 
@@ -88,14 +107,19 @@ WolkBuilder& WolkBuilder::withDataProtocol(std::unique_ptr<DataProtocol> protoco
 
 std::unique_ptr<Wolk> WolkBuilder::build()
 {
-    if (!m_actuationHandlerLambda || m_actuationHandler)
+    if (!m_actuationHandlerLambda && !m_actuationHandler)
     {
         throw std::logic_error("Actuation handler not set.");
     }
 
-    if (!m_actuatorStatusProviderLambda || m_actuatorStatusProvider)
+    if (!m_actuatorStatusProviderLambda && !m_actuatorStatusProvider)
     {
         throw std::logic_error("Actuator status provider not set.");
+    }
+
+    if (!m_deviceStatusProviderLambda && !m_deviceStatusProvider)
+    {
+        throw std::logic_error("Device status provider not set.");
     }
 
     auto wolk = std::unique_ptr<Wolk>(new Wolk());
@@ -111,17 +135,20 @@ std::unique_ptr<Wolk> WolkBuilder::build()
     wolk->m_inboundMessageHandler.reset(new InboundGatewayMessageHandler());
 
     wolk->m_connectivityManager = std::make_shared<Wolk::ConnectivityFacade>(*wolk->m_inboundMessageHandler, [&] {
-        // wolk->m_platformPublisher->disconnected();
         wolk->m_connected = false;
         wolk->connect();
     });
 
     wolk->m_connectivityService->setListener(wolk->m_connectivityManager);
 
-    wolk->m_actuationHandler = std::make_shared<decltype(m_actuationHandlerLambda)>(m_actuationHandlerLambda);
-    // TODO !!!
-    wolk->m_actuatorStatusProvider =
-      std::make_shared<decltype(m_actuatorStatusProviderLambda)>(m_actuatorStatusProviderLambda);
+    wolk->m_actuationHandler = m_actuationHandler;
+    wolk->m_actuationHandlerLambda = m_actuationHandlerLambda;
+
+    wolk->m_actuatorStatusProvider = m_actuatorStatusProvider;
+    wolk->m_actuatorStatusProviderLambda = m_actuatorStatusProviderLambda;
+
+    wolk->m_deviceStatusProvider = m_deviceStatusProvider;
+    wolk->m_deviceStatusProviderLambda = m_deviceStatusProviderLambda;
 
     wolk->m_dataService = std::make_shared<DataService>(
       *wolk->m_dataProtocol, *wolk->m_persistence, *wolk->m_connectivityService,

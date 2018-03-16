@@ -19,7 +19,6 @@
 #include "ActuatorStatusProvider.h"
 #include "WolkBuilder.h"
 #include "connectivity/ConnectivityService.h"
-#include "model/ActuatorCommand.h"
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
 #include "service/DataService.h"
@@ -242,9 +241,11 @@ void Wolk::removeDevice(const std::string& deviceKey)
     });
 }
 
-Wolk::Wolk() : m_connected{false}
+Wolk::Wolk() : m_connected{false}, m_commandBuffer{new CommandBuffer()} {}
+
+Wolk::~Wolk()
 {
-    m_commandBuffer = std::unique_ptr<CommandBuffer>(new CommandBuffer());
+    m_commandBuffer->stop();
 }
 
 void Wolk::addToCommandBuffer(std::function<void()> command)
@@ -273,8 +274,27 @@ void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& r
             return;
         }
 
-        m_actuationHandler->operator()(key, reference, value);
-        const ActuatorStatus actuatorStatus = m_actuatorStatusProvider->operator()(key, reference);
+        if (m_actuationHandler)
+        {
+            m_actuationHandler->operator()(key, reference, value);
+        }
+        else if (m_actuationHandlerLambda)
+        {
+            m_actuationHandlerLambda(key, reference, value);
+        }
+
+        const ActuatorStatus actuatorStatus = [&] {
+            if (m_actuatorStatusProvider)
+            {
+                return m_actuatorStatusProvider->operator()(key, reference);
+            }
+            else if (m_actuatorStatusProviderLambda)
+            {
+                return m_actuatorStatusProviderLambda(key, reference);
+            }
+
+            return ActuatorStatus("", ActuatorStatus::State::ERROR);
+        }();
 
         m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
         m_dataService->publishActuatorStatuses();
@@ -296,7 +316,18 @@ void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& r
             return;
         }
 
-        const ActuatorStatus actuatorStatus = m_actuatorStatusProvider->operator()(key, reference);
+        const ActuatorStatus actuatorStatus = [&] {
+            if (m_actuatorStatusProvider)
+            {
+                return m_actuatorStatusProvider->operator()(key, reference);
+            }
+            else if (m_actuatorStatusProviderLambda)
+            {
+                return m_actuatorStatusProviderLambda(key, reference);
+            }
+
+            return ActuatorStatus("", ActuatorStatus::State::ERROR);
+        }();
 
         m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
         m_dataService->publishActuatorStatuses();
@@ -306,7 +337,19 @@ void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& r
 void Wolk::handleDeviceStatusRequest(const std::string& key)
 {
     addToCommandBuffer([=] {
-        const DeviceStatus status = m_deviceStatusProvider(key);
+        const DeviceStatus status = [&] {
+            if (m_deviceStatusProvider)
+            {
+                return m_deviceStatusProvider->operator()(key);
+            }
+            else if (m_deviceStatusProviderLambda)
+            {
+                return m_deviceStatusProviderLambda(key);
+            }
+
+            return DeviceStatus::OFFLINE;
+        }();
+
         m_deviceStatusService->publishDeviceStatus(key, status);
     });
 }
