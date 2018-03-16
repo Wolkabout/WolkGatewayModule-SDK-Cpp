@@ -21,7 +21,7 @@
 #include "ActuatorStatusProvider.h"
 #include "connectivity/ConnectivityService.h"
 #include "model/Device.h"
-#include "model/DeviceRegistrationResponseDto.h"
+#include "model/DeviceRegistrationResponse.h"
 #include "persistence/Persistence.h"
 
 #include <cstdint>

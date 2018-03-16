@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-#include "model/DeviceRegistrationResponseDto.h"
-
-#include <utility>
+#include "DeviceReregistrationResponse.h"
 
 namespace wolkabout
 {
-DeviceRegistrationResponse::DeviceRegistrationResponse(std::string reference, DeviceRegistrationResponse::Result result)
-: m_reference(std::move(reference)), m_result(std::move(result))
+DeviceReregistrationResponse::DeviceReregistrationResponse(DeviceReregistrationResponse::Result result)
+: m_result{result}
 {
 }
 
-const std::string& DeviceRegistrationResponse::getReference() const
-{
-    return m_reference;
-}
-
-DeviceRegistrationResponse::Result DeviceRegistrationResponse::getResult() const
+DeviceReregistrationResponse::Result DeviceReregistrationResponse::getResult() const
 {
     return m_result;
 }

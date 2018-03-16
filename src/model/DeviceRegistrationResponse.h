@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef DEVICEREGISTRATIONRESPONSEDTO_H
-#define DEVICEREGISTRATIONRESPONSEDTO_H
-
-#include <string>
+#ifndef DEVICEREGISTRATIONRESPONSE_H
+#define DEVICEREGISTRATIONRESPONSE_H
 
 namespace wolkabout
 {
@@ -36,18 +34,15 @@ public:
     };
 
     DeviceRegistrationResponse() = default;
-    DeviceRegistrationResponse(std::string reference, DeviceRegistrationResponse::Result result);
+    DeviceRegistrationResponse(DeviceRegistrationResponse::Result result);
 
     virtual ~DeviceRegistrationResponse() = default;
-
-    const std::string& getReference() const;
 
     DeviceRegistrationResponse::Result getResult() const;
 
 private:
-    const std::string m_reference;
     DeviceRegistrationResponse::Result m_result;
 };
 }    // namespace wolkabout
 
-#endif    // DEVICEREGISTRATIONRESPONSEDTO_H
+#endif    // DEVICEREGISTRATIONRESPONSE_H

@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef DEVICEREREGISTRATIONRESPONSEDTO_H
-#define DEVICEREREGISTRATIONRESPONSEDTO_H
+#include "model/DeviceRegistrationResponse.h"
+
+#include <utility>
 
 namespace wolkabout
 {
-class DeviceReregistrationResponse
+DeviceRegistrationResponse::DeviceRegistrationResponse(DeviceRegistrationResponse::Result result)
+: m_result(std::move(result))
 {
-public:
-    enum class Result
-    {
-        OK
-    };
+}
 
-    DeviceReregistrationResponse() = default;
-    DeviceReregistrationResponse(DeviceReregistrationResponse::Result result);
-
-    virtual ~DeviceReregistrationResponse() = default;
-
-    DeviceReregistrationResponse::Result getResult() const;
-
-private:
-    DeviceReregistrationResponse::Result m_result;
-};
+DeviceRegistrationResponse::Result DeviceRegistrationResponse::getResult() const
+{
+    return m_result;
+}
 }    // namespace wolkabout
-
-#endif    // DEVICEREREGISTRATIONRESPONSEDTO_H

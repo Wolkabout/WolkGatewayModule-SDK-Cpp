@@ -14,38 +14,36 @@
  * limitations under the License.
  */
 
-#ifndef DEVICESTATUSSERVICE_H
-#define DEVICESTATUSSERVICE_H
+#ifndef DEVICEREGISTRATIONSERVICE_H
+#define DEVICEREGISTRATIONSERVICE_H
 
 #include "InboundMessageHandler.h"
-#include "model/DeviceStatus.h"
-
-#include <string>
+#include "model/DeviceRegistrationResponse.h"
 
 namespace wolkabout
 {
-class StatusProtocol;
 class ConnectivityService;
+class RegistrationProtocol;
+class Device;
 
-typedef std::function<void(const std::string&)> StatusRequestHandler;
+typedef std::function<void(const std::string&, DeviceRegistrationResponse::Result)> RegistrationResponseHandler;
 
-class DeviceStatusService : public MessageListener
+class DeviceRegistrationService : public MessageListener
 {
 public:
-    DeviceStatusService(StatusProtocol& protocol, ConnectivityService& connectivityService,
-                        const StatusRequestHandler& statusRequestHandler);
+    DeviceRegistrationService(RegistrationProtocol& protocol, ConnectivityService& connectivityService,
+                              const RegistrationResponseHandler& registrationResponseHandler);
 
     void messageReceived(std::shared_ptr<Message> message) override;
     const Protocol& getProtocol() override;
 
-    void publishDeviceStatus(const std::string& deviceKey, DeviceStatus status);
+    void publishRegistrationRequest(const Device& device);
 
 private:
-    StatusProtocol& m_protocol;
+    RegistrationProtocol& m_protocol;
     ConnectivityService& m_connectivityService;
-
-    StatusRequestHandler m_statusRequestHandler;
+    RegistrationResponseHandler m_registrationResponseHandler;
 };
 }
 
-#endif    // DEVICESTATUSSERVICE_H
+#endif    // DEVICEREGISTRATIONSERVICE_H

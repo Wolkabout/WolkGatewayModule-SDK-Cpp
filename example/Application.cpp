@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+#include "Configuration.h"
 #include "Wolk.h"
 #include "model/DeviceManifest.h"
 #include "service/FirmwareInstaller.h"
-#include "utilities/Configuration.h"
 #include "utilities/ConsoleLogger.h"
 
 #include <chrono>
@@ -112,31 +112,6 @@ int main(int /* argc */, char** /* argv */)
 
     std::map<std::string, std::shared_ptr<ActuatorHandler>> handlers;
 
-    for (const auto& actuator : configuration.getManifest().getActuators())
-    {
-        std::shared_ptr<ActuatorHandler> handler;
-        switch (actuator.getDataType())
-        {
-        case wolkabout::ActuatorManifest::DataType::BOOLEAN:
-        {
-            handler.reset(new ActuatorTemplateHandler<bool>());
-            break;
-        }
-        case wolkabout::ActuatorManifest::DataType::NUMERIC:
-        {
-            handler.reset(new ActuatorTemplateHandler<double>());
-            break;
-        }
-        case wolkabout::ActuatorManifest::DataType::STRING:
-        {
-            handler.reset(new ActuatorTemplateHandler<std::string>());
-            break;
-        }
-        }
-
-        handlers[actuator.getReference()] = handler;
-    }
-
     std::unique_ptr<wolkabout::Wolk> wolk =
       wolkabout::Wolk::newBuilder()
         .actuationHandler(
@@ -161,7 +136,7 @@ int main(int /* argc */, char** /* argv */)
 
               return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
           })
-        .host(configuration.getPlatformMqttUri())
+        .host(configuration.getLocalMqttUri())
         .build();
 
     wolk->connect();

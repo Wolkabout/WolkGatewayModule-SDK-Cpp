@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "model/DeviceRegistrationRequestDto.h"
+#include "model/DeviceRegistrationRequest.h"
 #include "model/Device.h"
 #include "model/DeviceManifest.h"
 

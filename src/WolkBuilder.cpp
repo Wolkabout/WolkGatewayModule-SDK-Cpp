@@ -27,8 +27,11 @@
 #include "model/FirmwareUpdateCommand.h"
 #include "persistence/Persistence.h"
 #include "persistence/inmemory/InMemoryPersistence.h"
+#include "protocol/json/JsonProtocol.h"
+#include "protocol/json/JsonRegistrationProtocol.h"
 #include "protocol/json/JsonStatusProtocol.h"
 #include "service/DataService.h"
+#include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
 #include "service/FileDownloadService.h"
 #include "service/FirmwareUpdateService.h"
@@ -98,7 +101,10 @@ std::unique_ptr<Wolk> WolkBuilder::build() const
 
     auto wolk = std::unique_ptr<Wolk>(new Wolk());
 
+    wolk->m_dataProtocol.reset(new JsonProtocol());
+
     wolk->m_statusProtocol.reset(new JsonStatusProtocol());
+    wolk->m_registrationProtocol.reset(new JsonRegistrationProtocol());
 
     wolk->m_persistence = m_persistence;
 
@@ -129,8 +135,15 @@ std::unique_ptr<Wolk> WolkBuilder::build() const
       std::make_shared<DeviceStatusService>(*wolk->m_statusProtocol, *wolk->m_connectivityService,
                                             [&](const std::string& key) { wolk->handleDeviceStatusRequest(key); });
 
+    wolk->m_deviceRegistrationService = std::make_shared<DeviceRegistrationService>(
+      *wolk->m_registrationProtocol, *wolk->m_connectivityService,
+      [&](const std::string& key, DeviceRegistrationResponse::Result result) {
+          wolk->handleRegistrationResponse(key, result);
+      });
+
     wolk->m_inboundMessageHandler->addListener(wolk->m_dataService);
     wolk->m_inboundMessageHandler->addListener(wolk->m_deviceStatusService);
+    wolk->m_inboundMessageHandler->addListener(wolk->m_deviceRegistrationService);
 
     wolk->m_connectivityService->setListener(wolk->m_connectivityManager);
 

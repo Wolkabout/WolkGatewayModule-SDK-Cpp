@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef DEVICEREGISTRATIONREQUESTDTO_H
-#define DEVICEREGISTRATIONREQUESTDTO_H
+#ifndef DEVICEREGISTRATIONREQUEST_H
+#define DEVICEREGISTRATIONREQUEST_H
 
 #include "model/Device.h"
 #include "model/DeviceManifest.h"
@@ -43,4 +43,4 @@ private:
 };
 }    // namespace wolkabout
 
-#endif    // DEVICEREGISTRATIONDTO_H
+#endif    // DEVICEREGISTRATION_H

@@ -25,9 +25,10 @@
 #include "model/ActuatorSetCommand.h"
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
-#include "model/DeviceRegistrationResponseDto.h"
+#include "model/DeviceRegistrationResponse.h"
 #include "model/DeviceStatus.h"
 #include "protocol/DataProtocol.h"
+#include "protocol/RegistrationProtocol.h"
 #include "protocol/StatusProtocol.h"
 #include "utilities/CommandBuffer.h"
 
@@ -46,6 +47,7 @@ typedef std::function<ActuatorStatus(const std::string&, const std::string&)> Ac
 class ConnectivityService;
 class DataService;
 class DeviceStatusService;
+class DeviceRegistrationService;
 class InboundMessageHandler;
 class FirmwareUpdateService;
 class FileDownloadService;
@@ -171,12 +173,13 @@ private:
     bool alarmDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     bool actuatorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
 
-    void handleRegistrationResponse(std::shared_ptr<DeviceRegistrationResponse> response);
+    void handleRegistrationResponse(const std::string& deviceKey, DeviceRegistrationResponse::Result result);
 
     std::unique_ptr<ConnectivityService> m_connectivityService;
 
     std::unique_ptr<DataProtocol> m_dataProtocol;
     std::unique_ptr<StatusProtocol> m_statusProtocol;
+    std::unique_ptr<RegistrationProtocol> m_registrationProtocol;
     std::shared_ptr<Persistence> m_persistence;
 
     std::unique_ptr<InboundGatewayMessageHandler> m_inboundMessageHandler;
@@ -187,11 +190,13 @@ private:
 
     std::shared_ptr<ActuationStatusProviderFunctor> m_actuatorStatusProvider;
 
-    std::function<void(const std::string&, DeviceRegistrationResponse::Result)> m_registrationResponseHandler;
+    std::function<DeviceStatus(const std::string&)> m_deviceStatusProvider;
 
     std::shared_ptr<DataService> m_dataService;
 
     std::shared_ptr<DeviceStatusService> m_deviceStatusService;
+
+    std::shared_ptr<DeviceRegistrationService> m_deviceRegistrationService;
 
     std::map<std::string, Device> m_devices;
 

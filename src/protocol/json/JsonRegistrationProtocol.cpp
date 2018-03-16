@@ -14,64 +14,47 @@
  * limitations under the License.
  */
 
-#include "RegistrationProtocol.h"
-#include "model/DeviceRegistrationRequestDto.h"
-#include "model/DeviceRegistrationResponseDto.h"
-#include "model/DeviceReregistrationResponseDto.h"
+#include "protocol/json/JsonRegistrationProtocol.h"
+#include "model/DeviceRegistrationRequest.h"
+#include "model/DeviceRegistrationResponse.h"
+#include "model/DeviceReregistrationResponse.h"
 #include "model/Message.h"
 #include "utilities/Logger.h"
 #include "utilities/StringUtils.h"
 #include "utilities/json.hpp"
 
-#include <algorithm>
-#include <stdexcept>
+#include <cassert>
 
 using nlohmann::json;
 
 namespace wolkabout
 {
-const std::string RegistrationProtocol::CHANNEL_DELIMITER = "/";
-const std::string RegistrationProtocol::CHANNEL_WILDCARD = "#";
+const std::string JsonRegistrationProtocol::NAME = "JsonRegistrationProtocol";
 
-const std::string RegistrationProtocol::DEVICE_TO_PLATFORM_DIRECTION = "d2p";
-const std::string RegistrationProtocol::PLATFORM_TO_DEVICE_DIRECTION = "p2d";
+const std::string JsonRegistrationProtocol::CHANNEL_DELIMITER = "/";
+const std::string JsonRegistrationProtocol::CHANNEL_WILDCARD = "#";
+const std::string JsonRegistrationProtocol::DEVICE_PATH_PREFIX = "d/";
+const std::string JsonRegistrationProtocol::DEVICE_TO_PLATFORM_DIRECTION = "d2p/";
+const std::string JsonRegistrationProtocol::PLATFORM_TO_DEVICE_DIRECTION = "p2d/";
 
-const std::string RegistrationProtocol::GATEWAY_PATH_PREFIX = "g";
-const std::string RegistrationProtocol::DEVICE_PATH_PREFIX = "d";
-const std::string RegistrationProtocol::REFERENCE_PATH_PREFIX = "r";
+const std::string JsonRegistrationProtocol::DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT = "d2p/register_device/";
+const std::string JsonRegistrationProtocol::DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT = "p2d/register_device/";
+const std::string JsonRegistrationProtocol::DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT = "p2d/reregister_device/";
+const std::string JsonRegistrationProtocol::DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT = "d2p/reregister_device/";
 
-const std::string RegistrationProtocol::REGISTER_DEVICE_TYPE = "register_device";
-const std::string RegistrationProtocol::REREGISTER_DEVICE_TYPE = "reregister_device";
+const std::vector<std::string> JsonRegistrationProtocol::INBOUND_CHANNELS = {
+  DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_WILDCARD,
+  DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_WILDCARD};
 
-const std::string RegistrationProtocol::DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT =
-  DEVICE_TO_PLATFORM_DIRECTION + CHANNEL_DELIMITER + REGISTER_DEVICE_TYPE + CHANNEL_DELIMITER;
-const std::string RegistrationProtocol::DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT =
-  DEVICE_TO_PLATFORM_DIRECTION + CHANNEL_DELIMITER + REREGISTER_DEVICE_TYPE + CHANNEL_DELIMITER;
-
-const std::string RegistrationProtocol::DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT =
-  PLATFORM_TO_DEVICE_DIRECTION + CHANNEL_DELIMITER + REGISTER_DEVICE_TYPE + CHANNEL_DELIMITER;
-const std::string RegistrationProtocol::DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT =
-  PLATFORM_TO_DEVICE_DIRECTION + CHANNEL_DELIMITER + REREGISTER_DEVICE_TYPE + CHANNEL_DELIMITER;
-
-const std::string RegistrationProtocol::REGISTRATION_RESPONSE_OK = "OK";
-const std::string RegistrationProtocol::REGISTRATION_RESPONSE_ERROR_KEY_CONFLICT = "ERROR_KEY_CONFLICT";
-const std::string RegistrationProtocol::REGISTRATION_RESPONSE_ERROR_MANIFEST_CONFLICT = "ERROR_MANIFEST_CONFLICT";
-const std::string RegistrationProtocol::REGISTRATION_RESPONSE_ERROR_MAX_NUMBER_OF_DEVICES_EXCEEDED =
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_OK = "OK";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_KEY_CONFLICT = "ERROR_KEY_CONFLICT";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_MANIFEST_CONFLICT = "ERROR_MANIFEST_CONFLICT";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_MAX_NUMBER_OF_DEVICES_EXCEEDED =
   "ERROR_MAXIMUM_NUMBER_OF_DEVICES_EXCEEDED";
-const std::string RegistrationProtocol::REGISTRATION_RESPONSE_ERROR_READING_PAYLOAD = "ERROR_READING_PAYLOAD";
-const std::string RegistrationProtocol::REGISTRATION_RESPONSE_ERROR_GATEWAY_NOT_FOUND = "ERROR_GATEWAY_NOT_FOUND";
-const std::string RegistrationProtocol::REGISTRATION_RESPONSE_ERROR_NO_GATEWAY_MANIFEST = "ERROR_NO_GATEWAY_MANIFEST";
-
-const std::vector<std::string> RegistrationProtocol::m_devicTopics{
-  DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + CHANNEL_WILDCARD,
-  DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT + CHANNEL_WILDCARD};
-const std::vector<std::string> RegistrationProtocol::m_platformTopics{
-  DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + CHANNEL_WILDCARD,
-  DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT + CHANNEL_WILDCARD};
-const std::vector<std::string> RegistrationProtocol::m_deviceMessageTypes{DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT,
-                                                                          DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT};
-const std::vector<std::string> RegistrationProtocol::m_platformMessageTypes{DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT,
-                                                                            DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT};
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_READING_PAYLOAD = "ERROR_READING_PAYLOAD";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_GATEWAY_NOT_FOUND = "ERROR_GATEWAY_NOT_FOUND";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_NO_GATEWAY_MANIFEST =
+  "ERROR_NO_GATEWAY_MANIFEST";
 
 /*** CONFIGURATION MANIFEST ***/
 void to_json(json& j, const ConfigurationManifest& configurationManifest)
@@ -478,20 +461,37 @@ void to_json(json& j, const DeviceReregistrationResponse& dto)
 }
 /*** DEVICE REREGISTRATION RESPONSE DTO ***/
 
-std::vector<std::string> RegistrationProtocol::getDeviceTopics()
+const std::string& JsonRegistrationProtocol::getName() const
 {
-    LOG(DEBUG) << METHOD_INFO;
-    return m_devicTopics;
+    return NAME;
 }
 
-std::vector<std::string> RegistrationProtocol::getPlatformTopics()
+const std::vector<std::string>& JsonRegistrationProtocol::getInboundChannels() const
 {
-    LOG(DEBUG) << METHOD_INFO;
-    return m_platformTopics;
+    return INBOUND_CHANNELS;
 }
 
-std::shared_ptr<Message> RegistrationProtocol::make(const std::string& deviceKey,
-                                                    const DeviceRegistrationRequest& request, bool isGateway)
+std::string JsonRegistrationProtocol::extractDeviceKeyFromChannel(const std::string& topic) const
+{
+    LOG(TRACE) << METHOD_INFO;
+
+    const std::string devicePathPrefix = CHANNEL_DELIMITER + DEVICE_PATH_PREFIX;
+
+    const auto deviceKeyStartPosition = topic.find(devicePathPrefix);
+    if (deviceKeyStartPosition != std::string::npos)
+    {
+        const auto keyEndPosition = topic.find(CHANNEL_DELIMITER, deviceKeyStartPosition + devicePathPrefix.size());
+
+        const auto pos = deviceKeyStartPosition + devicePathPrefix.size();
+
+        return topic.substr(pos, keyEndPosition - pos);
+    }
+
+    return "";
+}
+
+std::shared_ptr<Message> JsonRegistrationProtocol::makeMessage(const std::string& deviceKey,
+                                                               const DeviceRegistrationRequest& request) const
 {
     LOG(DEBUG) << METHOD_INFO;
 
@@ -499,14 +499,8 @@ std::shared_ptr<Message> RegistrationProtocol::make(const std::string& deviceKey
     {
         const json jsonPayload(request);
         std::string channel;
-        if (isGateway)
-        {
-            channel = DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + GATEWAY_PATH_PREFIX + CHANNEL_DELIMITER + deviceKey;
-        }
-        else
-        {
-            channel = DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_DELIMITER + deviceKey;
-        }
+
+        channel = DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_DELIMITER + deviceKey;
 
         return std::make_shared<Message>(jsonPayload.dump(), channel);
     }
@@ -516,56 +510,10 @@ std::shared_ptr<Message> RegistrationProtocol::make(const std::string& deviceKey
     }
 }
 
-std::shared_ptr<Message> RegistrationProtocol::make(const std::string& deviceKey,
-                                                    const DeviceReregistrationResponse& response, bool isGateway)
+std::shared_ptr<DeviceRegistrationResponse> JsonRegistrationProtocol::makeRegistrationResponse(
+  std::shared_ptr<Message> message) const
 {
-    LOG(DEBUG) << METHOD_INFO;
-
-    try
-    {
-        const json jsonPayload(response);
-        std::string channel;
-        if (isGateway)
-        {
-            channel = DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT + GATEWAY_PATH_PREFIX + CHANNEL_DELIMITER + deviceKey;
-        }
-        else
-        {
-            channel = DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_DELIMITER + deviceKey;
-        }
-
-        return std::make_shared<Message>(jsonPayload.dump(), channel);
-    }
-    catch (...)
-    {
-    }
-}
-
-std::shared_ptr<DeviceRegistrationRequest> RegistrationProtocol::makeRegistrationRequest(
-  std::shared_ptr<Message> message)
-{
-    LOG(DEBUG) << METHOD_INFO;
-
-    try
-    {
-        const json jsonRequest = json::parse(message->getContent());
-        auto request = std::make_shared<DeviceRegistrationRequest>();
-        *request = jsonRequest;
-        return request;
-    }
-    catch (...)
-    {
-        LOG(DEBUG) << "Registration protocol: Unable to deserialize device "
-                      "registration request: "
-                   << message->getContent();
-        return nullptr;
-    }
-}
-
-std::shared_ptr<DeviceRegistrationResponse> RegistrationProtocol::makeRegistrationResponse(
-  std::shared_ptr<Message> message)
-{
-    LOG(DEBUG) << METHOD_INFO;
+    LOG(TRACE) << METHOD_INFO;
 
     try
     {
@@ -603,71 +551,16 @@ std::shared_ptr<DeviceRegistrationResponse> RegistrationProtocol::makeRegistrati
                 return DeviceRegistrationResponse::Result::ERROR_NO_GATEWAY_MANIFEST;
             }
 
+            assert(false);
             throw std::logic_error("");
         }();
 
-        // TODO method to get reference
-        const size_t referencePosition = message->getChannel().find_last_of('/');
-        if (referencePosition == std::string::npos)
-        {
-            throw std::logic_error("");
-        }
-
-        const std::string reference = message->getChannel().substr(referencePosition + 1);
-
-        return std::make_shared<DeviceRegistrationResponse>(reference, result);
+        return std::make_shared<DeviceRegistrationResponse>(result);
     }
-    catch (...)
+    catch (std::exception& e)
     {
-        LOG(DEBUG) << "Registration protocol: Unable to parse "
-                      "DeviceRegistrationResponseDto: "
-                   << message->getContent();
+        LOG(ERROR) << "Device registration protocol: Unable to deserialize device registration response: " << e.what();
         return nullptr;
     }
 }
-
-bool RegistrationProtocol::makeManifest(const nlohmann::json& text, DeviceManifest& manifest)
-{
-    try
-    {
-        manifest = text;
-
-        return true;
-    }
-    catch (...)
-    {
-        return false;
-    }
 }
-
-std::string RegistrationProtocol::getDeviceKeyFromChannel(const std::string& channel)
-{
-    LOG(DEBUG) << METHOD_INFO;
-
-    std::string previousToken;
-    // Device related message
-    for (std::string token : StringUtils::tokenize(channel, "/"))
-    {
-        if (previousToken == "d")
-        {
-            return token;
-        }
-
-        previousToken = token;
-    }
-
-    // Gateway related message
-    for (std::string token : StringUtils::tokenize(channel, "/"))
-    {
-        if (previousToken == "g")
-        {
-            return token;
-        }
-
-        previousToken = token;
-    }
-
-    return "";
-}
-
-}    // namespace wolkabout

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "model/DeviceManifest.h"
 #include <string>
 
 namespace wolkabout
@@ -23,34 +22,22 @@ class DeviceConfiguration
 {
 public:
     DeviceConfiguration() = default;
-    DeviceConfiguration(std::string name, std::string key, std::string password, std::string platformMqttUri,
-                        unsigned interval, const DeviceManifest& manifest);
+
+    DeviceConfiguration(std::string name, std::string protocol, std::string localMqttUri);
 
     const std::string& getName() const;
 
-    const std::string& getKey() const;
-    const std::string& getPassword() const;
-
     const std::string& getProtocol() const;
 
-    const std::string& getPlatformMqttUri() const;
-
-    unsigned getInterval() const;
-
-    const DeviceManifest& getManifest() const;
+    const std::string& getLocalMqttUri() const;
 
     static wolkabout::DeviceConfiguration fromJson(const std::string& deviceConfigurationFile);
 
 private:
     std::string m_name;
 
-    std::string m_key;
-    std::string m_password;
+    std::string m_protocol;
 
-    std::string m_platformMqttUri;
-
-    unsigned m_interval;
-
-    DeviceManifest m_manifest;
+    std::string m_localMqttUri;
 };
 }    // namespace wolkabout

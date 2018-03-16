@@ -22,13 +22,13 @@
 #include "model/ActuatorCommand.h"
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
-#include "model/DeviceRegistrationRequestDto.h"
-#include "protocol/json/RegistrationProtocol.h"
 #include "service/DataService.h"
+#include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
 #include "service/FirmwareUpdateService.h"
 #include "utilities/Logger.h"
 
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -285,19 +285,17 @@ void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& r
     });
 }
 
-void Wolk::handleDeviceStatusRequest(const std::string& key) {}
+void Wolk::handleDeviceStatusRequest(const std::string& key)
+{
+    addToCommandBuffer([=] {
+        const DeviceStatus status = m_deviceStatusProvider(key);
+        m_deviceStatusService->publishDeviceStatus(key, status);
+    });
+}
 
 void Wolk::registerDevice(const Device& device)
 {
-    addToCommandBuffer([=] {
-        DeviceRegistrationRequest request{device};
-        auto message = RegistrationProtocol::make(device.getKey(), request);
-
-        if (message)
-        {
-            addToCommandBuffer([=]() -> void { m_connectivityService->publish(message); });
-        }
-    });
+    addToCommandBuffer([=] { m_deviceRegistrationService->publishRegistrationRequest(device); });
 }
 
 void Wolk::registerDevices()
@@ -360,12 +358,9 @@ bool Wolk::actuatorDefinedForDevice(const std::string& deviceKey, const std::str
     return actuatorIt != actuators.end();
 }
 
-void Wolk::handleRegistrationResponse(std::shared_ptr<DeviceRegistrationResponse> response)
+void Wolk::handleRegistrationResponse(const std::string& deviceKey, DeviceRegistrationResponse::Result result)
 {
-    if (m_registrationResponseHandler)
-    {
-        m_registrationResponseHandler(response->getReference(), response->getResult());
-    }
+    LOG(INFO) << "Registration response for device '" << deviceKey << "' received: " << static_cast<int>(result);
 }
 
 Wolk::ConnectivityFacade::ConnectivityFacade(InboundMessageHandler& handler,

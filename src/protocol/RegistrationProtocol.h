@@ -14,28 +14,30 @@
  * limitations under the License.
  */
 
-#ifndef REGISTRATIONRESPONSEHANDLER_H
-#define REGISTRATIONRESPONSEHANDLER_H
+#ifndef REGISTRATIONPROTOCOL_H
+#define REGISTRATIONPROTOCOL_H
 
-#include "DeviceReregistrationResponse.h"
+#include "protocol/Protocol.h"
+#include <memory>
 #include <string>
 
 namespace wolkabout
 {
-class RegistrationResponseHandler
+class Message;
+class DeviceRegistrationRequest;
+class DeviceRegistrationResponse;
+
+class RegistrationProtocol : public Protocol
 {
 public:
-    /**
-     * @brief Registration Response Handler callback<br>
-     *        Must be implemented as non blocking<br>
-     *        Must be implemented as thread safe
-     * @param key Device key
-     * @param value Desired actuator value
-     */
-    virtual void operator()(const std::string& key, DeviceReregistrationResponse::Result result) = 0;
+    virtual std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
+                                                 const DeviceRegistrationRequest& request) const = 0;
 
-    virtual ~RegistrationResponseHandler() = default;
+    virtual std::shared_ptr<DeviceRegistrationResponse> makeRegistrationResponse(
+      std::shared_ptr<Message> message) const = 0;
+
+    inline Type getType() const override { return Protocol::Type::REGISTRATION; }
 };
 }    // namespace wolkabout
 
-#endif    // REGISTRATIONRESPONSEHANDLER_H
+#endif
