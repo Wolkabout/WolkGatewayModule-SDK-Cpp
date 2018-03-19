@@ -21,31 +21,25 @@
 
 #include <string>
 
-namespace wolkabout
-{
-class ActuatorStatus : public Reading
-{
+namespace wolkabout {
+class ActuatorStatus : public Reading {
 public:
-    enum class State
-    {
-        READY,
-        BUSY,
-        ERROR
-    };
+  enum class State { READY, BUSY, ERROR };
 
-    ActuatorStatus();
-    ActuatorStatus(std::string value, ActuatorStatus::State state);
-    ActuatorStatus(std::string value, std::string reference, ActuatorStatus::State state);
+  ActuatorStatus();
+  ActuatorStatus(std::string value, ActuatorStatus::State state);
+  ActuatorStatus(std::string value, std::string reference,
+                 ActuatorStatus::State state);
 
-    virtual ~ActuatorStatus() = default;
+  virtual ~ActuatorStatus() = default;
 
-    ActuatorStatus::State getState() const;
+  ActuatorStatus::State getState() const;
 
-    void acceptVisit(ReadingVisitor& visitor) override;
+  void acceptVisit(ReadingVisitor &visitor) override;
 
 private:
-    ActuatorStatus::State m_state;
+  ActuatorStatus::State m_state;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
 #endif

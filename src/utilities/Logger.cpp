@@ -18,60 +18,36 @@
 #include <algorithm>
 #include <iostream>
 
-namespace wolkabout
-{
+namespace wolkabout {
 std::unique_ptr<Logger> Logger::m_instance;
 
-void Logger::operator+=(Log& log)
-{
-    logEntry(log);
+void Logger::operator+=(Log &log) { logEntry(log); }
+
+void Logger::setInstance(std::unique_ptr<Logger> instance) {
+  m_instance = std::move(instance);
 }
 
-void Logger::setInstance(std::unique_ptr<Logger> instance)
-{
-    m_instance = std::move(instance);
-}
-
-Logger* Logger::getInstance()
-{
-    return m_instance.get();
-}
+Logger *Logger::getInstance() { return m_instance.get(); }
 
 Log::Log(LogLevel level) : m_level{level}, m_message{""} {}
 
-LogLevel Log::getLogLevel() const
-{
-    return m_level;
-}
+LogLevel Log::getLogLevel() const { return m_level; }
 
-std::string Log::getMessage() const
-{
-    return m_message.str();
-}
+std::string Log::getMessage() const { return m_message.str(); }
 
-wolkabout::LogLevel from_string(std::string level)
-{
-    std::transform(level.begin(), level.end(), level.begin(), ::toupper);
+wolkabout::LogLevel from_string(std::string level) {
+  std::transform(level.begin(), level.end(), level.begin(), ::toupper);
 
-    if (level.compare("TRACE") == 0)
-    {
-        return wolkabout::LogLevel::TRACE;
-    }
-    else if (level.compare("DEBUG") == 0)
-    {
-        return wolkabout::LogLevel::DEBUG;
-    }
-    else if (level.compare("INFO") == 0)
-    {
-        return wolkabout::LogLevel::INFO;
-    }
-    else if (level.compare("WARN") == 0)
-    {
-        return wolkabout::LogLevel::WARN;
-    }
-    else
-    {
-        return wolkabout::LogLevel::ERROR;
-    }
+  if (level.compare("TRACE") == 0) {
+    return wolkabout::LogLevel::TRACE;
+  } else if (level.compare("DEBUG") == 0) {
+    return wolkabout::LogLevel::DEBUG;
+  } else if (level.compare("INFO") == 0) {
+    return wolkabout::LogLevel::INFO;
+  } else if (level.compare("WARN") == 0) {
+    return wolkabout::LogLevel::WARN;
+  } else {
+    return wolkabout::LogLevel::ERROR;
+  }
 }
-}    // namespace wolkabout
+} // namespace wolkabout

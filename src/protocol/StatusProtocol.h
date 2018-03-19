@@ -21,24 +21,24 @@
 #include <memory>
 #include <string>
 
-namespace wolkabout
-{
+namespace wolkabout {
 class DeviceStatusRequest;
 class DeviceStatusResponse;
 class Message;
 
-class StatusProtocol : public Protocol
-{
+class StatusProtocol : public Protocol {
 public:
-    virtual bool isStatusRequestMessage(const std::string& topic) const = 0;
+  virtual bool isStatusRequestMessage(const std::string &topic) const = 0;
 
-    virtual std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
-                                                 std::shared_ptr<DeviceStatusResponse> response) const = 0;
+  virtual std::shared_ptr<Message>
+  makeMessage(const std::string &deviceKey,
+              std::shared_ptr<DeviceStatusResponse> response) const = 0;
 
-    virtual std::shared_ptr<Message> makeLastWillMessage(const std::vector<std::string>& deviceKeys) const = 0;
+  virtual std::shared_ptr<Message>
+  makeLastWillMessage(const std::vector<std::string> &deviceKeys) const = 0;
 
-    inline Type getType() const override final { return Protocol::Type::STATUS; }
+  inline Type getType() const override final { return Protocol::Type::STATUS; }
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
-#endif    // STATUSPROTOCOL_H
+#endif // STATUSPROTOCOL_H

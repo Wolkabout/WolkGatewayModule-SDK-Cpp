@@ -25,43 +25,41 @@
 #include <queue>
 #include <thread>
 
-namespace wolkabout
-{
-class CommandBuffer
-{
+namespace wolkabout {
+class CommandBuffer {
 public:
-    using Command = std::function<void()>;
+  using Command = std::function<void()>;
 
-    CommandBuffer();
-    virtual ~CommandBuffer();
+  CommandBuffer();
+  virtual ~CommandBuffer();
 
-    void pushCommand(std::shared_ptr<Command> command);
+  void pushCommand(std::shared_ptr<Command> command);
 
-    void stop();
+  void stop();
 
 private:
-    std::shared_ptr<Command> popCommand();
+  std::shared_ptr<Command> popCommand();
 
-    bool empty() const;
+  bool empty() const;
 
-    void switchBuffers();
+  void switchBuffers();
 
-    void notify();
+  void notify();
 
-    void processCommands();
+  void processCommands();
 
-    void run();
+  void run();
 
-    mutable std::mutex m_lock;
+  mutable std::mutex m_lock;
 
-    std::queue<std::shared_ptr<Command>> m_pushCommandQueue;
-    std::queue<std::shared_ptr<Command>> m_popCommandQueue;
+  std::queue<std::shared_ptr<Command>> m_pushCommandQueue;
+  std::queue<std::shared_ptr<Command>> m_popCommandQueue;
 
-    std::condition_variable m_condition;
+  std::condition_variable m_condition;
 
-    std::atomic_bool m_isRunning;
-    std::unique_ptr<std::thread> m_worker;
+  std::atomic_bool m_isRunning;
+  std::unique_ptr<std::thread> m_worker;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
 #endif

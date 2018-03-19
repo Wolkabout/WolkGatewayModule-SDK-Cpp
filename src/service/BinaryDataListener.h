@@ -17,16 +17,14 @@
 #ifndef BINARYDATALISTENER_H
 #define BINARYDATALISTENER_H
 
-namespace wolkabout
-{
+namespace wolkabout {
 class BinaryData;
 
-class BinaryDataListener
-{
+class BinaryDataListener {
 public:
-    virtual ~BinaryDataListener() = default;
-    virtual void handleBinaryData(const BinaryData& binaryData) = 0;
+  virtual ~BinaryDataListener() = default;
+  virtual void handleBinaryData(const BinaryData &binaryData) = 0;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
-#endif    // BINARYDATALISTENER_H
+#endif // BINARYDATALISTENER_H

@@ -19,34 +19,31 @@
 
 #include <type_traits>
 
-namespace wolkabout
-{
-template <typename T> class WolkOptional
-{
+namespace wolkabout {
+template <typename T> class WolkOptional {
 public:
-    WolkOptional() : m_value{}, m_null{true}
-    {
-        static_assert(std::is_default_constructible<T>::value, "Wrapped type must be default constructible");
-    }
+  WolkOptional() : m_value{}, m_null{true} {
+    static_assert(std::is_default_constructible<T>::value,
+                  "Wrapped type must be default constructible");
+  }
 
-    WolkOptional(T value) : m_value{value}, m_null{false} {}
+  WolkOptional(T value) : m_value{value}, m_null{false} {}
 
-    WolkOptional<T>& operator=(T value)
-    {
-        m_value = value;
-        m_null = false;
+  WolkOptional<T> &operator=(T value) {
+    m_value = value;
+    m_null = false;
 
-        return *this;
-    }
+    return *this;
+  }
 
-    operator T() const { return m_value; }
+  operator T() const { return m_value; }
 
-    bool null() const { return m_null; }
+  bool null() const { return m_null; }
 
 private:
-    T m_value;
-    bool m_null;
+  T m_value;
+  bool m_null;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
-#endif    // WOLKOPTIONAL_H
+#endif // WOLKOPTIONAL_H

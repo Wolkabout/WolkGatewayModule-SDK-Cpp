@@ -20,30 +20,31 @@
 #include "InboundMessageHandler.h"
 #include "model/DeviceRegistrationResponse.h"
 
-namespace wolkabout
-{
+namespace wolkabout {
 class ConnectivityService;
 class RegistrationProtocol;
 class Device;
 
-typedef std::function<void(const std::string&, DeviceRegistrationResponse::Result)> RegistrationResponseHandler;
+typedef std::function<void(const std::string &,
+                           DeviceRegistrationResponse::Result)>
+    RegistrationResponseHandler;
 
-class DeviceRegistrationService : public MessageListener
-{
+class DeviceRegistrationService : public MessageListener {
 public:
-    DeviceRegistrationService(RegistrationProtocol& protocol, ConnectivityService& connectivityService,
-                              const RegistrationResponseHandler& registrationResponseHandler);
+  DeviceRegistrationService(
+      RegistrationProtocol &protocol, ConnectivityService &connectivityService,
+      const RegistrationResponseHandler &registrationResponseHandler);
 
-    void messageReceived(std::shared_ptr<Message> message) override;
-    const Protocol& getProtocol() override;
+  void messageReceived(std::shared_ptr<Message> message) override;
+  const Protocol &getProtocol() override;
 
-    void publishRegistrationRequest(const Device& device);
+  void publishRegistrationRequest(const Device &device);
 
 private:
-    RegistrationProtocol& m_protocol;
-    ConnectivityService& m_connectivityService;
-    RegistrationResponseHandler m_registrationResponseHandler;
+  RegistrationProtocol &m_protocol;
+  ConnectivityService &m_connectivityService;
+  RegistrationResponseHandler m_registrationResponseHandler;
 };
-}
+} // namespace wolkabout
 
-#endif    // DEVICEREGISTRATIONSERVICE_H
+#endif // DEVICEREGISTRATIONSERVICE_H

@@ -16,27 +16,18 @@
 
 #include "FilePacketRequest.h"
 
-namespace wolkabout
-{
-FilePacketRequest::FilePacketRequest() : m_fileName{""}, m_chunkIndex{0}, m_chunkSize{0} {}
+namespace wolkabout {
+FilePacketRequest::FilePacketRequest()
+    : m_fileName{""}, m_chunkIndex{0}, m_chunkSize{0} {}
 
-FilePacketRequest::FilePacketRequest(const std::string& fileName, unsigned chunkIndex, uint_fast64_t chunkSize)
-: m_fileName{fileName}, m_chunkIndex{chunkIndex}, m_chunkSize{chunkSize}
-{
-}
+FilePacketRequest::FilePacketRequest(const std::string &fileName,
+                                     unsigned chunkIndex,
+                                     uint_fast64_t chunkSize)
+    : m_fileName{fileName}, m_chunkIndex{chunkIndex}, m_chunkSize{chunkSize} {}
 
-const std::string& FilePacketRequest::getFileName() const
-{
-    return m_fileName;
-}
+const std::string &FilePacketRequest::getFileName() const { return m_fileName; }
 
-unsigned FilePacketRequest::getChunkIndex() const
-{
-    return m_chunkIndex;
-}
+unsigned FilePacketRequest::getChunkIndex() const { return m_chunkIndex; }
 
-uint_fast64_t FilePacketRequest::getChunkSize() const
-{
-    return m_chunkSize;
-}
-}    // namespace wolkabout
+uint_fast64_t FilePacketRequest::getChunkSize() const { return m_chunkSize; }
+} // namespace wolkabout

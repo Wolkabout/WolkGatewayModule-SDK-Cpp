@@ -23,60 +23,67 @@
 #include <string>
 #include <vector>
 
-namespace wolkabout
-{
-class JsonProtocol : public DataProtocol
-{
+namespace wolkabout {
+class JsonProtocol : public DataProtocol {
 public:
-    const std::string& getName() const override;
+  const std::string &getName() const override;
 
-    const std::vector<std::string>& getInboundChannels() const override;
+  const std::vector<std::string> &getInboundChannels() const override;
 
-    bool isActuatorSetMessage(const std::string& channel) const override;
-    bool isActuatorGetMessage(const std::string& channel) const override;
+  bool isActuatorSetMessage(const std::string &channel) const override;
+  bool isActuatorGetMessage(const std::string &channel) const override;
 
-    std::unique_ptr<ActuatorGetCommand> makeActuatorGetCommand(std::shared_ptr<Message> message) const override;
-    std::unique_ptr<ActuatorSetCommand> makeActuatorSetCommand(std::shared_ptr<Message> message) const override;
+  std::unique_ptr<ActuatorGetCommand>
+  makeActuatorGetCommand(std::shared_ptr<Message> message) const override;
+  std::unique_ptr<ActuatorSetCommand>
+  makeActuatorSetCommand(std::shared_ptr<Message> message) const override;
 
-    std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
-                                         std::vector<std::shared_ptr<SensorReading>> sensorReadings) const override;
-    std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
-                                         std::vector<std::shared_ptr<Alarm>> alarms) const override;
-    std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
-                                         std::vector<std::shared_ptr<ActuatorStatus>> actuatorStatuses) const override;
+  std::shared_ptr<Message>
+  makeMessage(const std::string &deviceKey,
+              std::vector<std::shared_ptr<SensorReading>> sensorReadings)
+      const override;
+  std::shared_ptr<Message>
+  makeMessage(const std::string &deviceKey,
+              std::vector<std::shared_ptr<Alarm>> alarms) const override;
+  std::shared_ptr<Message>
+  makeMessage(const std::string &deviceKey,
+              std::vector<std::shared_ptr<ActuatorStatus>> actuatorStatuses)
+      const override;
 
-    std::string extractReferenceFromChannel(const std::string& topic) const override;
-    std::string extractDeviceKeyFromChannel(const std::string& topic) const override;
+  std::string
+  extractReferenceFromChannel(const std::string &topic) const override;
+  std::string
+  extractDeviceKeyFromChannel(const std::string &topic) const override;
 
 private:
-    static const std::string NAME;
+  static const std::string NAME;
 
-    static const std::string CHANNEL_DELIMITER;
-    static const std::string CHANNEL_WILDCARD;
+  static const std::string CHANNEL_DELIMITER;
+  static const std::string CHANNEL_WILDCARD;
 
-    static const std::string DEVICE_TYPE;
-    static const std::string REFERENCE_TYPE;
-    static const std::string DEVICE_TO_PLATFORM_TYPE;
-    static const std::string PLATFORM_TO_DEVICE_TYPE;
+  static const std::string DEVICE_TYPE;
+  static const std::string REFERENCE_TYPE;
+  static const std::string DEVICE_TO_PLATFORM_TYPE;
+  static const std::string PLATFORM_TO_DEVICE_TYPE;
 
-    static const std::string DEVICE_PATH_PREFIX;
-    static const std::string REFERENCE_PATH_PREFIX;
-    static const std::string DEVICE_TO_PLATFORM_DIRECTION;
-    static const std::string PLATFORM_TO_DEVICE_DIRECTION;
+  static const std::string DEVICE_PATH_PREFIX;
+  static const std::string REFERENCE_PATH_PREFIX;
+  static const std::string DEVICE_TO_PLATFORM_DIRECTION;
+  static const std::string PLATFORM_TO_DEVICE_DIRECTION;
 
-    static const std::string SENSOR_READING_TOPIC_ROOT;
-    static const std::string EVENTS_TOPIC_ROOT;
-    static const std::string ACTUATION_STATUS_TOPIC_ROOT;
-    static const std::string CONFIGURATION_SET_RESPONSE_TOPIC_ROOT;
-    static const std::string CONFIGURATION_GET_RESPONSE_TOPIC_ROOT;
+  static const std::string SENSOR_READING_TOPIC_ROOT;
+  static const std::string EVENTS_TOPIC_ROOT;
+  static const std::string ACTUATION_STATUS_TOPIC_ROOT;
+  static const std::string CONFIGURATION_SET_RESPONSE_TOPIC_ROOT;
+  static const std::string CONFIGURATION_GET_RESPONSE_TOPIC_ROOT;
 
-    static const std::string ACTUATION_SET_TOPIC_ROOT;
-    static const std::string ACTUATION_GET_TOPIC_ROOT;
-    static const std::string CONFIGURATION_SET_REQUEST_TOPIC_ROOT;
-    static const std::string CONFIGURATION_GET_REQUEST_TOPIC_ROOT;
+  static const std::string ACTUATION_SET_TOPIC_ROOT;
+  static const std::string ACTUATION_GET_TOPIC_ROOT;
+  static const std::string CONFIGURATION_SET_REQUEST_TOPIC_ROOT;
+  static const std::string CONFIGURATION_GET_REQUEST_TOPIC_ROOT;
 
-    static const std::vector<std::string> INBOUND_CHANNELS;
+  static const std::vector<std::string> INBOUND_CHANNELS;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
 #endif

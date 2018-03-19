@@ -19,14 +19,13 @@
 #include <string>
 #include <utility>
 
-namespace wolkabout
-{
+namespace wolkabout {
 ActuatorGetCommand::ActuatorGetCommand() : m_reference{""} {}
 
-ActuatorGetCommand::ActuatorGetCommand(const std::string& reference) : m_reference{std::move(reference)} {}
+ActuatorGetCommand::ActuatorGetCommand(const std::string &reference)
+    : m_reference{std::move(reference)} {}
 
-const std::string& ActuatorGetCommand::getReference() const
-{
-    return m_reference;
+const std::string &ActuatorGetCommand::getReference() const {
+  return m_reference;
 }
-}    // namespace wolkabout
+} // namespace wolkabout

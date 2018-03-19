@@ -16,25 +16,15 @@
 
 #include "model/Reading.h"
 
-namespace wolkabout
-{
-Reading::Reading(std::string value, std::string reference, unsigned long long int rtc)
-: m_value(std::move(value)), m_reference(std::move(reference)), m_rtc(rtc)
-{
+namespace wolkabout {
+Reading::Reading(std::string value, std::string reference,
+                 unsigned long long int rtc)
+    : m_value(std::move(value)), m_reference(std::move(reference)), m_rtc(rtc) {
 }
 
-const std::string& Reading::getValue() const
-{
-    return m_value;
-}
+const std::string &Reading::getValue() const { return m_value; }
 
-const std::string& Reading::getReference() const
-{
-    return m_reference;
-}
+const std::string &Reading::getReference() const { return m_reference; }
 
-unsigned long long Reading::getRtc() const
-{
-    return m_rtc;
-}
-}    // namespace wolkabout
+unsigned long long Reading::getRtc() const { return m_rtc; }
+} // namespace wolkabout

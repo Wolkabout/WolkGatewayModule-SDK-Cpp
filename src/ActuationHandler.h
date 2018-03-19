@@ -19,30 +19,29 @@
 
 #include <string>
 
-namespace wolkabout
-{
-class ActuationHandler
-{
+namespace wolkabout {
+class ActuationHandler {
 public:
-    virtual ~ActuationHandler() = default;
+  virtual ~ActuationHandler() = default;
 
-    void operator()(const std::string& deviceKey, const std::string& reference, const std::string& value)
-    {
-        handleActuation(deviceKey, reference, value);
-    }
+  void operator()(const std::string &deviceKey, const std::string &reference,
+                  const std::string &value) {
+    handleActuation(deviceKey, reference, value);
+  }
 
 private:
-    /**
-     * @brief Actuation handler callback<br>
-     *        Must be implemented as non blocking<br>
-     *        Must be implemented as thread safe
-     * @param deviceKey Key of the device which has the acuator
-     * @param reference Actuator reference
-     * @param value Desired actuator value
-     */
-    virtual void handleActuation(const std::string& deviceKey, const std::string& reference,
-                                 const std::string& value) = 0;
+  /**
+   * @brief Actuation handler callback<br>
+   *        Must be implemented as non blocking<br>
+   *        Must be implemented as thread safe
+   * @param deviceKey Key of the device which has the acuator
+   * @param reference Actuator reference
+   * @param value Desired actuator value
+   */
+  virtual void handleActuation(const std::string &deviceKey,
+                               const std::string &reference,
+                               const std::string &value) = 0;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
 #endif

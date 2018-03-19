@@ -16,10 +16,9 @@
 
 #include "connectivity/ConnectivityService.h"
 
-namespace wolkabout
-{
-void ConnectivityService::setListener(std::weak_ptr<ConnectivityServiceListener> listener)
-{
-    m_listener = listener;
+namespace wolkabout {
+void ConnectivityService::setListener(
+    std::weak_ptr<ConnectivityServiceListener> listener) {
+  m_listener = listener;
 }
-}    // namespace wolkabout
+} // namespace wolkabout

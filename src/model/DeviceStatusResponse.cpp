@@ -16,12 +16,9 @@
 
 #include "model/DeviceStatusResponse.h"
 
-namespace wolkabout
-{
-DeviceStatusResponse::DeviceStatusResponse(DeviceStatus status) : m_status{status} {}
+namespace wolkabout {
+DeviceStatusResponse::DeviceStatusResponse(DeviceStatus status)
+    : m_status{status} {}
 
-DeviceStatus DeviceStatusResponse::getStatus() const
-{
-    return m_status;
-}
-}    // namespace wolkabout
+DeviceStatus DeviceStatusResponse::getStatus() const { return m_status; }
+} // namespace wolkabout

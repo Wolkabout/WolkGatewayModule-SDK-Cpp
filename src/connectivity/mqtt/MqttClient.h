@@ -20,35 +20,38 @@
 #include <functional>
 #include <string>
 
-namespace wolkabout
-{
-class MqttClient
-{
+namespace wolkabout {
+class MqttClient {
 public:
-    using OnMessageReceivedCallback = std::function<void(std::string topic, std::string message)>;
-    using OnConnectionLostCallback = std::function<void()>;
+  using OnMessageReceivedCallback =
+      std::function<void(std::string topic, std::string message)>;
+  using OnConnectionLostCallback = std::function<void()>;
 
-    virtual ~MqttClient() = default;
+  virtual ~MqttClient() = default;
 
-    virtual bool connect(const std::string& username, const std::string& password, const std::string& trustStore,
-                         const std::string& address, const std::string& clientId) = 0;
-    virtual void disconnect() = 0;
+  virtual bool connect(const std::string &username, const std::string &password,
+                       const std::string &trustStore,
+                       const std::string &address,
+                       const std::string &clientId) = 0;
+  virtual void disconnect() = 0;
 
-    virtual bool isConnected() = 0;
+  virtual bool isConnected() = 0;
 
-    virtual void setLastWill(const std::string& topic, const std::string& message, bool retained = false) = 0;
+  virtual void setLastWill(const std::string &topic, const std::string &message,
+                           bool retained = false) = 0;
 
-    virtual bool subscribe(const std::string& topic) = 0;
-    virtual bool publish(const std::string& topic, const std::string& message, bool retained = false) = 0;
+  virtual bool subscribe(const std::string &topic) = 0;
+  virtual bool publish(const std::string &topic, const std::string &message,
+                       bool retained = false) = 0;
 
-    void onMessageReceived(OnMessageReceivedCallback callback);
+  void onMessageReceived(OnMessageReceivedCallback callback);
 
-    void onConnectionLost(OnConnectionLostCallback callback);
+  void onConnectionLost(OnConnectionLostCallback callback);
 
 protected:
-    OnMessageReceivedCallback m_onMessageReceived;
-    OnConnectionLostCallback m_onConnectionLost;
+  OnMessageReceivedCallback m_onMessageReceived;
+  OnConnectionLostCallback m_onConnectionLost;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
 #endif

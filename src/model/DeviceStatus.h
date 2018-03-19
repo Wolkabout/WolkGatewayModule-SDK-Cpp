@@ -17,15 +17,8 @@
 #ifndef DEVICESTATUS_H
 #define DEVICESTATUS_H
 
-namespace wolkabout
-{
-enum class DeviceStatus
-{
-    CONNECTED,
-    OFFLINE,
-    SLEEP,
-    SERVICE
-};
+namespace wolkabout {
+enum class DeviceStatus { CONNECTED, OFFLINE, SLEEP, SERVICE };
 }
 
-#endif    // DEVICESTATUS_H
+#endif // DEVICESTATUS_H

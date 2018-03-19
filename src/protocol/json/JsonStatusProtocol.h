@@ -18,43 +18,44 @@
 
 #include "protocol/StatusProtocol.h"
 
-namespace wolkabout
-{
-class JsonStatusProtocol : public StatusProtocol
-{
+namespace wolkabout {
+class JsonStatusProtocol : public StatusProtocol {
 public:
-    const std::string& getName() const override;
+  const std::string &getName() const override;
 
-    const std::vector<std::string>& getInboundChannels() const override;
+  const std::vector<std::string> &getInboundChannels() const override;
 
-    std::string extractDeviceKeyFromChannel(const std::string& topic) const override;
+  std::string
+  extractDeviceKeyFromChannel(const std::string &topic) const override;
 
-    bool isStatusRequestMessage(const std::string& topic) const override;
+  bool isStatusRequestMessage(const std::string &topic) const override;
 
-    std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
-                                         std::shared_ptr<DeviceStatusResponse> response) const override;
+  std::shared_ptr<Message>
+  makeMessage(const std::string &deviceKey,
+              std::shared_ptr<DeviceStatusResponse> response) const override;
 
-    std::shared_ptr<Message> makeLastWillMessage(const std::vector<std::string>& deviceKeys) const override;
+  std::shared_ptr<Message> makeLastWillMessage(
+      const std::vector<std::string> &deviceKeys) const override;
 
-    static const std::string STATUS_RESPONSE_STATE_FIELD;
-    static const std::string STATUS_RESPONSE_STATUS_CONNECTED;
-    static const std::string STATUS_RESPONSE_STATUS_SLEEP;
-    static const std::string STATUS_RESPONSE_STATUS_SERVICE;
-    static const std::string STATUS_RESPONSE_STATUS_OFFLINE;
+  static const std::string STATUS_RESPONSE_STATE_FIELD;
+  static const std::string STATUS_RESPONSE_STATUS_CONNECTED;
+  static const std::string STATUS_RESPONSE_STATUS_SLEEP;
+  static const std::string STATUS_RESPONSE_STATUS_SERVICE;
+  static const std::string STATUS_RESPONSE_STATUS_OFFLINE;
 
 private:
-    static const std::string NAME;
+  static const std::string NAME;
 
-    static const std::string CHANNEL_DELIMITER;
-    static const std::string CHANNEL_WILDCARD;
-    static const std::string DEVICE_PATH_PREFIX;
+  static const std::string CHANNEL_DELIMITER;
+  static const std::string CHANNEL_WILDCARD;
+  static const std::string DEVICE_PATH_PREFIX;
 
-    static const std::string LAST_WILL_TOPIC;
-    static const std::string DEVICE_STATUS_REQUEST_TOPIC_ROOT;
-    static const std::string DEVICE_STATUS_RESPONSE_TOPIC_ROOT;
+  static const std::string LAST_WILL_TOPIC;
+  static const std::string DEVICE_STATUS_REQUEST_TOPIC_ROOT;
+  static const std::string DEVICE_STATUS_RESPONSE_TOPIC_ROOT;
 
-    static const std::vector<std::string> INBOUND_CHANNELS;
+  static const std::vector<std::string> INBOUND_CHANNELS;
 };
-}
+} // namespace wolkabout
 
-#endif    // JSONSTATUSPROTOCOL_H
+#endif // JSONSTATUSPROTOCOL_H

@@ -16,15 +16,13 @@
 
 #include "DeviceReregistrationResponse.h"
 
-namespace wolkabout
-{
-DeviceReregistrationResponse::DeviceReregistrationResponse(DeviceReregistrationResponse::Result result)
-: m_result{result}
-{
-}
+namespace wolkabout {
+DeviceReregistrationResponse::DeviceReregistrationResponse(
+    DeviceReregistrationResponse::Result result)
+    : m_result{result} {}
 
-DeviceReregistrationResponse::Result DeviceReregistrationResponse::getResult() const
-{
-    return m_result;
+DeviceReregistrationResponse::Result
+DeviceReregistrationResponse::getResult() const {
+  return m_result;
 }
-}    // namespace wolkabout
+} // namespace wolkabout

@@ -20,22 +20,21 @@
 #include "DeviceReregistrationResponse.h"
 #include <string>
 
-namespace wolkabout
-{
-class RegistrationResponseHandler
-{
+namespace wolkabout {
+class RegistrationResponseHandler {
 public:
-    /**
-     * @brief Registration Response Handler callback<br>
-     *        Must be implemented as non blocking<br>
-     *        Must be implemented as thread safe
-     * @param key Device key
-     * @param value Desired actuator value
-     */
-    virtual void operator()(const std::string& key, DeviceReregistrationResponse::Result result) = 0;
+  /**
+   * @brief Registration Response Handler callback<br>
+   *        Must be implemented as non blocking<br>
+   *        Must be implemented as thread safe
+   * @param key Device key
+   * @param value Desired actuator value
+   */
+  virtual void operator()(const std::string &key,
+                          DeviceReregistrationResponse::Result result) = 0;
 
-    virtual ~RegistrationResponseHandler() = default;
+  virtual ~RegistrationResponseHandler() = default;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
-#endif    // REGISTRATIONRESPONSEHANDLER_H
+#endif // REGISTRATIONRESPONSEHANDLER_H

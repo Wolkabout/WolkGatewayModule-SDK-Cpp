@@ -23,24 +23,22 @@
 #include <memory>
 #include <thread>
 
-namespace wolkabout
-{
-class Timer
-{
+namespace wolkabout {
+class Timer {
 public:
-    Timer();
-    ~Timer();
+  Timer();
+  ~Timer();
 
-    void start(unsigned intervalMsec, std::function<void()> callback);
-    void stop();
-    bool running() const;
+  void start(unsigned intervalMsec, std::function<void()> callback);
+  void stop();
+  bool running() const;
 
 private:
-    std::atomic_bool m_isRunning;
-    std::mutex m_lock;
-    std::condition_variable m_condition;
-    std::unique_ptr<std::thread> m_worker;
+  std::atomic_bool m_isRunning;
+  std::mutex m_lock;
+  std::condition_variable m_condition;
+  std::unique_ptr<std::thread> m_worker;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
-#endif    // TIMER_H
+#endif // TIMER_H

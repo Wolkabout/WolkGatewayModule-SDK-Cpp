@@ -5,20 +5,19 @@
 #include <memory>
 #include <string>
 
-namespace wolkabout
-{
+namespace wolkabout {
 class Protocol;
 class DataProtocol;
 
-class ProtocolManager
-{
+class ProtocolManager {
 public:
-    void registerDataProtocol(std::shared_ptr<DataProtocol> protocol);
-    std::shared_ptr<DataProtocol> getDataProtocol(const std::string& protocolName);
+  void registerDataProtocol(std::shared_ptr<DataProtocol> protocol);
+  std::shared_ptr<DataProtocol>
+  getDataProtocol(const std::string &protocolName);
 
 private:
-    std::map<std::string, std::shared_ptr<DataProtocol>> m_dataProtocols;
+  std::map<std::string, std::shared_ptr<DataProtocol>> m_dataProtocols;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
-#endif    // PROTOCOLMANAGER_H
+#endif // PROTOCOLMANAGER_H

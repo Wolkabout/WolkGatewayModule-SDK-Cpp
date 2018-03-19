@@ -21,17 +21,16 @@
 
 #include <string>
 
-namespace wolkabout
-{
-class Alarm : public Reading
-{
+namespace wolkabout {
+class Alarm : public Reading {
 public:
-    Alarm();
-    Alarm(std::string value, std::string reference, unsigned long long int rtc = 0);
+  Alarm();
+  Alarm(std::string value, std::string reference,
+        unsigned long long int rtc = 0);
 
-    virtual ~Alarm() = default;
+  virtual ~Alarm() = default;
 
-    void acceptVisit(ReadingVisitor& visitor) override;
+  void acceptVisit(ReadingVisitor &visitor) override;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 #endif

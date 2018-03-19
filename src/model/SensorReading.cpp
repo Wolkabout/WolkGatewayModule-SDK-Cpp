@@ -20,17 +20,14 @@
 #include <string>
 #include <utility>
 
-namespace wolkabout
-{
+namespace wolkabout {
 SensorReading::SensorReading() : Reading("", "") {}
 
-SensorReading::SensorReading(std::string value, std::string reference, unsigned long long int rtc)
-: Reading(std::move(value), std::move(reference), rtc)
-{
-}
+SensorReading::SensorReading(std::string value, std::string reference,
+                             unsigned long long int rtc)
+    : Reading(std::move(value), std::move(reference), rtc) {}
 
-void SensorReading::acceptVisit(ReadingVisitor& visitor)
-{
-    visitor.visit(*this);
+void SensorReading::acceptVisit(ReadingVisitor &visitor) {
+  visitor.visit(*this);
 }
-}    // namespace wolkabout
+} // namespace wolkabout

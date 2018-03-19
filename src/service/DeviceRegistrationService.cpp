@@ -20,33 +20,28 @@
 #include "protocol/RegistrationProtocol.h"
 #include "utilities/Logger.h"
 
-namespace wolkabout
-{
-DeviceRegistrationService::DeviceRegistrationService(RegistrationProtocol& protocol,
-                                                     ConnectivityService& connectivityService,
-                                                     const RegistrationResponseHandler& registrationResponseHandler)
-: m_protocol{protocol}
-, m_connectivityService{connectivityService}
-, m_registrationResponseHandler{registrationResponseHandler}
-{
+namespace wolkabout {
+DeviceRegistrationService::DeviceRegistrationService(
+    RegistrationProtocol &protocol, ConnectivityService &connectivityService,
+    const RegistrationResponseHandler &registrationResponseHandler)
+    : m_protocol{protocol}, m_connectivityService{connectivityService},
+      m_registrationResponseHandler{registrationResponseHandler} {}
+
+void DeviceRegistrationService::messageReceived(
+    std::shared_ptr<Message> message) {}
+
+const Protocol &DeviceRegistrationService::getProtocol() { return m_protocol; }
+
+void DeviceRegistrationService::publishRegistrationRequest(
+    const Device &device) {
+  DeviceRegistrationRequest request{device};
+
+  const std::shared_ptr<Message> outboundMessage =
+      m_protocol.makeMessage(device.getKey(), request);
+
+  if (!outboundMessage || !m_connectivityService.publish(outboundMessage)) {
+    LOG(INFO) << "Registration request not published for device: "
+              << device.getKey();
+  }
 }
-
-void DeviceRegistrationService::messageReceived(std::shared_ptr<Message> message) {}
-
-const Protocol& DeviceRegistrationService::getProtocol()
-{
-    return m_protocol;
-}
-
-void DeviceRegistrationService::publishRegistrationRequest(const Device& device)
-{
-    DeviceRegistrationRequest request{device};
-
-    const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(device.getKey(), request);
-
-    if (!outboundMessage || !m_connectivityService.publish(outboundMessage))
-    {
-        LOG(INFO) << "Registration request not published for device: " << device.getKey();
-    }
-}
-}
+} // namespace wolkabout

@@ -19,20 +19,18 @@
 
 #include <string>
 
-namespace wolkabout
-{
-class FirmwareInstaller
-{
+namespace wolkabout {
+class FirmwareInstaller {
 public:
-    virtual ~FirmwareInstaller() = default;
+  virtual ~FirmwareInstaller() = default;
 
-    /**
-     * @brief install Install the firmware from provided file
-     * @param firmwareFile Firmware file to install
-     * @return false if fails, on success does not return
-     */
-    virtual bool install(const std::string& firmwareFile) = 0;
+  /**
+   * @brief install Install the firmware from provided file
+   * @param firmwareFile Firmware file to install
+   * @return false if fails, on success does not return
+   */
+  virtual bool install(const std::string &firmwareFile) = 0;
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
-#endif    // FIRMWAREINSTALLER_H
+#endif // FIRMWAREINSTALLER_H

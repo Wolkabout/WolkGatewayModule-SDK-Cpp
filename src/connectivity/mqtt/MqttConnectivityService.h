@@ -25,40 +25,41 @@
 #include <memory>
 #include <string>
 
-namespace wolkabout
-{
-class MqttConnectivityService : public ConnectivityService
-{
+namespace wolkabout {
+class MqttConnectivityService : public ConnectivityService {
 public:
-    MqttConnectivityService(std::shared_ptr<MqttClient> mqttClient, std::string key, std::string password,
-                            std::string host);
-    virtual ~MqttConnectivityService() = default;
+  MqttConnectivityService(std::shared_ptr<MqttClient> mqttClient,
+                          std::string key, std::string password,
+                          std::string host);
+  virtual ~MqttConnectivityService() = default;
 
-    bool connect() override;
-    void disconnect() override;
-    bool reconnect() override;
+  bool connect() override;
+  void disconnect() override;
+  bool reconnect() override;
 
-    bool isConnected() override;
+  bool isConnected() override;
 
-    bool publish(std::shared_ptr<Message> outboundMessage, bool persistent) override;
+  bool publish(std::shared_ptr<Message> outboundMessage,
+               bool persistent) override;
 
-    void setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage, bool persistent) override;
+  void setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage,
+                                       bool persistent) override;
 
 private:
-    std::shared_ptr<MqttClient> m_mqttClient;
+  std::shared_ptr<MqttClient> m_mqttClient;
 
-    const std::string m_key;
-    const std::string m_password;
-    const std::string m_host;
+  const std::string m_key;
+  const std::string m_password;
+  const std::string m_host;
 
-    std::string m_lastWillChannel;
-    std::string m_lastWillPayload;
-    bool m_lastWillRetain;
+  std::string m_lastWillChannel;
+  std::string m_lastWillPayload;
+  bool m_lastWillRetain;
 
-    std::atomic_bool m_connected;
+  std::atomic_bool m_connected;
 
-    static const constexpr char* TRUST_STORE = "ca.crt";
+  static const constexpr char *TRUST_STORE = "ca.crt";
 };
-}    // namespace wolkabout
+} // namespace wolkabout
 
 #endif
