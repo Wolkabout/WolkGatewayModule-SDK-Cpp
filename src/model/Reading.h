@@ -19,39 +19,41 @@
 
 #include <string>
 
-namespace wolkabout {
+namespace wolkabout
+{
 class ActuatorStatus;
 class Alarm;
 class SensorReading;
 
-class ReadingVisitor {
+class ReadingVisitor
+{
 public:
-  ReadingVisitor() = default;
-  virtual ~ReadingVisitor() = default;
+    ReadingVisitor() = default;
+    virtual ~ReadingVisitor() = default;
 
-  virtual void visit(ActuatorStatus &actuatorStatus) = 0;
-  virtual void visit(Alarm &alarm) = 0;
-  virtual void visit(SensorReading &sensorReading) = 0;
+    virtual void visit(ActuatorStatus& actuatorStatus) = 0;
+    virtual void visit(Alarm& alarm) = 0;
+    virtual void visit(SensorReading& sensorReading) = 0;
 };
 
-class Reading {
+class Reading
+{
 public:
-  Reading(std::string value, std::string reference,
-          unsigned long long int rtc = 0);
+    Reading(std::string value, std::string reference, unsigned long long int rtc = 0);
 
-  virtual ~Reading() = default;
+    virtual ~Reading() = default;
 
-  const std::string &getValue() const;
-  const std::string &getReference() const;
-  unsigned long long int getRtc() const;
+    const std::string& getValue() const;
+    const std::string& getReference() const;
+    unsigned long long int getRtc() const;
 
-  virtual void acceptVisit(ReadingVisitor &visitor) = 0;
+    virtual void acceptVisit(ReadingVisitor& visitor) = 0;
 
 private:
-  std::string m_value;
-  std::string m_reference;
-  unsigned long long int m_rtc;
+    std::string m_value;
+    std::string m_reference;
+    unsigned long long int m_rtc;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
 #endif

@@ -19,16 +19,18 @@
 
 #include "model/DeviceStatus.h"
 
-namespace wolkabout {
-class DeviceStatusResponse {
+namespace wolkabout
+{
+class DeviceStatusResponse
+{
 public:
-  DeviceStatusResponse(DeviceStatus status);
+    DeviceStatusResponse(DeviceStatus status);
 
-  DeviceStatus getStatus() const;
+    DeviceStatus getStatus() const;
 
 private:
-  const DeviceStatus m_status;
+    const DeviceStatus m_status;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // DEVICESTATUSRESPONSE_H
+#endif    // DEVICESTATUSRESPONSE_H

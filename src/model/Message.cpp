@@ -19,11 +19,20 @@
 #include <string>
 #include <utility>
 
-namespace wolkabout {
+namespace wolkabout
+{
 Message::Message(std::string content, std::string channel)
-    : m_content(std::move(content)), m_channel(std::move(channel)) {}
+: m_content(std::move(content)), m_channel(std::move(channel))
+{
+}
 
-const std::string &Message::getContent() const { return m_content; }
+const std::string& Message::getContent() const
+{
+    return m_content;
+}
 
-const std::string &Message::getChannel() const { return m_channel; }
-} // namespace wolkabout
+const std::string& Message::getChannel() const
+{
+    return m_channel;
+}
+}    // namespace wolkabout

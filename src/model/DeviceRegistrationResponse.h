@@ -17,29 +17,32 @@
 #ifndef DEVICEREGISTRATIONRESPONSE_H
 #define DEVICEREGISTRATIONRESPONSE_H
 
-namespace wolkabout {
-class DeviceRegistrationResponse {
+namespace wolkabout
+{
+class DeviceRegistrationResponse
+{
 public:
-  enum class Result {
-    OK,
-    ERROR_KEY_CONFLICT,
-    ERROR_MAXIMUM_NUMBER_OF_DEVICES_EXCEEDED,
-    ERROR_MANIFEST_CONFLICT,
-    ERROR_READING_PAYLOAD,
-    ERROR_GATEWAY_NOT_FOUND,
-    ERROR_NO_GATEWAY_MANIFEST
-  };
+    enum class Result
+    {
+        OK,
+        ERROR_KEY_CONFLICT,
+        ERROR_MAXIMUM_NUMBER_OF_DEVICES_EXCEEDED,
+        ERROR_MANIFEST_CONFLICT,
+        ERROR_READING_PAYLOAD,
+        ERROR_GATEWAY_NOT_FOUND,
+        ERROR_NO_GATEWAY_MANIFEST
+    };
 
-  DeviceRegistrationResponse() = default;
-  DeviceRegistrationResponse(DeviceRegistrationResponse::Result result);
+    DeviceRegistrationResponse() = default;
+    DeviceRegistrationResponse(DeviceRegistrationResponse::Result result);
 
-  virtual ~DeviceRegistrationResponse() = default;
+    virtual ~DeviceRegistrationResponse() = default;
 
-  DeviceRegistrationResponse::Result getResult() const;
+    DeviceRegistrationResponse::Result getResult() const;
 
 private:
-  DeviceRegistrationResponse::Result m_result;
+    DeviceRegistrationResponse::Result m_result;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // DEVICEREGISTRATIONRESPONSE_H
+#endif    // DEVICEREGISTRATIONRESPONSE_H

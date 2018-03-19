@@ -22,41 +22,48 @@
 #include <string>
 #include <utility>
 
-namespace wolkabout {
+namespace wolkabout
+{
 using nlohmann::json;
 
-DeviceConfiguration::DeviceConfiguration(std::string name, std::string protocol,
-                                         std::string localMqttUri)
-    : m_name(std::move(name)), m_protocol(std::move(protocol)),
-      m_localMqttUri(std::move(localMqttUri)) {}
-
-const std::string &DeviceConfiguration::getName() const { return m_name; }
-
-const std::string &DeviceConfiguration::getProtocol() const {
-  return m_protocol;
+DeviceConfiguration::DeviceConfiguration(std::string name, std::string protocol, std::string localMqttUri)
+: m_name(std::move(name)), m_protocol(std::move(protocol)), m_localMqttUri(std::move(localMqttUri))
+{
 }
 
-const std::string &DeviceConfiguration::getLocalMqttUri() const {
-  return m_localMqttUri;
+const std::string& DeviceConfiguration::getName() const
+{
+    return m_name;
 }
 
-wolkabout::DeviceConfiguration
-DeviceConfiguration::fromJson(const std::string &deviceConfigurationFile) {
-  if (!FileSystemUtils::isFilePresent(deviceConfigurationFile)) {
-    throw std::logic_error("Given device configuration file does not exist.");
-  }
-
-  std::string deviceConfigurationJson;
-  if (!FileSystemUtils::readFileContent(deviceConfigurationFile,
-                                        deviceConfigurationJson)) {
-    throw std::logic_error("Unable to read device configuration file.");
-  }
-
-  auto j = json::parse(deviceConfigurationJson);
-  const auto name = j.at("name").get<std::string>();
-  const auto protocol = j.at("protocol").get<std::string>();
-  const auto localMqttUri = j.at("localMqttUri").get<std::string>();
-
-  return DeviceConfiguration(name, protocol, localMqttUri);
+const std::string& DeviceConfiguration::getProtocol() const
+{
+    return m_protocol;
 }
-} // namespace wolkabout
+
+const std::string& DeviceConfiguration::getLocalMqttUri() const
+{
+    return m_localMqttUri;
+}
+
+wolkabout::DeviceConfiguration DeviceConfiguration::fromJson(const std::string& deviceConfigurationFile)
+{
+    if (!FileSystemUtils::isFilePresent(deviceConfigurationFile))
+    {
+        throw std::logic_error("Given device configuration file does not exist.");
+    }
+
+    std::string deviceConfigurationJson;
+    if (!FileSystemUtils::readFileContent(deviceConfigurationFile, deviceConfigurationJson))
+    {
+        throw std::logic_error("Unable to read device configuration file.");
+    }
+
+    auto j = json::parse(deviceConfigurationJson);
+    const auto name = j.at("name").get<std::string>();
+    const auto protocol = j.at("protocol").get<std::string>();
+    const auto localMqttUri = j.at("localMqttUri").get<std::string>();
+
+    return DeviceConfiguration(name, protocol, localMqttUri);
+}
+}    // namespace wolkabout

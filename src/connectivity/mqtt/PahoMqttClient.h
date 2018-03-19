@@ -24,47 +24,46 @@
 #include <mutex>
 #include <string>
 
-namespace wolkabout {
-class PahoMqttClient : public MqttClient, public mqtt::callback {
+namespace wolkabout
+{
+class PahoMqttClient : public MqttClient, public mqtt::callback
+{
 public:
-  PahoMqttClient();
-  virtual ~PahoMqttClient() = default;
+    PahoMqttClient();
+    virtual ~PahoMqttClient() = default;
 
-  bool connect(const std::string &username, const std::string &password,
-               const std::string &trustStore, const std::string &host,
-               const std::string &clientId) override;
-  void disconnect() override;
+    bool connect(const std::string& username, const std::string& password, const std::string& trustStore,
+                 const std::string& host, const std::string& clientId) override;
+    void disconnect() override;
 
-  bool isConnected() override;
+    bool isConnected() override;
 
-  void setLastWill(const std::string &topic, const std::string &message,
-                   bool retained) override;
+    void setLastWill(const std::string& topic, const std::string& message, bool retained) override;
 
-  bool subscribe(const std::string &topic) override;
-  bool publish(const std::string &topic, const std::string &message,
-               bool retained) override;
+    bool subscribe(const std::string& topic) override;
+    bool publish(const std::string& topic, const std::string& message, bool retained) override;
 
 private:
-  std::atomic_bool m_isConnected;
+    std::atomic_bool m_isConnected;
 
-  std::string m_lastWillTopic;
-  std::string m_lastWillMessage;
-  bool m_lastWillRetain;
+    std::string m_lastWillTopic;
+    std::string m_lastWillMessage;
+    bool m_lastWillRetain;
 
-  std::unique_ptr<mqtt::async_client> m_client;
+    std::unique_ptr<mqtt::async_client> m_client;
 
-  std::mutex m_mutex;
+    std::mutex m_mutex;
 
-  static const unsigned short MQTT_CONNECTION_COMPLETITION_TIMEOUT_MSEC;
-  static const unsigned short MQTT_ACTION_COMPLETITION_TIMEOUT_MSEC;
-  static const unsigned short MQTT_KEEP_ALIVE_SEC;
-  static const unsigned short MQTT_QOS;
+    static const unsigned short MQTT_CONNECTION_COMPLETITION_TIMEOUT_MSEC;
+    static const unsigned short MQTT_ACTION_COMPLETITION_TIMEOUT_MSEC;
+    static const unsigned short MQTT_KEEP_ALIVE_SEC;
+    static const unsigned short MQTT_QOS;
 
-  void connected(const mqtt::string &cause) override;
-  void connection_lost(const mqtt::string &cause) override;
-  void message_arrived(mqtt::const_message_ptr msg) override;
-  void delivery_complete(mqtt::delivery_token_ptr tok) override;
+    void connected(const mqtt::string& cause) override;
+    void connection_lost(const mqtt::string& cause) override;
+    void message_arrived(mqtt::const_message_ptr msg) override;
+    void delivery_complete(mqtt::delivery_token_ptr tok) override;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
 #endif

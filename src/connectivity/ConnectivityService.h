@@ -22,42 +22,41 @@
 #include <string>
 #include <vector>
 
-namespace wolkabout {
-class ConnectivityServiceListener {
+namespace wolkabout
+{
+class ConnectivityServiceListener
+{
 public:
-  virtual ~ConnectivityServiceListener() = default;
+    virtual ~ConnectivityServiceListener() = default;
 
-  virtual void messageReceived(const std::string &topic,
-                               const std::string &message) = 0;
+    virtual void messageReceived(const std::string& topic, const std::string& message) = 0;
 
-  virtual void connectionLost() = 0;
+    virtual void connectionLost() = 0;
 
-  virtual std::vector<std::string> getChannels() const = 0;
+    virtual std::vector<std::string> getChannels() const = 0;
 };
 
 class Message;
-class ConnectivityService {
+class ConnectivityService
+{
 public:
-  virtual ~ConnectivityService() = default;
+    virtual ~ConnectivityService() = default;
 
-  virtual bool connect() = 0;
-  virtual void disconnect() = 0;
-  virtual bool reconnect() = 0;
+    virtual bool connect() = 0;
+    virtual void disconnect() = 0;
+    virtual bool reconnect() = 0;
 
-  virtual bool isConnected() = 0;
+    virtual bool isConnected() = 0;
 
-  virtual bool publish(std::shared_ptr<Message> outboundMessage,
-                       bool persistent = false) = 0;
+    virtual bool publish(std::shared_ptr<Message> outboundMessage, bool persistent = false) = 0;
 
-  virtual void
-  setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage,
-                                  bool persistent = false) = 0;
+    virtual void setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage, bool persistent = false) = 0;
 
-  void setListener(std::weak_ptr<ConnectivityServiceListener> listener);
+    void setListener(std::weak_ptr<ConnectivityServiceListener> listener);
 
 protected:
-  std::weak_ptr<ConnectivityServiceListener> m_listener;
+    std::weak_ptr<ConnectivityServiceListener> m_listener;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
 #endif

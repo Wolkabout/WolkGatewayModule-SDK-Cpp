@@ -17,16 +17,17 @@
 #ifndef FIRMWAREUPDATECOMMANDLISTENER_H
 #define FIRMWAREUPDATECOMMANDLISTENER_H
 
-namespace wolkabout {
+namespace wolkabout
+{
 class FirmwareUpdateCommand;
 
-class FirmwareUpdateCommandListener {
+class FirmwareUpdateCommandListener
+{
 public:
-  virtual ~FirmwareUpdateCommandListener() = default;
+    virtual ~FirmwareUpdateCommandListener() = default;
 
-  virtual void handleFirmwareUpdateCommand(
-      const FirmwareUpdateCommand &firmwareUpdateCommand) = 0;
+    virtual void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) = 0;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // FIRMWAREUPDATECOMMANDLISTENER_H
+#endif    // FIRMWAREUPDATECOMMANDLISTENER_H

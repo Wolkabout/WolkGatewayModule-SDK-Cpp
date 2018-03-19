@@ -21,70 +21,79 @@
 #include <mutex>
 #include <queue>
 
-namespace wolkabout {
-template <class T> class Buffer {
+namespace wolkabout
+{
+template <class T> class Buffer
+{
 public:
-  Buffer() = default;
-  virtual ~Buffer() = default;
+    Buffer() = default;
+    virtual ~Buffer() = default;
 
-  void push(T item);
-  void push_rvalue(T &&item);
+    void push(T item);
+    void push_rvalue(T&& item);
 
-  T pop();
+    T pop();
 
-  bool isEmpty() const;
+    bool isEmpty() const;
 
-  void swapBuffers();
+    void swapBuffers();
 
 private:
-  std::queue<T> m_pushQueue;
-  std::queue<T> m_popQueue;
+    std::queue<T> m_pushQueue;
+    std::queue<T> m_popQueue;
 
-  mutable std::mutex m_lock;
-  std::condition_variable m_condition;
+    mutable std::mutex m_lock;
+    std::condition_variable m_condition;
 };
 
-template <class T> void Buffer<T>::push(T item) {
-  std::unique_lock<std::mutex> unique_lock(m_lock);
+template <class T> void Buffer<T>::push(T item)
+{
+    std::unique_lock<std::mutex> unique_lock(m_lock);
 
-  m_pushQueue.push(std::move(item));
+    m_pushQueue.push(std::move(item));
 
-  m_condition.notify_one();
+    m_condition.notify_one();
 }
 
-template <class T> void Buffer<T>::push_rvalue(T &&item) {
-  std::unique_lock<std::mutex> unique_lock(m_lock);
+template <class T> void Buffer<T>::push_rvalue(T&& item)
+{
+    std::unique_lock<std::mutex> unique_lock(m_lock);
 
-  m_pushQueue.push(std::move(item));
+    m_pushQueue.push(std::move(item));
 
-  m_condition.notify_one();
+    m_condition.notify_one();
 }
 
-template <class T> T Buffer<T>::pop() {
-  if (m_popQueue.empty()) {
-    return nullptr;
-  }
+template <class T> T Buffer<T>::pop()
+{
+    if (m_popQueue.empty())
+    {
+        return nullptr;
+    }
 
-  T item = std::move(m_popQueue.front());
-  m_popQueue.pop();
-  return item;
+    T item = std::move(m_popQueue.front());
+    m_popQueue.pop();
+    return item;
 }
 
-template <class T> void Buffer<T>::swapBuffers() {
-  std::unique_lock<std::mutex> unique_lock(m_lock);
+template <class T> void Buffer<T>::swapBuffers()
+{
+    std::unique_lock<std::mutex> unique_lock(m_lock);
 
-  if (m_pushQueue.empty()) {
-    m_condition.wait(unique_lock);
-  }
+    if (m_pushQueue.empty())
+    {
+        m_condition.wait(unique_lock);
+    }
 
-  std::swap(m_pushQueue, m_popQueue);
+    std::swap(m_pushQueue, m_popQueue);
 }
 
-template <class T> bool Buffer<T>::isEmpty() const {
-  std::unique_lock<std::mutex> unique_lock(m_lock);
+template <class T> bool Buffer<T>::isEmpty() const
+{
+    std::unique_lock<std::mutex> unique_lock(m_lock);
 
-  return m_pushQueue.empty();
+    return m_pushQueue.empty();
 }
-} // namespace wolkabout
+}    // namespace wolkabout
 
 #endif

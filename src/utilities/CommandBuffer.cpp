@@ -24,67 +24,86 @@
 #include <queue>
 #include <thread>
 
-namespace wolkabout {
+namespace wolkabout
+{
 CommandBuffer::CommandBuffer()
-    : m_isRunning(true), m_worker(std::unique_ptr<std::thread>(
-                             new std::thread(&CommandBuffer::run, this))) {}
-
-CommandBuffer::~CommandBuffer() { stop(); }
-
-void CommandBuffer::pushCommand(std::shared_ptr<Command> command) {
-  std::unique_lock<std::mutex> unique_lock(m_lock);
-
-  m_pushCommandQueue.push(command);
-
-  notify();
+: m_isRunning(true), m_worker(std::unique_ptr<std::thread>(new std::thread(&CommandBuffer::run, this)))
+{
 }
 
-void CommandBuffer::stop() {
-  m_isRunning = false;
-  notify();
-  m_worker->join();
+CommandBuffer::~CommandBuffer()
+{
+    stop();
 }
 
-std::shared_ptr<CommandBuffer::Command> CommandBuffer::popCommand() {
-  if (m_popCommandQueue.empty()) {
-    return nullptr;
-  }
+void CommandBuffer::pushCommand(std::shared_ptr<Command> command)
+{
+    std::unique_lock<std::mutex> unique_lock(m_lock);
 
-  std::shared_ptr<Command> command = m_popCommandQueue.front();
-  m_popCommandQueue.pop();
-  return command;
+    m_pushCommandQueue.push(command);
+
+    notify();
 }
 
-bool CommandBuffer::empty() const {
-  std::unique_lock<std::mutex> unique_lock(m_lock);
-
-  return m_pushCommandQueue.empty();
+void CommandBuffer::stop()
+{
+    m_isRunning = false;
+    notify();
+    m_worker->join();
 }
 
-void CommandBuffer::switchBuffers() {
-  std::unique_lock<std::mutex> unique_lock(m_lock);
+std::shared_ptr<CommandBuffer::Command> CommandBuffer::popCommand()
+{
+    if (m_popCommandQueue.empty())
+    {
+        return nullptr;
+    }
 
-  if (m_pushCommandQueue.empty()) {
-    m_condition.wait(unique_lock);
-  }
-
-  std::swap(m_pushCommandQueue, m_popCommandQueue);
+    std::shared_ptr<Command> command = m_popCommandQueue.front();
+    m_popCommandQueue.pop();
+    return command;
 }
 
-void CommandBuffer::notify() { m_condition.notify_one(); }
+bool CommandBuffer::empty() const
+{
+    std::unique_lock<std::mutex> unique_lock(m_lock);
 
-void CommandBuffer::processCommands() {
-  switchBuffers();
-
-  std::shared_ptr<std::function<void()>> command;
-  while ((command = popCommand()) != nullptr) {
-    command->operator()();
-  }
+    return m_pushCommandQueue.empty();
 }
 
-void CommandBuffer::run() {
-  while (m_isRunning) {
-    processCommands();
-  }
+void CommandBuffer::switchBuffers()
+{
+    std::unique_lock<std::mutex> unique_lock(m_lock);
+
+    if (m_pushCommandQueue.empty())
+    {
+        m_condition.wait(unique_lock);
+    }
+
+    std::swap(m_pushCommandQueue, m_popCommandQueue);
 }
-} // namespace wolkabout
+
+void CommandBuffer::notify()
+{
+    m_condition.notify_one();
+}
+
+void CommandBuffer::processCommands()
+{
+    switchBuffers();
+
+    std::shared_ptr<std::function<void()>> command;
+    while ((command = popCommand()) != nullptr)
+    {
+        command->operator()();
+    }
+}
+
+void CommandBuffer::run()
+{
+    while (m_isRunning)
+    {
+        processCommands();
+    }
+}
+}    // namespace wolkabout

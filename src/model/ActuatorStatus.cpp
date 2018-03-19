@@ -20,20 +20,27 @@
 #include <string>
 #include <utility>
 
-namespace wolkabout {
-ActuatorStatus::ActuatorStatus()
-    : Reading("", ""), m_state(ActuatorStatus::State::READY) {}
+namespace wolkabout
+{
+ActuatorStatus::ActuatorStatus() : Reading("", ""), m_state(ActuatorStatus::State::READY) {}
 
 ActuatorStatus::ActuatorStatus(std::string value, ActuatorStatus::State state)
-    : Reading(std::move(value), ""), m_state(state) {}
-
-ActuatorStatus::ActuatorStatus(std::string value, std::string reference,
-                               ActuatorStatus::State state)
-    : Reading(std::move(value), std::move(reference)), m_state(state) {}
-
-ActuatorStatus::State ActuatorStatus::getState() const { return m_state; }
-
-void ActuatorStatus::acceptVisit(ReadingVisitor &visitor) {
-  visitor.visit(*this);
+: Reading(std::move(value), ""), m_state(state)
+{
 }
-} // namespace wolkabout
+
+ActuatorStatus::ActuatorStatus(std::string value, std::string reference, ActuatorStatus::State state)
+: Reading(std::move(value), std::move(reference)), m_state(state)
+{
+}
+
+ActuatorStatus::State ActuatorStatus::getState() const
+{
+    return m_state;
+}
+
+void ActuatorStatus::acceptVisit(ReadingVisitor& visitor)
+{
+    visitor.visit(*this);
+}
+}    // namespace wolkabout

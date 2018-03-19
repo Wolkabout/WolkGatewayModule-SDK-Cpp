@@ -21,25 +21,28 @@
 #include <string>
 #include <utility>
 
-namespace wolkabout {
-DeviceRegistrationRequest::DeviceRegistrationRequest(
-    std::string deviceName, std::string deviceKey,
-    DeviceManifest deviceManifest)
-    : m_device(std::move(deviceName), std::move(deviceKey),
-               std::move(deviceManifest)) {}
-
-DeviceRegistrationRequest::DeviceRegistrationRequest(Device device)
-    : m_device(std::move(device)) {}
-
-const std::string &DeviceRegistrationRequest::getDeviceName() const {
-  return m_device.getName();
+namespace wolkabout
+{
+DeviceRegistrationRequest::DeviceRegistrationRequest(std::string deviceName, std::string deviceKey,
+                                                     DeviceManifest deviceManifest)
+: m_device(std::move(deviceName), std::move(deviceKey), std::move(deviceManifest))
+{
 }
 
-const std::string &DeviceRegistrationRequest::getDeviceKey() const {
-  return m_device.getKey();
+DeviceRegistrationRequest::DeviceRegistrationRequest(Device device) : m_device(std::move(device)) {}
+
+const std::string& DeviceRegistrationRequest::getDeviceName() const
+{
+    return m_device.getName();
 }
 
-const DeviceManifest &DeviceRegistrationRequest::getManifest() const {
-  return m_device.getManifest();
+const std::string& DeviceRegistrationRequest::getDeviceKey() const
+{
+    return m_device.getKey();
 }
-} // namespace wolkabout
+
+const DeviceManifest& DeviceRegistrationRequest::getManifest() const
+{
+    return m_device.getManifest();
+}
+}    // namespace wolkabout

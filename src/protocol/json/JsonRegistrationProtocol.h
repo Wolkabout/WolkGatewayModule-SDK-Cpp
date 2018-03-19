@@ -21,45 +21,44 @@
 
 #include <vector>
 
-namespace wolkabout {
-class JsonRegistrationProtocol : public RegistrationProtocol {
+namespace wolkabout
+{
+class JsonRegistrationProtocol : public RegistrationProtocol
+{
 public:
-  const std::string &getName() const override;
-  const std::vector<std::string> &getInboundChannels() const override;
-  std::string
-  extractDeviceKeyFromChannel(const std::string &topic) const override;
+    const std::string& getName() const override;
+    const std::vector<std::string>& getInboundChannels() const override;
+    std::string extractDeviceKeyFromChannel(const std::string& topic) const override;
 
-  std::shared_ptr<Message>
-  makeMessage(const std::string &deviceKey,
-              const DeviceRegistrationRequest &request) const override;
-  std::shared_ptr<DeviceRegistrationResponse>
-  makeRegistrationResponse(std::shared_ptr<Message> message) const override;
+    std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
+                                         const DeviceRegistrationRequest& request) const override;
+    std::shared_ptr<DeviceRegistrationResponse> makeRegistrationResponse(
+      std::shared_ptr<Message> message) const override;
 
 private:
-  static const std::string NAME;
+    static const std::string NAME;
 
-  static const std::string CHANNEL_DELIMITER;
-  static const std::string CHANNEL_WILDCARD;
-  static const std::string DEVICE_PATH_PREFIX;
-  static const std::string DEVICE_TO_PLATFORM_DIRECTION;
-  static const std::string PLATFORM_TO_DEVICE_DIRECTION;
+    static const std::string CHANNEL_DELIMITER;
+    static const std::string CHANNEL_WILDCARD;
+    static const std::string DEVICE_PATH_PREFIX;
+    static const std::string DEVICE_TO_PLATFORM_DIRECTION;
+    static const std::string PLATFORM_TO_DEVICE_DIRECTION;
 
-  static const std::string DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT;
-  static const std::string DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT;
-  static const std::string DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT;
-  static const std::string DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT;
+    static const std::string DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT;
+    static const std::string DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT;
+    static const std::string DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT;
+    static const std::string DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT;
 
-  static const std::vector<std::string> INBOUND_CHANNELS;
+    static const std::vector<std::string> INBOUND_CHANNELS;
 
-  static const std::string REGISTRATION_RESPONSE_OK;
-  static const std::string REGISTRATION_RESPONSE_ERROR_KEY_CONFLICT;
-  static const std::string REGISTRATION_RESPONSE_ERROR_MANIFEST_CONFLICT;
-  static const std::string
-      REGISTRATION_RESPONSE_ERROR_MAX_NUMBER_OF_DEVICES_EXCEEDED;
-  static const std::string REGISTRATION_RESPONSE_ERROR_READING_PAYLOAD;
-  static const std::string REGISTRATION_RESPONSE_ERROR_GATEWAY_NOT_FOUND;
-  static const std::string REGISTRATION_RESPONSE_ERROR_NO_GATEWAY_MANIFEST;
+    static const std::string REGISTRATION_RESPONSE_OK;
+    static const std::string REGISTRATION_RESPONSE_ERROR_KEY_CONFLICT;
+    static const std::string REGISTRATION_RESPONSE_ERROR_MANIFEST_CONFLICT;
+    static const std::string REGISTRATION_RESPONSE_ERROR_MAX_NUMBER_OF_DEVICES_EXCEEDED;
+    static const std::string REGISTRATION_RESPONSE_ERROR_READING_PAYLOAD;
+    static const std::string REGISTRATION_RESPONSE_ERROR_GATEWAY_NOT_FOUND;
+    static const std::string REGISTRATION_RESPONSE_ERROR_NO_GATEWAY_MANIFEST;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // JSONREGISTRATIONPROTOCOL_H
+#endif    // JSONREGISTRATIONPROTOCOL_H

@@ -25,31 +25,32 @@
 #include <string>
 #include <vector>
 
-namespace wolkabout {
-class InboundGatewayMessageHandler : public InboundMessageHandler {
+namespace wolkabout
+{
+class InboundGatewayMessageHandler : public InboundMessageHandler
+{
 public:
-  InboundGatewayMessageHandler();
+    InboundGatewayMessageHandler();
 
-  ~InboundGatewayMessageHandler();
+    ~InboundGatewayMessageHandler();
 
-  void messageReceived(const std::string &channel,
-                       const std::string &message) override;
+    void messageReceived(const std::string& channel, const std::string& message) override;
 
-  std::vector<std::string> getChannels() const override;
+    std::vector<std::string> getChannels() const override;
 
-  void addListener(std::weak_ptr<MessageListener> listener) override;
+    void addListener(std::weak_ptr<MessageListener> listener) override;
 
 private:
-  void addToCommandBuffer(std::function<void()> command);
+    void addToCommandBuffer(std::function<void()> command);
 
-  std::unique_ptr<CommandBuffer> m_commandBuffer;
+    std::unique_ptr<CommandBuffer> m_commandBuffer;
 
-  std::vector<std::string> m_subscriptionList;
+    std::vector<std::string> m_subscriptionList;
 
-  std::map<std::string, std::weak_ptr<MessageListener>> m_channelHandlers;
+    std::map<std::string, std::weak_ptr<MessageListener>> m_channelHandlers;
 
-  mutable std::mutex m_lock;
+    mutable std::mutex m_lock;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // INBOUNDGATEWAYMESSAGEHANDLER_H
+#endif    // INBOUNDGATEWAYMESSAGEHANDLER_H

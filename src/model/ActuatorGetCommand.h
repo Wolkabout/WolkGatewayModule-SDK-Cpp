@@ -19,17 +19,19 @@
 
 #include <string>
 
-namespace wolkabout {
-class ActuatorGetCommand {
+namespace wolkabout
+{
+class ActuatorGetCommand
+{
 public:
-  ActuatorGetCommand();
-  ActuatorGetCommand(const std::string &reference);
+    ActuatorGetCommand();
+    ActuatorGetCommand(const std::string& reference);
 
-  const std::string &getReference() const;
+    const std::string& getReference() const;
 
 private:
-  std::string m_reference;
+    std::string m_reference;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
 #endif

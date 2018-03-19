@@ -17,21 +17,26 @@
 #ifndef DEVICEREREGISTRATIONRESPONSE_H
 #define DEVICEREREGISTRATIONRESPONSE_H
 
-namespace wolkabout {
-class DeviceReregistrationResponse {
+namespace wolkabout
+{
+class DeviceReregistrationResponse
+{
 public:
-  enum class Result { OK };
+    enum class Result
+    {
+        OK
+    };
 
-  DeviceReregistrationResponse() = default;
-  DeviceReregistrationResponse(DeviceReregistrationResponse::Result result);
+    DeviceReregistrationResponse() = default;
+    DeviceReregistrationResponse(DeviceReregistrationResponse::Result result);
 
-  virtual ~DeviceReregistrationResponse() = default;
+    virtual ~DeviceReregistrationResponse() = default;
 
-  DeviceReregistrationResponse::Result getResult() const;
+    DeviceReregistrationResponse::Result getResult() const;
 
 private:
-  DeviceReregistrationResponse::Result m_result;
+    DeviceReregistrationResponse::Result m_result;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // DEVICEREREGISTRATIONRESPONSE_H
+#endif    // DEVICEREREGISTRATIONRESPONSE_H

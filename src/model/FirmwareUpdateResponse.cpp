@@ -16,25 +16,27 @@
 
 #include "FirmwareUpdateResponse.h"
 
-namespace wolkabout {
-FirmwareUpdateResponse::FirmwareUpdateResponse()
-    : m_status{FirmwareUpdateResponse::Status::ERROR}, m_errorCode{} {}
+namespace wolkabout
+{
+FirmwareUpdateResponse::FirmwareUpdateResponse() : m_status{FirmwareUpdateResponse::Status::ERROR}, m_errorCode{} {}
 
-FirmwareUpdateResponse::FirmwareUpdateResponse(
-    FirmwareUpdateResponse::Status status)
-    : m_status{status}, m_errorCode{} {}
-
-FirmwareUpdateResponse::FirmwareUpdateResponse(
-    FirmwareUpdateResponse::Status status,
-    FirmwareUpdateResponse::ErrorCode errorCode)
-    : m_status{status}, m_errorCode{errorCode} {}
-
-FirmwareUpdateResponse::Status FirmwareUpdateResponse::getStatus() const {
-  return m_status;
+FirmwareUpdateResponse::FirmwareUpdateResponse(FirmwareUpdateResponse::Status status) : m_status{status}, m_errorCode{}
+{
 }
 
-const WolkOptional<FirmwareUpdateResponse::ErrorCode> &
-FirmwareUpdateResponse::getErrorCode() const {
-  return m_errorCode;
+FirmwareUpdateResponse::FirmwareUpdateResponse(FirmwareUpdateResponse::Status status,
+                                               FirmwareUpdateResponse::ErrorCode errorCode)
+: m_status{status}, m_errorCode{errorCode}
+{
 }
-} // namespace wolkabout
+
+FirmwareUpdateResponse::Status FirmwareUpdateResponse::getStatus() const
+{
+    return m_status;
+}
+
+const WolkOptional<FirmwareUpdateResponse::ErrorCode>& FirmwareUpdateResponse::getErrorCode() const
+{
+    return m_errorCode;
+}
+}    // namespace wolkabout

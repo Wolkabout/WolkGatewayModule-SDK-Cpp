@@ -26,131 +26,129 @@
 #include <memory>
 #include <string>
 
-namespace wolkabout {
+namespace wolkabout
+{
 class OutboundServiceDataHandler;
 class FirmwareInstaller;
 class FirmwareUpdateResponse;
 
-class FirmwareUpdateService : public FirmwareUpdateCommandListener {
+class FirmwareUpdateService : public FirmwareUpdateCommandListener
+{
 public:
-  FirmwareUpdateService(
-      const std::string &firmwareVersion, const std::string &downloadDirectory,
-      std::uint_fast64_t maximumFirmwareSize,
-      std::shared_ptr<OutboundServiceDataHandler> outboundDataHandler,
-      std::weak_ptr<WolkaboutFileDownloader> wolkDownloader,
-      std::weak_ptr<UrlFileDownloader> urlDownloader,
-      std::weak_ptr<FirmwareInstaller> firmwareInstaller);
+    FirmwareUpdateService(const std::string& firmwareVersion, const std::string& downloadDirectory,
+                          std::uint_fast64_t maximumFirmwareSize,
+                          std::shared_ptr<OutboundServiceDataHandler> outboundDataHandler,
+                          std::weak_ptr<WolkaboutFileDownloader> wolkDownloader,
+                          std::weak_ptr<UrlFileDownloader> urlDownloader,
+                          std::weak_ptr<FirmwareInstaller> firmwareInstaller);
 
-  ~FirmwareUpdateService();
+    ~FirmwareUpdateService();
 
-  FirmwareUpdateService(const FirmwareUpdateService &) = delete;
-  FirmwareUpdateService &operator=(const FirmwareUpdateService &) = delete;
+    FirmwareUpdateService(const FirmwareUpdateService&) = delete;
+    FirmwareUpdateService& operator=(const FirmwareUpdateService&) = delete;
 
-  void handleFirmwareUpdateCommand(
-      const FirmwareUpdateCommand &firmwareUpdateCommand) override;
+    void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) override;
 
-  const std::string &getFirmwareVersion() const;
+    const std::string& getFirmwareVersion() const;
 
-  void reportFirmwareUpdateResult();
+    void reportFirmwareUpdateResult();
 
 private:
-  void addToCommandBuffer(std::function<void()> command);
+    void addToCommandBuffer(std::function<void()> command);
 
-  void sendResponse(const FirmwareUpdateResponse &response);
+    void sendResponse(const FirmwareUpdateResponse& response);
 
-  void onFirmwareFileDownloadSuccess(const std::string &filePath);
+    void onFirmwareFileDownloadSuccess(const std::string& filePath);
 
-  void onFirmwareFileDownloadFail(WolkaboutFileDownloader::Error errorCode);
+    void onFirmwareFileDownloadFail(WolkaboutFileDownloader::Error errorCode);
 
-  void onFirmwareFileDownloadFail(UrlFileDownloader::Error errorCode);
+    void onFirmwareFileDownloadFail(UrlFileDownloader::Error errorCode);
 
-  void downloadFirmware(const std::string &name, std::uint_fast64_t size,
-                        const ByteArray &hash);
+    void downloadFirmware(const std::string& name, std::uint_fast64_t size, const ByteArray& hash);
 
-  void downloadFirmware(const std::string &url);
+    void downloadFirmware(const std::string& url);
 
-  void install();
+    void install();
 
-  void clear();
+    void clear();
 
-  class FirmwareUpdateServiceState {
-  public:
-    FirmwareUpdateServiceState(FirmwareUpdateService &service)
-        : m_service{service} {}
-    virtual void handleFirmwareUpdateCommand(
-        const FirmwareUpdateCommand &firmwareUpdateCommand) = 0;
-    virtual ~FirmwareUpdateServiceState() = default;
+    class FirmwareUpdateServiceState
+    {
+    public:
+        FirmwareUpdateServiceState(FirmwareUpdateService& service) : m_service{service} {}
+        virtual void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) = 0;
+        virtual ~FirmwareUpdateServiceState() = default;
 
-  protected:
-    FirmwareUpdateService &m_service;
-  };
+    protected:
+        FirmwareUpdateService& m_service;
+    };
 
-  class IdleState : public FirmwareUpdateServiceState {
-  public:
-    using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
-    void handleFirmwareUpdateCommand(
-        const FirmwareUpdateCommand &firmwareUpdateCommand) override;
-  };
+    class IdleState : public FirmwareUpdateServiceState
+    {
+    public:
+        using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
+        void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) override;
+    };
 
-  class WolkDownloadState : public FirmwareUpdateServiceState {
-  public:
-    using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
-    void handleFirmwareUpdateCommand(
-        const FirmwareUpdateCommand &firmwareUpdateCommand) override;
-  };
+    class WolkDownloadState : public FirmwareUpdateServiceState
+    {
+    public:
+        using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
+        void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) override;
+    };
 
-  class UrlDownloadState : public FirmwareUpdateServiceState {
-  public:
-    using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
-    void handleFirmwareUpdateCommand(
-        const FirmwareUpdateCommand &firmwareUpdateCommand) override;
-  };
+    class UrlDownloadState : public FirmwareUpdateServiceState
+    {
+    public:
+        using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
+        void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) override;
+    };
 
-  class ReadyState : public FirmwareUpdateServiceState {
-  public:
-    using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
-    void handleFirmwareUpdateCommand(
-        const FirmwareUpdateCommand &firmwareUpdateCommand) override;
-  };
+    class ReadyState : public FirmwareUpdateServiceState
+    {
+    public:
+        using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
+        void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) override;
+    };
 
-  class InstallationState : public FirmwareUpdateServiceState {
-  public:
-    using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
-    void handleFirmwareUpdateCommand(
-        const FirmwareUpdateCommand &firmwareUpdateCommand) override;
-  };
+    class InstallationState : public FirmwareUpdateServiceState
+    {
+    public:
+        using FirmwareUpdateServiceState::FirmwareUpdateServiceState;
+        void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) override;
+    };
 
-  friend class IdleState;
-  friend class WolkDownloadState;
-  friend class UrlDownloadState;
-  friend class ReadyState;
+    friend class IdleState;
+    friend class WolkDownloadState;
+    friend class UrlDownloadState;
+    friend class ReadyState;
 
-  const std::string m_currentFirmwareVersion;
-  const std::string m_firmwareDownloadDirectory;
-  const std::uint_fast64_t m_maximumFirmwareSize;
+    const std::string m_currentFirmwareVersion;
+    const std::string m_firmwareDownloadDirectory;
+    const std::uint_fast64_t m_maximumFirmwareSize;
 
-  std::shared_ptr<OutboundServiceDataHandler> m_outboundDataHandler;
-  std::weak_ptr<WolkaboutFileDownloader> m_wolkFileDownloader;
-  std::weak_ptr<UrlFileDownloader> m_urlFileDownloader;
-  std::weak_ptr<FirmwareInstaller> m_firmwareInstaller;
+    std::shared_ptr<OutboundServiceDataHandler> m_outboundDataHandler;
+    std::weak_ptr<WolkaboutFileDownloader> m_wolkFileDownloader;
+    std::weak_ptr<UrlFileDownloader> m_urlFileDownloader;
+    std::weak_ptr<FirmwareInstaller> m_firmwareInstaller;
 
-  std::unique_ptr<IdleState> m_idleState;
-  std::unique_ptr<WolkDownloadState> m_wolkDownloadState;
-  std::unique_ptr<UrlDownloadState> m_urlDownloadState;
-  std::unique_ptr<ReadyState> m_readyState;
-  std::unique_ptr<InstallationState> m_installationState;
+    std::unique_ptr<IdleState> m_idleState;
+    std::unique_ptr<WolkDownloadState> m_wolkDownloadState;
+    std::unique_ptr<UrlDownloadState> m_urlDownloadState;
+    std::unique_ptr<ReadyState> m_readyState;
+    std::unique_ptr<InstallationState> m_installationState;
 
-  FirmwareUpdateServiceState *m_currentState;
+    FirmwareUpdateServiceState* m_currentState;
 
-  std::string m_firmwareFile;
-  bool m_autoInstall;
+    std::string m_firmwareFile;
+    bool m_autoInstall;
 
-  std::unique_ptr<std::thread> m_executor;
+    std::unique_ptr<std::thread> m_executor;
 
-  std::unique_ptr<CommandBuffer> m_commandBuffer;
+    std::unique_ptr<CommandBuffer> m_commandBuffer;
 
-  static const constexpr char *FIRMWARE_VERSION_FILE = ".dfu-version";
+    static const constexpr char* FIRMWARE_VERSION_FILE = ".dfu-version";
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // FIRMWAREUPDATESERVICE_H
+#endif    // FIRMWAREUPDATESERVICE_H

@@ -17,19 +17,20 @@
 #ifndef OUTBOUNDSERVICEDATAHANDLER_H
 #define OUTBOUNDSERVICEDATAHANDLER_H
 
-namespace wolkabout {
+namespace wolkabout
+{
 class FirmwareUpdateResponse;
 class FilePacketRequest;
 
-class OutboundServiceDataHandler {
+class OutboundServiceDataHandler
+{
 public:
-  virtual ~OutboundServiceDataHandler() = default;
+    virtual ~OutboundServiceDataHandler() = default;
 
-  virtual void
-  addFirmwareUpdateResponse(const FirmwareUpdateResponse &response) = 0;
+    virtual void addFirmwareUpdateResponse(const FirmwareUpdateResponse& response) = 0;
 
-  virtual void addFilePacketRequest(const FilePacketRequest &request) = 0;
+    virtual void addFilePacketRequest(const FilePacketRequest& request) = 0;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // OUTBOUNDSERVICEDATAHANDLER_H
+#endif    // OUTBOUNDSERVICEDATAHANDLER_H

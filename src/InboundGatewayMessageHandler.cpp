@@ -22,59 +22,64 @@
 
 #include <algorithm>
 
-namespace wolkabout {
-InboundGatewayMessageHandler::InboundGatewayMessageHandler()
-    : m_commandBuffer{new CommandBuffer()} {}
+namespace wolkabout
+{
+InboundGatewayMessageHandler::InboundGatewayMessageHandler() : m_commandBuffer{new CommandBuffer()} {}
 
-InboundGatewayMessageHandler::~InboundGatewayMessageHandler() {
-  m_commandBuffer->stop();
+InboundGatewayMessageHandler::~InboundGatewayMessageHandler()
+{
+    m_commandBuffer->stop();
 }
 
-void InboundGatewayMessageHandler::messageReceived(const std::string &channel,
-                                                   const std::string &payload) {
-  LOG(TRACE) << "Message received on channel: '" << channel << "' : '"
-             << payload << "'";
+void InboundGatewayMessageHandler::messageReceived(const std::string& channel, const std::string& payload)
+{
+    LOG(TRACE) << "Message received on channel: '" << channel << "' : '" << payload << "'";
 
-  std::lock_guard<std::mutex> lg{m_lock};
+    std::lock_guard<std::mutex> lg{m_lock};
 
-  auto it = std::find_if(
-      m_channelHandlers.begin(), m_channelHandlers.end(),
-      [&](const std::pair<std::string, std::weak_ptr<MessageListener>> &kvp) {
-        return StringUtils::mqttTopicMatch(kvp.first, channel);
-      });
+    auto it = std::find_if(m_channelHandlers.begin(), m_channelHandlers.end(),
+                           [&](const std::pair<std::string, std::weak_ptr<MessageListener>>& kvp) {
+                               return StringUtils::mqttTopicMatch(kvp.first, channel);
+                           });
 
-  if (it != m_channelHandlers.end()) {
-    auto channelHandler = it->second;
-    addToCommandBuffer([=] {
-      if (auto handler = channelHandler.lock()) {
-        handler->messageReceived(std::make_shared<Message>(payload, channel));
-      }
-    });
-  } else {
-    LOG(INFO) << "Handler for device channel not found: " << channel;
-  }
-}
-
-std::vector<std::string> InboundGatewayMessageHandler::getChannels() const {
-  std::lock_guard<std::mutex> lg{m_lock};
-  return m_subscriptionList;
-}
-
-void InboundGatewayMessageHandler::addListener(
-    std::weak_ptr<MessageListener> listener) {
-  std::lock_guard<std::mutex> locker{m_lock};
-
-  if (auto handler = listener.lock()) {
-    for (const auto &channel : handler->getProtocol().getInboundChannels()) {
-      m_channelHandlers[channel] = listener;
-      m_subscriptionList.push_back(channel);
+    if (it != m_channelHandlers.end())
+    {
+        auto channelHandler = it->second;
+        addToCommandBuffer([=] {
+            if (auto handler = channelHandler.lock())
+            {
+                handler->messageReceived(std::make_shared<Message>(payload, channel));
+            }
+        });
     }
-  }
+    else
+    {
+        LOG(INFO) << "Handler for device channel not found: " << channel;
+    }
 }
 
-void InboundGatewayMessageHandler::addToCommandBuffer(
-    std::function<void()> command) {
-  m_commandBuffer->pushCommand(
-      std::make_shared<std::function<void()>>(command));
+std::vector<std::string> InboundGatewayMessageHandler::getChannels() const
+{
+    std::lock_guard<std::mutex> lg{m_lock};
+    return m_subscriptionList;
 }
-} // namespace wolkabout
+
+void InboundGatewayMessageHandler::addListener(std::weak_ptr<MessageListener> listener)
+{
+    std::lock_guard<std::mutex> locker{m_lock};
+
+    if (auto handler = listener.lock())
+    {
+        for (const auto& channel : handler->getProtocol().getInboundChannels())
+        {
+            m_channelHandlers[channel] = listener;
+            m_subscriptionList.push_back(channel);
+        }
+    }
+}
+
+void InboundGatewayMessageHandler::addToCommandBuffer(std::function<void()> command)
+{
+    m_commandBuffer->pushCommand(std::make_shared<std::function<void()>>(command));
+}
+}    // namespace wolkabout

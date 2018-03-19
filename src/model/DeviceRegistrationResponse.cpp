@@ -18,13 +18,15 @@
 
 #include <utility>
 
-namespace wolkabout {
-DeviceRegistrationResponse::DeviceRegistrationResponse(
-    DeviceRegistrationResponse::Result result)
-    : m_result(std::move(result)) {}
-
-DeviceRegistrationResponse::Result
-DeviceRegistrationResponse::getResult() const {
-  return m_result;
+namespace wolkabout
+{
+DeviceRegistrationResponse::DeviceRegistrationResponse(DeviceRegistrationResponse::Result result)
+: m_result(std::move(result))
+{
 }
-} // namespace wolkabout
+
+DeviceRegistrationResponse::Result DeviceRegistrationResponse::getResult() const
+{
+    return m_result;
+}
+}    // namespace wolkabout

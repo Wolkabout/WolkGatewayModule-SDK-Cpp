@@ -22,24 +22,25 @@
 
 #include <string>
 
-namespace wolkabout {
-class DeviceRegistrationRequest {
+namespace wolkabout
+{
+class DeviceRegistrationRequest
+{
 public:
-  DeviceRegistrationRequest() = default;
-  DeviceRegistrationRequest(std::string deviceName, std::string deviceKey,
-                            DeviceManifest deviceManifest);
-  DeviceRegistrationRequest(Device device);
+    DeviceRegistrationRequest() = default;
+    DeviceRegistrationRequest(std::string deviceName, std::string deviceKey, DeviceManifest deviceManifest);
+    DeviceRegistrationRequest(Device device);
 
-  virtual ~DeviceRegistrationRequest() = default;
+    virtual ~DeviceRegistrationRequest() = default;
 
-  const std::string &getDeviceName() const;
-  const std::string &getDeviceKey() const;
+    const std::string& getDeviceName() const;
+    const std::string& getDeviceKey() const;
 
-  const DeviceManifest &getManifest() const;
+    const DeviceManifest& getManifest() const;
 
 private:
-  Device m_device;
+    Device m_device;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // DEVICEREGISTRATION_H
+#endif    // DEVICEREGISTRATION_H

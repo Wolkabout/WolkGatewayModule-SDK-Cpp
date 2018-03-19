@@ -24,7 +24,8 @@
 
 using nlohmann::json;
 
-namespace wolkabout {
+namespace wolkabout
+{
 const std::string JsonStatusProtocol::NAME = "JsonStatusProtocol";
 
 const std::string JsonStatusProtocol::CHANNEL_DELIMITER = "/";
@@ -32,114 +33,124 @@ const std::string JsonStatusProtocol::CHANNEL_WILDCARD = "#";
 const std::string JsonStatusProtocol::DEVICE_PATH_PREFIX = "d/";
 
 const std::string JsonStatusProtocol::LAST_WILL_TOPIC = "lastwill";
-const std::string JsonStatusProtocol::DEVICE_STATUS_REQUEST_TOPIC_ROOT =
-    "p2d/status/";
-const std::string JsonStatusProtocol::DEVICE_STATUS_RESPONSE_TOPIC_ROOT =
-    "d2p/status/";
+const std::string JsonStatusProtocol::DEVICE_STATUS_REQUEST_TOPIC_ROOT = "p2d/status/";
+const std::string JsonStatusProtocol::DEVICE_STATUS_RESPONSE_TOPIC_ROOT = "d2p/status/";
 
-const std::vector<std::string> JsonStatusProtocol::INBOUND_CHANNELS = {
-    DEVICE_STATUS_REQUEST_TOPIC_ROOT + CHANNEL_WILDCARD};
+const std::vector<std::string> JsonStatusProtocol::INBOUND_CHANNELS = {DEVICE_STATUS_REQUEST_TOPIC_ROOT +
+                                                                       CHANNEL_WILDCARD};
 
 const std::string JsonStatusProtocol::STATUS_RESPONSE_STATE_FIELD = "state";
-const std::string JsonStatusProtocol::STATUS_RESPONSE_STATUS_CONNECTED =
-    "CONNECTED";
+const std::string JsonStatusProtocol::STATUS_RESPONSE_STATUS_CONNECTED = "CONNECTED";
 const std::string JsonStatusProtocol::STATUS_RESPONSE_STATUS_SLEEP = "SLEEP";
-const std::string JsonStatusProtocol::STATUS_RESPONSE_STATUS_SERVICE =
-    "SERVICE";
-const std::string JsonStatusProtocol::STATUS_RESPONSE_STATUS_OFFLINE =
-    "OFFLINE";
+const std::string JsonStatusProtocol::STATUS_RESPONSE_STATUS_SERVICE = "SERVICE";
+const std::string JsonStatusProtocol::STATUS_RESPONSE_STATUS_OFFLINE = "OFFLINE";
 
-void to_json(json &j, const DeviceStatusResponse &p) {
-  const std::string status = [&]() -> std::string {
-    switch (p.getStatus()) {
-    case DeviceStatus::CONNECTED: {
-      return JsonStatusProtocol::STATUS_RESPONSE_STATUS_CONNECTED;
+void to_json(json& j, const DeviceStatusResponse& p)
+{
+    const std::string status = [&]() -> std::string {
+        switch (p.getStatus())
+        {
+        case DeviceStatus::CONNECTED:
+        {
+            return JsonStatusProtocol::STATUS_RESPONSE_STATUS_CONNECTED;
+        }
+        case DeviceStatus::SLEEP:
+        {
+            return JsonStatusProtocol::STATUS_RESPONSE_STATUS_SLEEP;
+        }
+        case DeviceStatus::SERVICE:
+        {
+            return JsonStatusProtocol::STATUS_RESPONSE_STATUS_SERVICE;
+        }
+        case DeviceStatus::OFFLINE:
+        default:
+        {
+            return JsonStatusProtocol::STATUS_RESPONSE_STATUS_OFFLINE;
+        }
+        }
+    }();
+
+    j = json{{JsonStatusProtocol::STATUS_RESPONSE_STATE_FIELD, status}};
+}
+
+void to_json(json& j, const std::shared_ptr<DeviceStatusResponse>& p)
+{
+    if (!p)
+    {
+        return;
     }
-    case DeviceStatus::SLEEP: {
-      return JsonStatusProtocol::STATUS_RESPONSE_STATUS_SLEEP;
-    }
-    case DeviceStatus::SERVICE: {
-      return JsonStatusProtocol::STATUS_RESPONSE_STATUS_SERVICE;
-    }
-    case DeviceStatus::OFFLINE:
-    default: { return JsonStatusProtocol::STATUS_RESPONSE_STATUS_OFFLINE; }
-    }
-  }();
 
-  j = json{{JsonStatusProtocol::STATUS_RESPONSE_STATE_FIELD, status}};
+    to_json(j, *p);
 }
 
-void to_json(json &j, const std::shared_ptr<DeviceStatusResponse> &p) {
-  if (!p) {
-    return;
-  }
-
-  to_json(j, *p);
+const std::string& JsonStatusProtocol::getName() const
+{
+    return NAME;
 }
 
-const std::string &JsonStatusProtocol::getName() const { return NAME; }
-
-const std::vector<std::string> &JsonStatusProtocol::getInboundChannels() const {
-  LOG(TRACE) << METHOD_INFO;
-  return INBOUND_CHANNELS;
+const std::vector<std::string>& JsonStatusProtocol::getInboundChannels() const
+{
+    LOG(TRACE) << METHOD_INFO;
+    return INBOUND_CHANNELS;
 }
 
-bool JsonStatusProtocol::isStatusRequestMessage(
-    const std::string &topic) const {
-  LOG(TRACE) << METHOD_INFO;
+bool JsonStatusProtocol::isStatusRequestMessage(const std::string& topic) const
+{
+    LOG(TRACE) << METHOD_INFO;
 
-  return StringUtils::startsWith(topic, DEVICE_STATUS_REQUEST_TOPIC_ROOT);
+    return StringUtils::startsWith(topic, DEVICE_STATUS_REQUEST_TOPIC_ROOT);
 }
 
-std::shared_ptr<Message> JsonStatusProtocol::makeMessage(
-    const std::string &deviceKey,
-    std::shared_ptr<DeviceStatusResponse> response) const {
-  LOG(TRACE) << METHOD_INFO;
+std::shared_ptr<Message> JsonStatusProtocol::makeMessage(const std::string& deviceKey,
+                                                         std::shared_ptr<DeviceStatusResponse> response) const
+{
+    LOG(TRACE) << METHOD_INFO;
 
-  const json jPayload(response);
-  const std::string topic =
-      DEVICE_STATUS_RESPONSE_TOPIC_ROOT + DEVICE_PATH_PREFIX + deviceKey;
+    const json jPayload(response);
+    const std::string topic = DEVICE_STATUS_RESPONSE_TOPIC_ROOT + DEVICE_PATH_PREFIX + deviceKey;
 
-  const std::string payload = jPayload.dump();
-
-  return std::make_shared<Message>(payload, topic);
-}
-
-std::shared_ptr<Message> JsonStatusProtocol::makeLastWillMessage(
-    const std::vector<std::string> &deviceKeys) const {
-  LOG(TRACE) << METHOD_INFO;
-
-  if (deviceKeys.size() == 1) {
-    const std::string topic =
-        LAST_WILL_TOPIC + CHANNEL_DELIMITER + deviceKeys.front();
-    const std::string payload = "";
-
-    return std::make_shared<Message>(payload, topic);
-  } else {
-    const std::string topic = LAST_WILL_TOPIC;
-    const json jPayload(deviceKeys);
     const std::string payload = jPayload.dump();
 
     return std::make_shared<Message>(payload, topic);
-  }
 }
 
-std::string JsonStatusProtocol::extractDeviceKeyFromChannel(
-    const std::string &topic) const {
-  LOG(TRACE) << METHOD_INFO;
+std::shared_ptr<Message> JsonStatusProtocol::makeLastWillMessage(const std::vector<std::string>& deviceKeys) const
+{
+    LOG(TRACE) << METHOD_INFO;
 
-  const std::string devicePathPrefix = CHANNEL_DELIMITER + DEVICE_PATH_PREFIX;
+    if (deviceKeys.size() == 1)
+    {
+        const std::string topic = LAST_WILL_TOPIC + CHANNEL_DELIMITER + deviceKeys.front();
+        const std::string payload = "";
 
-  const auto deviceKeyStartPosition = topic.find(devicePathPrefix);
-  if (deviceKeyStartPosition != std::string::npos) {
-    const auto keyEndPosition = topic.find(
-        CHANNEL_DELIMITER, deviceKeyStartPosition + devicePathPrefix.size());
+        return std::make_shared<Message>(payload, topic);
+    }
+    else
+    {
+        const std::string topic = LAST_WILL_TOPIC;
+        const json jPayload(deviceKeys);
+        const std::string payload = jPayload.dump();
 
-    const auto pos = deviceKeyStartPosition + devicePathPrefix.size();
-
-    return topic.substr(pos, keyEndPosition - pos);
-  }
-
-  return "";
+        return std::make_shared<Message>(payload, topic);
+    }
 }
-} // namespace wolkabout
+
+std::string JsonStatusProtocol::extractDeviceKeyFromChannel(const std::string& topic) const
+{
+    LOG(TRACE) << METHOD_INFO;
+
+    const std::string devicePathPrefix = CHANNEL_DELIMITER + DEVICE_PATH_PREFIX;
+
+    const auto deviceKeyStartPosition = topic.find(devicePathPrefix);
+    if (deviceKeyStartPosition != std::string::npos)
+    {
+        const auto keyEndPosition = topic.find(CHANNEL_DELIMITER, deviceKeyStartPosition + devicePathPrefix.size());
+
+        const auto pos = deviceKeyStartPosition + devicePathPrefix.size();
+
+        return topic.substr(pos, keyEndPosition - pos);
+    }
+
+    return "";
+}
+}    // namespace wolkabout

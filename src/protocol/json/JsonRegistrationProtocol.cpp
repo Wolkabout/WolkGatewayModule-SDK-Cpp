@@ -27,75 +27,56 @@
 
 using nlohmann::json;
 
-namespace wolkabout {
+namespace wolkabout
+{
 const std::string JsonRegistrationProtocol::NAME = "JsonRegistrationProtocol";
 
 const std::string JsonRegistrationProtocol::CHANNEL_DELIMITER = "/";
 const std::string JsonRegistrationProtocol::CHANNEL_WILDCARD = "#";
 const std::string JsonRegistrationProtocol::DEVICE_PATH_PREFIX = "d/";
-const std::string JsonRegistrationProtocol::DEVICE_TO_PLATFORM_DIRECTION =
-    "d2p/";
-const std::string JsonRegistrationProtocol::PLATFORM_TO_DEVICE_DIRECTION =
-    "p2d/";
+const std::string JsonRegistrationProtocol::DEVICE_TO_PLATFORM_DIRECTION = "d2p/";
+const std::string JsonRegistrationProtocol::PLATFORM_TO_DEVICE_DIRECTION = "p2d/";
 
-const std::string
-    JsonRegistrationProtocol::DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT =
-        "d2p/register_device/";
-const std::string
-    JsonRegistrationProtocol::DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT =
-        "p2d/register_device/";
-const std::string
-    JsonRegistrationProtocol::DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT =
-        "p2d/reregister_device/";
-const std::string
-    JsonRegistrationProtocol::DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT =
-        "d2p/reregister_device/";
+const std::string JsonRegistrationProtocol::DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT = "d2p/register_device/";
+const std::string JsonRegistrationProtocol::DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT = "p2d/register_device/";
+const std::string JsonRegistrationProtocol::DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT = "p2d/reregister_device/";
+const std::string JsonRegistrationProtocol::DEVICE_REREGISTRATION_RESPONSE_TOPIC_ROOT = "d2p/reregister_device/";
 
 const std::vector<std::string> JsonRegistrationProtocol::INBOUND_CHANNELS = {
-    DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT + DEVICE_PATH_PREFIX +
-        CHANNEL_WILDCARD,
-    DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX +
-        CHANNEL_WILDCARD};
+  DEVICE_REGISTRATION_RESPONSE_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_WILDCARD,
+  DEVICE_REREGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_WILDCARD};
 
 const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_OK = "OK";
-const std::string
-    JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_KEY_CONFLICT =
-        "ERROR_KEY_CONFLICT";
-const std::string
-    JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_MANIFEST_CONFLICT =
-        "ERROR_MANIFEST_CONFLICT";
-const std::string JsonRegistrationProtocol::
-    REGISTRATION_RESPONSE_ERROR_MAX_NUMBER_OF_DEVICES_EXCEEDED =
-        "ERROR_MAXIMUM_NUMBER_OF_DEVICES_EXCEEDED";
-const std::string
-    JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_READING_PAYLOAD =
-        "ERROR_READING_PAYLOAD";
-const std::string
-    JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_GATEWAY_NOT_FOUND =
-        "ERROR_GATEWAY_NOT_FOUND";
-const std::string
-    JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_NO_GATEWAY_MANIFEST =
-        "ERROR_NO_GATEWAY_MANIFEST";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_KEY_CONFLICT = "ERROR_KEY_CONFLICT";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_MANIFEST_CONFLICT = "ERROR_MANIFEST_CONFLICT";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_MAX_NUMBER_OF_DEVICES_EXCEEDED =
+  "ERROR_MAXIMUM_NUMBER_OF_DEVICES_EXCEEDED";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_READING_PAYLOAD = "ERROR_READING_PAYLOAD";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_GATEWAY_NOT_FOUND = "ERROR_GATEWAY_NOT_FOUND";
+const std::string JsonRegistrationProtocol::REGISTRATION_RESPONSE_ERROR_NO_GATEWAY_MANIFEST =
+  "ERROR_NO_GATEWAY_MANIFEST";
 
 /*** CONFIGURATION MANIFEST ***/
-void to_json(json &j, const ConfigurationManifest &configurationManifest) {
-  auto dataType = [&]() -> std::string {
-    switch (configurationManifest.getDataType()) {
-    case ConfigurationManifest::DataType::BOOLEAN:
-      return "BOOLEAN";
+void to_json(json& j, const ConfigurationManifest& configurationManifest)
+{
+    auto dataType = [&]() -> std::string {
+        switch (configurationManifest.getDataType())
+        {
+        case ConfigurationManifest::DataType::BOOLEAN:
+            return "BOOLEAN";
 
-    case ConfigurationManifest::DataType::NUMERIC:
-      return "NUMERIC";
+        case ConfigurationManifest::DataType::NUMERIC:
+            return "NUMERIC";
 
-    case ConfigurationManifest::DataType::STRING:
-      return "STRING";
+        case ConfigurationManifest::DataType::STRING:
+            return "STRING";
 
-    default:
-      throw std::invalid_argument("Invalid data type");
-    }
-  }();
+        default:
+            throw std::invalid_argument("Invalid data type");
+        }
+    }();
 
-  // clang-format off
+    // clang-format off
     j = {
         {"defaultValue", configurationManifest.getDefaultValue()},
         {"dataType", dataType},
@@ -111,24 +92,32 @@ void to_json(json &j, const ConfigurationManifest &configurationManifest) {
         {"maximum", configurationManifest.getMaximum()},
         {"minimum", configurationManifest.getMinimum()}
     };
-  // clang-format on
+    // clang-format on
 }
 
-void from_json(const json &j, ConfigurationManifest &configurationManifest) {
-  auto dataType = [&]() -> ConfigurationManifest::DataType {
-    std::string dataTypeStr = j.at("dataType").get<std::string>();
-    if (dataTypeStr == "STRING") {
-      return ConfigurationManifest::DataType::STRING;
-    } else if (dataTypeStr == "NUMERIC") {
-      return ConfigurationManifest::DataType::NUMERIC;
-    } else if (dataTypeStr == "BOOLEAN") {
-      return ConfigurationManifest::DataType::BOOLEAN;
-    } else {
-      throw std::invalid_argument("Invalid data type");
-    }
-  }();
+void from_json(const json& j, ConfigurationManifest& configurationManifest)
+{
+    auto dataType = [&]() -> ConfigurationManifest::DataType {
+        std::string dataTypeStr = j.at("dataType").get<std::string>();
+        if (dataTypeStr == "STRING")
+        {
+            return ConfigurationManifest::DataType::STRING;
+        }
+        else if (dataTypeStr == "NUMERIC")
+        {
+            return ConfigurationManifest::DataType::NUMERIC;
+        }
+        else if (dataTypeStr == "BOOLEAN")
+        {
+            return ConfigurationManifest::DataType::BOOLEAN;
+        }
+        else
+        {
+            throw std::invalid_argument("Invalid data type");
+        }
+    }();
 
-  // clang-format off
+    // clang-format off
     configurationManifest =
             ConfigurationManifest(
                 j.at("name").get<std::string>(),
@@ -145,29 +134,31 @@ void from_json(const json &j, ConfigurationManifest &configurationManifest) {
                 j.at("size").get<unsigned int>(),
                 j.at("delimiter").get<std::string>()
             );
-  // clang-format on
+    // clang-format on
 }
 /*** CONFIGURATION MANIFEST ***/
 
 /*** ALARM MANIFEST ***/
-void to_json(json &j, const AlarmManifest &alarmManfiest) {
-  auto alarmSeverity = [&]() -> std::string {
-    switch (alarmManfiest.getSeverity()) {
-    case AlarmManifest::AlarmSeverity::ALERT:
-      return "ALERT";
+void to_json(json& j, const AlarmManifest& alarmManfiest)
+{
+    auto alarmSeverity = [&]() -> std::string {
+        switch (alarmManfiest.getSeverity())
+        {
+        case AlarmManifest::AlarmSeverity::ALERT:
+            return "ALERT";
 
-    case AlarmManifest::AlarmSeverity::CRITICAL:
-      return "CRITICAL";
+        case AlarmManifest::AlarmSeverity::CRITICAL:
+            return "CRITICAL";
 
-    case AlarmManifest::AlarmSeverity::ERROR:
-      return "ERROR";
+        case AlarmManifest::AlarmSeverity::ERROR:
+            return "ERROR";
 
-    default:
-      throw std::invalid_argument("Invalid alarm severity");
-    }
-  }();
+        default:
+            throw std::invalid_argument("Invalid alarm severity");
+        }
+    }();
 
-  // clang-format off
+    // clang-format off
     j = {
         {"reference", alarmManfiest.getReference()},
         {"severity", alarmSeverity},
@@ -175,68 +166,80 @@ void to_json(json &j, const AlarmManifest &alarmManfiest) {
         {"description", alarmManfiest.getDescription()},
         {"message", alarmManfiest.getMessage()}
     };
-  // clang-format on
+    // clang-format on
 }
 
-void from_json(const json &j, AlarmManifest &alarmManifest) {
-  auto alarmSeverity = [&]() -> AlarmManifest::AlarmSeverity {
-    std::string severity = j.at("severity").get<std::string>();
-    if (severity == "ALERT") {
-      return AlarmManifest::AlarmSeverity::ALERT;
-    } else if (severity == "ERROR") {
-      return AlarmManifest::AlarmSeverity::ERROR;
-    } else if (severity == "CRITICAL") {
-      return AlarmManifest::AlarmSeverity::CRITICAL;
-    } else {
-      throw std::invalid_argument("Invalid alarm severity");
-    }
-  }();
+void from_json(const json& j, AlarmManifest& alarmManifest)
+{
+    auto alarmSeverity = [&]() -> AlarmManifest::AlarmSeverity {
+        std::string severity = j.at("severity").get<std::string>();
+        if (severity == "ALERT")
+        {
+            return AlarmManifest::AlarmSeverity::ALERT;
+        }
+        else if (severity == "ERROR")
+        {
+            return AlarmManifest::AlarmSeverity::ERROR;
+        }
+        else if (severity == "CRITICAL")
+        {
+            return AlarmManifest::AlarmSeverity::CRITICAL;
+        }
+        else
+        {
+            throw std::invalid_argument("Invalid alarm severity");
+        }
+    }();
 
-  // clang-format off
+    // clang-format off
     alarmManifest =
             AlarmManifest(j.at("name").get<std::string>(),
                           alarmSeverity,
                           j.at("reference").get<std::string>(),
                           j.at("message").get<std::string>(),
                           j.at("description").get<std::string>());
-  // clang-format on
+    // clang-format on
 }
 /*** ALARM MANIFEST ***/
 
 /*** ACTUATOR MANIFEST ***/
-void to_json(json &j, const ActuatorManifest &actuatorManfiest) {
-  auto dataType = [&]() -> std::string {
-    switch (actuatorManfiest.getDataType()) {
-    case ActuatorManifest::DataType::BOOLEAN:
-      return "BOOLEAN";
+void to_json(json& j, const ActuatorManifest& actuatorManfiest)
+{
+    auto dataType = [&]() -> std::string {
+        switch (actuatorManfiest.getDataType())
+        {
+        case ActuatorManifest::DataType::BOOLEAN:
+            return "BOOLEAN";
 
-    case ActuatorManifest::DataType::NUMERIC:
-      return "NUMERIC";
+        case ActuatorManifest::DataType::NUMERIC:
+            return "NUMERIC";
 
-    case ActuatorManifest::DataType::STRING:
-      return "STRING";
+        case ActuatorManifest::DataType::STRING:
+            return "STRING";
 
-    default:
-      throw std::invalid_argument("Invalid data type");
-    }
-  }();
+        default:
+            throw std::invalid_argument("Invalid data type");
+        }
+    }();
 
-  auto labels = [&]() -> std::string {
-    bool first = true;
-    std::stringstream ss;
-    for (unsigned long i = 0; i < actuatorManfiest.getLabels().size(); ++i) {
-      if (!first) {
-        ss << actuatorManfiest.getDelimiter();
-      }
+    auto labels = [&]() -> std::string {
+        bool first = true;
+        std::stringstream ss;
+        for (unsigned long i = 0; i < actuatorManfiest.getLabels().size(); ++i)
+        {
+            if (!first)
+            {
+                ss << actuatorManfiest.getDelimiter();
+            }
 
-      ss << actuatorManfiest.getLabels().at(i);
-      first = false;
-    }
+            ss << actuatorManfiest.getLabels().at(i);
+            first = false;
+        }
 
-    return ss.str();
-  }();
+        return ss.str();
+    }();
 
-  // clang-format off
+    // clang-format off
     j = {
         {"dataType", dataType},
         {"precision", actuatorManfiest.getPrecision()},
@@ -251,75 +254,86 @@ void to_json(json &j, const ActuatorManifest &actuatorManfiest) {
         {"minimum", actuatorManfiest.getMinimum()},
         {"maximum", actuatorManfiest.getMaximum()}
     };
-  // clang-format on
+    // clang-format on
 }
 
-void from_json(const json &j, ActuatorManifest &actuatorManifest) {
-  auto dataType = [&]() -> ActuatorManifest::DataType {
-    std::string dataTypeStr = j.at("dataType").get<std::string>();
-    if (dataTypeStr == "STRING") {
-      return ActuatorManifest::DataType::STRING;
-    } else if (dataTypeStr == "NUMERIC") {
-      return ActuatorManifest::DataType::NUMERIC;
-    } else if (dataTypeStr == "BOOLEAN") {
-      return ActuatorManifest::DataType::BOOLEAN;
-    } else {
-      throw std::invalid_argument("Invalid data type");
+void from_json(const json& j, ActuatorManifest& actuatorManifest)
+{
+    auto dataType = [&]() -> ActuatorManifest::DataType {
+        std::string dataTypeStr = j.at("dataType").get<std::string>();
+        if (dataTypeStr == "STRING")
+        {
+            return ActuatorManifest::DataType::STRING;
+        }
+        else if (dataTypeStr == "NUMERIC")
+        {
+            return ActuatorManifest::DataType::NUMERIC;
+        }
+        else if (dataTypeStr == "BOOLEAN")
+        {
+            return ActuatorManifest::DataType::BOOLEAN;
+        }
+        else
+        {
+            throw std::invalid_argument("Invalid data type");
+        }
+    }();
+
+    actuatorManifest = ActuatorManifest(
+      j.at("name").get<std::string>(), j.at("reference").get<std::string>(), j.at("description").get<std::string>(),
+      j.at("unit").get<std::string>(), j.at("readingType").get<std::string>(), dataType,
+      j.at("precision").get<unsigned int>(), j.at("minimum").get<long long>(), j.at("maximum").get<long long>());
+
+    std::string delimiter = j.at("delimiter").get<std::string>();
+    std::string labelsStr = j.at("labels").get<std::string>();
+    std::vector<std::string> labels = StringUtils::tokenize(labelsStr, delimiter);
+
+    if (labels.size() > 0)
+    {
+        actuatorManifest.setLabels(labels);
+        actuatorManifest.setDelimiter(delimiter);
     }
-  }();
-
-  actuatorManifest = ActuatorManifest(
-      j.at("name").get<std::string>(), j.at("reference").get<std::string>(),
-      j.at("description").get<std::string>(), j.at("unit").get<std::string>(),
-      j.at("readingType").get<std::string>(), dataType,
-      j.at("precision").get<unsigned int>(), j.at("minimum").get<long long>(),
-      j.at("maximum").get<long long>());
-
-  std::string delimiter = j.at("delimiter").get<std::string>();
-  std::string labelsStr = j.at("labels").get<std::string>();
-  std::vector<std::string> labels = StringUtils::tokenize(labelsStr, delimiter);
-
-  if (labels.size() > 0) {
-    actuatorManifest.setLabels(labels);
-    actuatorManifest.setDelimiter(delimiter);
-  }
 }
 /*** ACTUATOR MANIFEST ***/
 
 /*** SENSOR MANIFEST ***/
-void to_json(json &j, const SensorManifest &sensorManifest) {
-  auto dataType = [&]() -> std::string {
-    switch (sensorManifest.getDataType()) {
-    case SensorManifest::DataType::BOOLEAN:
-      return "BOOLEAN";
+void to_json(json& j, const SensorManifest& sensorManifest)
+{
+    auto dataType = [&]() -> std::string {
+        switch (sensorManifest.getDataType())
+        {
+        case SensorManifest::DataType::BOOLEAN:
+            return "BOOLEAN";
 
-    case SensorManifest::DataType::NUMERIC:
-      return "NUMERIC";
+        case SensorManifest::DataType::NUMERIC:
+            return "NUMERIC";
 
-    case SensorManifest::DataType::STRING:
-      return "STRING";
+        case SensorManifest::DataType::STRING:
+            return "STRING";
 
-    default:
-      throw std::invalid_argument("Invalid data type");
-    }
-  }();
+        default:
+            throw std::invalid_argument("Invalid data type");
+        }
+    }();
 
-  auto labels = [&]() -> std::string {
-    bool first = true;
-    std::stringstream ss;
-    for (unsigned long i = 0; i < sensorManifest.getLabels().size(); ++i) {
-      if (!first) {
-        ss << sensorManifest.getDelimiter();
-      }
+    auto labels = [&]() -> std::string {
+        bool first = true;
+        std::stringstream ss;
+        for (unsigned long i = 0; i < sensorManifest.getLabels().size(); ++i)
+        {
+            if (!first)
+            {
+                ss << sensorManifest.getDelimiter();
+            }
 
-      ss << sensorManifest.getLabels().at(i);
-      first = false;
-    }
+            ss << sensorManifest.getLabels().at(i);
+            first = false;
+        }
 
-    return ss.str();
-  }();
+        return ss.str();
+    }();
 
-  // clang-format off
+    // clang-format off
     j = {
         {"dataType", dataType},
         {"precision", sensorManifest.getPrecision()},
@@ -334,44 +348,52 @@ void to_json(json &j, const SensorManifest &sensorManifest) {
         {"minimum", sensorManifest.getMinimum()},
         {"maximum", sensorManifest.getMaximum()}
     };
-  // clang-format on
+    // clang-format on
 }
 
-void from_json(const json &j, SensorManifest &sensorManifest) {
-  auto dataType = [&]() -> SensorManifest::DataType {
-    std::string dataTypeStr = j.at("dataType").get<std::string>();
-    if (dataTypeStr == "STRING") {
-      return SensorManifest::DataType::STRING;
-    } else if (dataTypeStr == "NUMERIC") {
-      return SensorManifest::DataType::NUMERIC;
-    } else if (dataTypeStr == "BOOLEAN") {
-      return SensorManifest::DataType::BOOLEAN;
-    } else {
-      throw std::invalid_argument("Invalid data type");
+void from_json(const json& j, SensorManifest& sensorManifest)
+{
+    auto dataType = [&]() -> SensorManifest::DataType {
+        std::string dataTypeStr = j.at("dataType").get<std::string>();
+        if (dataTypeStr == "STRING")
+        {
+            return SensorManifest::DataType::STRING;
+        }
+        else if (dataTypeStr == "NUMERIC")
+        {
+            return SensorManifest::DataType::NUMERIC;
+        }
+        else if (dataTypeStr == "BOOLEAN")
+        {
+            return SensorManifest::DataType::BOOLEAN;
+        }
+        else
+        {
+            throw std::invalid_argument("Invalid data type");
+        }
+    }();
+
+    sensorManifest = SensorManifest(
+      j.at("name").get<std::string>(), j.at("reference").get<std::string>(), j.at("description").get<std::string>(),
+      j.at("unit").get<std::string>(), j.at("readingType").get<std::string>(), dataType,
+      j.at("precision").get<unsigned int>(), j.at("minimum").get<long long>(), j.at("maximum").get<long long>());
+
+    std::string delimiter = j.at("delimiter").get<std::string>();
+    std::string labelsStr = j.at("labels").get<std::string>();
+    std::vector<std::string> labels = StringUtils::tokenize(labelsStr, delimiter);
+
+    if (labels.size() > 0)
+    {
+        sensorManifest.setLabels(labels);
+        sensorManifest.setDelimiter(delimiter);
     }
-  }();
-
-  sensorManifest = SensorManifest(
-      j.at("name").get<std::string>(), j.at("reference").get<std::string>(),
-      j.at("description").get<std::string>(), j.at("unit").get<std::string>(),
-      j.at("readingType").get<std::string>(), dataType,
-      j.at("precision").get<unsigned int>(), j.at("minimum").get<long long>(),
-      j.at("maximum").get<long long>());
-
-  std::string delimiter = j.at("delimiter").get<std::string>();
-  std::string labelsStr = j.at("labels").get<std::string>();
-  std::vector<std::string> labels = StringUtils::tokenize(labelsStr, delimiter);
-
-  if (labels.size() > 0) {
-    sensorManifest.setLabels(labels);
-    sensorManifest.setDelimiter(delimiter);
-  }
 }
 /*** SENSOR MANIFEST ***/
 
 /*** DEVICE MANIFEST ***/
-void to_json(json &j, const DeviceManifest &deviceManifest) {
-  // clang-format off
+void to_json(json& j, const DeviceManifest& deviceManifest)
+{
+    // clang-format off
     j = {
         {"name", deviceManifest.getName()},
         {"description", deviceManifest.getDescription()},
@@ -382,24 +404,23 @@ void to_json(json &j, const DeviceManifest &deviceManifest) {
         {"actuators", deviceManifest.getActuators()},
         {"feeds", deviceManifest.getSensors()}
     };
-  // clang-format on
+    // clang-format on
 }
 
-void from_json(const json &j, DeviceManifest &deviceManifest) {
-  deviceManifest = DeviceManifest(
-      j.at("name").get<std::string>(), j.at("description").get<std::string>(),
-      j.at("protocol").get<std::string>(),
-      j.at("firmwareUpdateProtocol").get<std::string>(),
-      j.at("configs").get<std::vector<ConfigurationManifest>>(),
-      j.at("feeds").get<std::vector<SensorManifest>>(),
-      j.at("alarms").get<std::vector<AlarmManifest>>(),
+void from_json(const json& j, DeviceManifest& deviceManifest)
+{
+    deviceManifest = DeviceManifest(
+      j.at("name").get<std::string>(), j.at("description").get<std::string>(), j.at("protocol").get<std::string>(),
+      j.at("firmwareUpdateProtocol").get<std::string>(), j.at("configs").get<std::vector<ConfigurationManifest>>(),
+      j.at("feeds").get<std::vector<SensorManifest>>(), j.at("alarms").get<std::vector<AlarmManifest>>(),
       j.at("actuators").get<std::vector<ActuatorManifest>>());
 }
 /*** DEVICE MANIFEST ***/
 
 /*** DEVICE REGISTRATION REQUEST DTO ***/
-void to_json(json &j, const DeviceRegistrationRequest &dto) {
-  // clang-format off
+void to_json(json& j, const DeviceRegistrationRequest& dto)
+{
+    // clang-format off
     j = {
         {"device",
             {{"name", dto.getDeviceName()},
@@ -407,120 +428,141 @@ void to_json(json &j, const DeviceRegistrationRequest &dto) {
         },
         {"manifest", dto.getManifest()}
     };
-  // clang-format on
+    // clang-format on
 }
 
-void from_json(const json &j, DeviceRegistrationRequest &dto) {
-  dto = DeviceRegistrationRequest(j.at("name").get<std::string>(),
-                                  j.at("key").get<std::string>(),
-                                  j.at("manifest").get<DeviceManifest>());
+void from_json(const json& j, DeviceRegistrationRequest& dto)
+{
+    dto = DeviceRegistrationRequest(j.at("name").get<std::string>(), j.at("key").get<std::string>(),
+                                    j.at("manifest").get<DeviceManifest>());
 }
 /*** DEVICE REGISTRATION REQUEST DTO ***/
 
 /*** DEVICE REREGISTRATION RESPONSE DTO ***/
-void to_json(json &j, const DeviceReregistrationResponse &dto) {
-  auto resultStr = [&]() -> std::string {
-    switch (dto.getResult()) {
-    case DeviceReregistrationResponse::Result::OK:
-      return "OK";
-      break;
+void to_json(json& j, const DeviceReregistrationResponse& dto)
+{
+    auto resultStr = [&]() -> std::string {
+        switch (dto.getResult())
+        {
+        case DeviceReregistrationResponse::Result::OK:
+            return "OK";
+            break;
 
-    default:
-      throw std::invalid_argument("Unhandled result");
-    }
-  }();
+        default:
+            throw std::invalid_argument("Unhandled result");
+        }
+    }();
 
-  // clang-format off
+    // clang-format off
     j = {
         {"result", resultStr}
     };
-  // clang-format on
+    // clang-format on
 }
 /*** DEVICE REREGISTRATION RESPONSE DTO ***/
 
-const std::string &JsonRegistrationProtocol::getName() const { return NAME; }
-
-const std::vector<std::string> &
-JsonRegistrationProtocol::getInboundChannels() const {
-  return INBOUND_CHANNELS;
+const std::string& JsonRegistrationProtocol::getName() const
+{
+    return NAME;
 }
 
-std::string JsonRegistrationProtocol::extractDeviceKeyFromChannel(
-    const std::string &topic) const {
-  LOG(TRACE) << METHOD_INFO;
-
-  const std::string devicePathPrefix = CHANNEL_DELIMITER + DEVICE_PATH_PREFIX;
-
-  const auto deviceKeyStartPosition = topic.find(devicePathPrefix);
-  if (deviceKeyStartPosition != std::string::npos) {
-    const auto keyEndPosition = topic.find(
-        CHANNEL_DELIMITER, deviceKeyStartPosition + devicePathPrefix.size());
-
-    const auto pos = deviceKeyStartPosition + devicePathPrefix.size();
-
-    return topic.substr(pos, keyEndPosition - pos);
-  }
-
-  return "";
+const std::vector<std::string>& JsonRegistrationProtocol::getInboundChannels() const
+{
+    return INBOUND_CHANNELS;
 }
 
-std::shared_ptr<Message> JsonRegistrationProtocol::makeMessage(
-    const std::string &deviceKey,
-    const DeviceRegistrationRequest &request) const {
-  LOG(DEBUG) << METHOD_INFO;
+std::string JsonRegistrationProtocol::extractDeviceKeyFromChannel(const std::string& topic) const
+{
+    LOG(TRACE) << METHOD_INFO;
 
-  try {
-    const json jsonPayload(request);
-    std::string channel;
+    const std::string devicePathPrefix = CHANNEL_DELIMITER + DEVICE_PATH_PREFIX;
 
-    channel = DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX +
-              CHANNEL_DELIMITER + deviceKey;
+    const auto deviceKeyStartPosition = topic.find(devicePathPrefix);
+    if (deviceKeyStartPosition != std::string::npos)
+    {
+        const auto keyEndPosition = topic.find(CHANNEL_DELIMITER, deviceKeyStartPosition + devicePathPrefix.size());
 
-    return std::make_shared<Message>(jsonPayload.dump(), channel);
-  } catch (...) {
-    return nullptr;
-  }
+        const auto pos = deviceKeyStartPosition + devicePathPrefix.size();
+
+        return topic.substr(pos, keyEndPosition - pos);
+    }
+
+    return "";
 }
 
-std::shared_ptr<DeviceRegistrationResponse>
-JsonRegistrationProtocol::makeRegistrationResponse(
-    std::shared_ptr<Message> message) const {
-  LOG(TRACE) << METHOD_INFO;
+std::shared_ptr<Message> JsonRegistrationProtocol::makeMessage(const std::string& deviceKey,
+                                                               const DeviceRegistrationRequest& request) const
+{
+    LOG(DEBUG) << METHOD_INFO;
 
-  try {
-    const json j = json::parse(message->getContent());
+    try
+    {
+        const json jsonPayload(request);
+        std::string channel;
 
-    const std::string typeStr = j.at("result").get<std::string>();
+        channel = DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_DELIMITER + deviceKey;
 
-    const DeviceRegistrationResponse::Result result = [&] {
-      if (typeStr == REGISTRATION_RESPONSE_OK) {
-        return DeviceRegistrationResponse::Result::OK;
-      } else if (typeStr == REGISTRATION_RESPONSE_ERROR_KEY_CONFLICT) {
-        return DeviceRegistrationResponse::Result::ERROR_KEY_CONFLICT;
-      } else if (typeStr == REGISTRATION_RESPONSE_ERROR_MANIFEST_CONFLICT) {
-        return DeviceRegistrationResponse::Result::ERROR_MANIFEST_CONFLICT;
-      } else if (typeStr ==
-                 REGISTRATION_RESPONSE_ERROR_MAX_NUMBER_OF_DEVICES_EXCEEDED) {
-        return DeviceRegistrationResponse::Result::
-            ERROR_MAXIMUM_NUMBER_OF_DEVICES_EXCEEDED;
-      } else if (typeStr == REGISTRATION_RESPONSE_ERROR_READING_PAYLOAD) {
-        return DeviceRegistrationResponse::Result::ERROR_READING_PAYLOAD;
-      } else if (typeStr == REGISTRATION_RESPONSE_ERROR_GATEWAY_NOT_FOUND) {
-        return DeviceRegistrationResponse::Result::ERROR_GATEWAY_NOT_FOUND;
-      } else if (typeStr == REGISTRATION_RESPONSE_ERROR_NO_GATEWAY_MANIFEST) {
-        return DeviceRegistrationResponse::Result::ERROR_NO_GATEWAY_MANIFEST;
-      }
-
-      assert(false);
-      throw std::logic_error("");
-    }();
-
-    return std::make_shared<DeviceRegistrationResponse>(result);
-  } catch (std::exception &e) {
-    LOG(ERROR) << "Device registration protocol: Unable to deserialize device "
-                  "registration response: "
-               << e.what();
-    return nullptr;
-  }
+        return std::make_shared<Message>(jsonPayload.dump(), channel);
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
 }
-} // namespace wolkabout
+
+std::shared_ptr<DeviceRegistrationResponse> JsonRegistrationProtocol::makeRegistrationResponse(
+  std::shared_ptr<Message> message) const
+{
+    LOG(TRACE) << METHOD_INFO;
+
+    try
+    {
+        const json j = json::parse(message->getContent());
+
+        const std::string typeStr = j.at("result").get<std::string>();
+
+        const DeviceRegistrationResponse::Result result = [&] {
+            if (typeStr == REGISTRATION_RESPONSE_OK)
+            {
+                return DeviceRegistrationResponse::Result::OK;
+            }
+            else if (typeStr == REGISTRATION_RESPONSE_ERROR_KEY_CONFLICT)
+            {
+                return DeviceRegistrationResponse::Result::ERROR_KEY_CONFLICT;
+            }
+            else if (typeStr == REGISTRATION_RESPONSE_ERROR_MANIFEST_CONFLICT)
+            {
+                return DeviceRegistrationResponse::Result::ERROR_MANIFEST_CONFLICT;
+            }
+            else if (typeStr == REGISTRATION_RESPONSE_ERROR_MAX_NUMBER_OF_DEVICES_EXCEEDED)
+            {
+                return DeviceRegistrationResponse::Result::ERROR_MAXIMUM_NUMBER_OF_DEVICES_EXCEEDED;
+            }
+            else if (typeStr == REGISTRATION_RESPONSE_ERROR_READING_PAYLOAD)
+            {
+                return DeviceRegistrationResponse::Result::ERROR_READING_PAYLOAD;
+            }
+            else if (typeStr == REGISTRATION_RESPONSE_ERROR_GATEWAY_NOT_FOUND)
+            {
+                return DeviceRegistrationResponse::Result::ERROR_GATEWAY_NOT_FOUND;
+            }
+            else if (typeStr == REGISTRATION_RESPONSE_ERROR_NO_GATEWAY_MANIFEST)
+            {
+                return DeviceRegistrationResponse::Result::ERROR_NO_GATEWAY_MANIFEST;
+            }
+
+            assert(false);
+            throw std::logic_error("");
+        }();
+
+        return std::make_shared<DeviceRegistrationResponse>(result);
+    }
+    catch (std::exception& e)
+    {
+        LOG(ERROR) << "Device registration protocol: Unable to deserialize device "
+                      "registration response: "
+                   << e.what();
+        return nullptr;
+    }
+}
+}    // namespace wolkabout

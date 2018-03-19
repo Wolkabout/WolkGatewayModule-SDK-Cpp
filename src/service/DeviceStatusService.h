@@ -22,31 +22,32 @@
 
 #include <string>
 
-namespace wolkabout {
+namespace wolkabout
+{
 class StatusProtocol;
 class ConnectivityService;
 
-typedef std::function<void(const std::string &)> StatusRequestHandler;
+typedef std::function<void(const std::string&)> StatusRequestHandler;
 
-class DeviceStatusService : public MessageListener {
+class DeviceStatusService : public MessageListener
+{
 public:
-  DeviceStatusService(StatusProtocol &protocol,
-                      ConnectivityService &connectivityService,
-                      const StatusRequestHandler &statusRequestHandler);
+    DeviceStatusService(StatusProtocol& protocol, ConnectivityService& connectivityService,
+                        const StatusRequestHandler& statusRequestHandler);
 
-  void messageReceived(std::shared_ptr<Message> message) override;
-  const Protocol &getProtocol() override;
+    void messageReceived(std::shared_ptr<Message> message) override;
+    const Protocol& getProtocol() override;
 
-  void publishDeviceStatus(const std::string &deviceKey, DeviceStatus status);
+    void publishDeviceStatus(const std::string& deviceKey, DeviceStatus status);
 
-  void devicesUpdated(const std::vector<std::string> &deviceKeys);
+    void devicesUpdated(const std::vector<std::string>& deviceKeys);
 
 private:
-  StatusProtocol &m_protocol;
-  ConnectivityService &m_connectivityService;
+    StatusProtocol& m_protocol;
+    ConnectivityService& m_connectivityService;
 
-  StatusRequestHandler m_statusRequestHandler;
+    StatusRequestHandler m_statusRequestHandler;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // DEVICESTATUSSERVICE_H
+#endif    // DEVICESTATUSSERVICE_H

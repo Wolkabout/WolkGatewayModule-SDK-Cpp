@@ -20,26 +20,26 @@
 
 #include <string>
 
-namespace wolkabout {
-class DeviceStatusProvider {
+namespace wolkabout
+{
+class DeviceStatusProvider
+{
 public:
-  virtual ~DeviceStatusProvider() = default;
+    virtual ~DeviceStatusProvider() = default;
 
-  DeviceStatus operator()(const std::string &deviceKey) {
-    return getStatus(deviceKey);
-  }
+    DeviceStatus operator()(const std::string& deviceKey) { return getStatus(deviceKey); }
 
 private:
-  /**
-   * @brief Device status provider callback<br>
-   *        Must be implemented as non blocking<br>
-   *        Must be implemented as thread safe
-   * @param deviceKey Key of the device which has the acuator
-   * @param reference Actuator reference
-   * @return DeviceStatus of requested actuator
-   */
-  virtual DeviceStatus getStatus(const std::string &deviceKey) = 0;
+    /**
+     * @brief Device status provider callback<br>
+     *        Must be implemented as non blocking<br>
+     *        Must be implemented as thread safe
+     * @param deviceKey Key of the device which has the acuator
+     * @param reference Actuator reference
+     * @return DeviceStatus of requested actuator
+     */
+    virtual DeviceStatus getStatus(const std::string& deviceKey) = 0;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // DEVICESTATUSPROVIDER_H
+#endif    // DEVICESTATUSPROVIDER_H

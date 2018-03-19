@@ -22,28 +22,30 @@
 #include <string>
 #include <vector>
 
-namespace wolkabout {
+namespace wolkabout
+{
 class Message;
 class Protocol;
 
-class MessageListener {
+class MessageListener
+{
 public:
-  virtual ~MessageListener() = default;
-  virtual void messageReceived(std::shared_ptr<Message> message) = 0;
-  virtual const Protocol &getProtocol() = 0;
+    virtual ~MessageListener() = default;
+    virtual void messageReceived(std::shared_ptr<Message> message) = 0;
+    virtual const Protocol& getProtocol() = 0;
 };
 
-class InboundMessageHandler {
+class InboundMessageHandler
+{
 public:
-  virtual ~InboundMessageHandler() = default;
+    virtual ~InboundMessageHandler() = default;
 
-  virtual void messageReceived(const std::string &channel,
-                               const std::string &message) = 0;
+    virtual void messageReceived(const std::string& channel, const std::string& message) = 0;
 
-  virtual std::vector<std::string> getChannels() const = 0;
+    virtual std::vector<std::string> getChannels() const = 0;
 
-  virtual void addListener(std::weak_ptr<MessageListener> listener) = 0;
+    virtual void addListener(std::weak_ptr<MessageListener> listener) = 0;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
-#endif // INBOUNDMESSAGEHANDLER_H
+#endif    // INBOUNDMESSAGEHANDLER_H

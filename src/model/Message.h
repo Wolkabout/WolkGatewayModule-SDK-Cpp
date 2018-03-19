@@ -19,19 +19,21 @@
 
 #include <string>
 
-namespace wolkabout {
-class Message {
+namespace wolkabout
+{
+class Message
+{
 public:
-  Message(std::string content, std::string channel);
-  virtual ~Message() = default;
+    Message(std::string content, std::string channel);
+    virtual ~Message() = default;
 
-  const std::string &getContent() const;
-  const std::string &getChannel() const;
+    const std::string& getContent() const;
+    const std::string& getChannel() const;
 
 private:
-  std::string m_content;
-  std::string m_channel;
+    std::string m_content;
+    std::string m_channel;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
 #endif

@@ -20,19 +20,26 @@
 #include <string>
 #include <vector>
 
-namespace wolkabout {
-class Protocol {
+namespace wolkabout
+{
+class Protocol
+{
 public:
-  enum class Type { DATA, REGISTRATION, FIRMWARE_UPDATE, STATUS };
+    enum class Type
+    {
+        DATA,
+        REGISTRATION,
+        FIRMWARE_UPDATE,
+        STATUS
+    };
 
-  virtual ~Protocol() = default;
+    virtual ~Protocol() = default;
 
-  virtual Type getType() const = 0;
-  virtual const std::string &getName() const = 0;
-  virtual const std::vector<std::string> &getInboundChannels() const = 0;
-  virtual std::string
-  extractDeviceKeyFromChannel(const std::string &topic) const = 0;
+    virtual Type getType() const = 0;
+    virtual const std::string& getName() const = 0;
+    virtual const std::vector<std::string>& getInboundChannels() const = 0;
+    virtual std::string extractDeviceKeyFromChannel(const std::string& topic) const = 0;
 };
-} // namespace wolkabout
+}    // namespace wolkabout
 
 #endif

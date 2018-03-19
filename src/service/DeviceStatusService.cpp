@@ -22,52 +22,60 @@
 
 #include "utilities/Logger.h"
 
-namespace wolkabout {
-DeviceStatusService::DeviceStatusService(
-    StatusProtocol &protocol, ConnectivityService &connectivityService,
-    const StatusRequestHandler &statusRequestHandler)
-    : m_protocol{protocol}, m_connectivityService{connectivityService},
-      m_statusRequestHandler{statusRequestHandler} {}
-
-void DeviceStatusService::messageReceived(std::shared_ptr<Message> message) {
-  const std::string deviceKey =
-      m_protocol.extractDeviceKeyFromChannel(message->getChannel());
-  if (deviceKey.empty()) {
-    LOG(WARN) << "Unable to extract device key from channel: "
-              << message->getChannel();
-    return;
-  }
-
-  if (m_protocol.isStatusRequestMessage(message->getChannel())) {
-    m_statusRequestHandler(deviceKey);
-  } else {
-    LOG(WARN) << "Unable to parse message channel: " << message->getChannel();
-  }
+namespace wolkabout
+{
+DeviceStatusService::DeviceStatusService(StatusProtocol& protocol, ConnectivityService& connectivityService,
+                                         const StatusRequestHandler& statusRequestHandler)
+: m_protocol{protocol}, m_connectivityService{connectivityService}, m_statusRequestHandler{statusRequestHandler}
+{
 }
 
-const Protocol &DeviceStatusService::getProtocol() { return m_protocol; }
+void DeviceStatusService::messageReceived(std::shared_ptr<Message> message)
+{
+    const std::string deviceKey = m_protocol.extractDeviceKeyFromChannel(message->getChannel());
+    if (deviceKey.empty())
+    {
+        LOG(WARN) << "Unable to extract device key from channel: " << message->getChannel();
+        return;
+    }
 
-void DeviceStatusService::publishDeviceStatus(const std::string &deviceKey,
-                                              DeviceStatus status) {
-  auto statusResponse = std::make_shared<DeviceStatusResponse>(status);
-
-  const std::shared_ptr<Message> outboundMessage =
-      m_protocol.makeMessage(deviceKey, statusResponse);
-
-  if (!outboundMessage || !m_connectivityService.publish(outboundMessage)) {
-    LOG(INFO) << "Status not published for device: " << deviceKey;
-  }
+    if (m_protocol.isStatusRequestMessage(message->getChannel()))
+    {
+        m_statusRequestHandler(deviceKey);
+    }
+    else
+    {
+        LOG(WARN) << "Unable to parse message channel: " << message->getChannel();
+    }
 }
 
-void DeviceStatusService::devicesUpdated(
-    const std::vector<std::string> &deviceKeys) {
-  auto lastWillMessage = m_protocol.makeLastWillMessage(deviceKeys);
-
-  if (!lastWillMessage) {
-    LOG(WARN) << "Unable to make lastwill message";
-    return;
-  }
-
-  m_connectivityService.setUncontrolledDisonnectMessage(lastWillMessage);
+const Protocol& DeviceStatusService::getProtocol()
+{
+    return m_protocol;
 }
-} // namespace wolkabout
+
+void DeviceStatusService::publishDeviceStatus(const std::string& deviceKey, DeviceStatus status)
+{
+    auto statusResponse = std::make_shared<DeviceStatusResponse>(status);
+
+    const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(deviceKey, statusResponse);
+
+    if (!outboundMessage || !m_connectivityService.publish(outboundMessage))
+    {
+        LOG(INFO) << "Status not published for device: " << deviceKey;
+    }
+}
+
+void DeviceStatusService::devicesUpdated(const std::vector<std::string>& deviceKeys)
+{
+    auto lastWillMessage = m_protocol.makeLastWillMessage(deviceKeys);
+
+    if (!lastWillMessage)
+    {
+        LOG(WARN) << "Unable to make lastwill message";
+        return;
+    }
+
+    m_connectivityService.setUncontrolledDisonnectMessage(lastWillMessage);
+}
+}    // namespace wolkabout
