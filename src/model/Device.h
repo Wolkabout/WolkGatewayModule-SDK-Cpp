@@ -17,47 +17,39 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
+#include "model/DeviceManifest.h"
+
 #include <string>
-#include <vector>
 
 namespace wolkabout
 {
 class Device
 {
 public:
-    /**
-     * @brief Constructor
-     * @param key Device key provided by WolkAbout IoT Platform
-     * @param password Device password provided by WolkAbout IoT Platform
-     * @param actuatorReferences List of actuator references
-     */
-    Device(std::string key, std::string password, std::vector<std::string> actuatorReferences = {});
-
-    /**
-     * @brief Returns device key
-     * @return device key
-     */
-    const std::string& getDeviceKey() const;
-
-    /**
-     * @brief Returns device password
-     * @return device password
-     */
-    const std::string& getDevicePassword() const;
-
-    /**
-     * @brief Returns actuator references for device
-     * @return actuator references for device
-     */
-    const std::vector<std::string> getActuatorReferences() const;
+    Device() = default;
+    Device(std::string name, std::string key, DeviceManifest deviceManifest);
+    Device(std::string name, std::string key, std::string password, DeviceManifest deviceManifest);
 
     virtual ~Device() = default;
 
+    const std::string& getName() const;
+    const std::string& getKey() const;
+    const std::string& getPassword() const;
+
+    const DeviceManifest& getManifest() const;
+
+    std::vector<std::string> getActuatorReferences() const;
+
+    bool operator==(Device& rhs) const;
+    bool operator!=(Device& rhs) const;
+
 private:
+    std::string m_name;
     std::string m_key;
     std::string m_password;
-    std::vector<std::string> m_actuatorReferences;
-};
-}
 
-#endif
+    DeviceManifest m_deviceManifest;
+};
+}    // namespace wolkabout
+
+#endif    // DEVICE_H

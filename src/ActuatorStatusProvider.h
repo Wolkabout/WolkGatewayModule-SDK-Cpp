@@ -26,17 +26,24 @@ namespace wolkabout
 class ActuatorStatusProvider
 {
 public:
+    virtual ~ActuatorStatusProvider() = default;
+
+    ActuatorStatus operator()(const std::string& deviceKey, const std::string& reference)
+    {
+        return getStatus(deviceKey, reference);
+    }
+
+private:
     /**
      * @brief Actuator status provider callback<br>
      *        Must be implemented as non blocking<br>
      *        Must be implemented as thread safe
+     * @param deviceKey Key of the device which has the acuator
      * @param reference Actuator reference
      * @return ActuatorStatus of requested actuator
      */
-    virtual ActuatorStatus getActuatorStatus(const std::string& reference) = 0;
-
-    virtual ~ActuatorStatusProvider() = default;
+    virtual ActuatorStatus getStatus(const std::string& deviceKey, const std::string& reference) = 0;
 };
-}
+}    // namespace wolkabout
 
 #endif

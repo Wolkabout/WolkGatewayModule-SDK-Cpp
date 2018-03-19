@@ -31,10 +31,12 @@ public:
 
     virtual void messageReceived(const std::string& topic, const std::string& message) = 0;
 
-    virtual const std::vector<std::string>& getTopics() const = 0;
+    virtual void connectionLost() = 0;
+
+    virtual std::vector<std::string> getChannels() const = 0;
 };
 
-class OutboundMessage;
+class Message;
 class ConnectivityService
 {
 public:
@@ -42,16 +44,19 @@ public:
 
     virtual bool connect() = 0;
     virtual void disconnect() = 0;
+    virtual bool reconnect() = 0;
 
     virtual bool isConnected() = 0;
 
-    virtual bool publish(std::shared_ptr<OutboundMessage> outboundMessage) = 0;
+    virtual bool publish(std::shared_ptr<Message> outboundMessage, bool persistent = false) = 0;
+
+    virtual void setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage, bool persistent = false) = 0;
 
     void setListener(std::weak_ptr<ConnectivityServiceListener> listener);
 
 protected:
     std::weak_ptr<ConnectivityServiceListener> m_listener;
 };
-}
+}    // namespace wolkabout
 
 #endif

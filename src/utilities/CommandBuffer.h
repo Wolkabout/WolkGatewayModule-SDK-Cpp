@@ -37,6 +37,8 @@ public:
 
     void pushCommand(std::shared_ptr<Command> command);
 
+    void stop();
+
 private:
     std::shared_ptr<Command> popCommand();
 
@@ -60,6 +62,6 @@ private:
     std::atomic_bool m_isRunning;
     std::unique_ptr<std::thread> m_worker;
 };
-}
+}    // namespace wolkabout
 
 #endif

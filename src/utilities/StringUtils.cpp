@@ -16,6 +16,7 @@
 
 #include "utilities/StringUtils.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -35,7 +36,7 @@ bool StringUtils::contains(const std::string& string, const std::string& substri
     return string.find(substring) != std::string::npos;
 }
 
-std::vector<std::string> StringUtils::tokenize(const std::string& string, const std::string& delimiters)
+std::vector<std::string> StringUtils::tokenize(const std::string& string, const std::string& delimiter)
 {
     std::vector<std::string> tokens;
     if (string.empty())
@@ -43,17 +44,18 @@ std::vector<std::string> StringUtils::tokenize(const std::string& string, const 
         return tokens;
     }
 
+    std::string::size_type size = string.size();
     std::string::size_type position = 0;
-    std::string::size_type delimiterPosition = string.find_first_of(delimiters, position);
+    std::string::size_type delimiterPosition = string.find(delimiter, position);
 
-    while (std::string::npos != delimiterPosition)
+    while (std::string::npos != delimiterPosition && delimiterPosition <= size)
     {
         tokens.push_back(string.substr(position, delimiterPosition - position));
         position = delimiterPosition + 1;
-        delimiterPosition = string.find_first_of(delimiters, position);
+        delimiterPosition = string.find(delimiter, position);
     }
 
-    tokens.push_back(string.substr(position, string.size() - position));
+    tokens.push_back(string.substr(position, std::string::npos));
     return tokens;
 }
 
@@ -73,6 +75,46 @@ void StringUtils::removeTrailingWhitespace(std::string& string)
     {
         string.erase(string.length() - 1);
     }
+}
+
+std::string StringUtils::removePrefix(const std::string& string, const std::string& prefix)
+{
+    if (startsWith(string, prefix))
+    {
+        std::string ret = string;
+        ret.erase(0, prefix.size());
+
+        return ret;
+    }
+
+    return string;
+}
+
+std::string StringUtils::removeSufix(const std::string& string, const std::string& sufix)
+{
+    if (endsWith(string, sufix))
+    {
+        std::string ret = string;
+        ret.erase(string.size() - sufix.size(), std::string::npos);
+
+        return ret;
+    }
+
+    return string;
+}
+
+std::string StringUtils::removeSubstring(const std::string& string, const std::string& substring)
+{
+    auto pos = string.find(substring);
+    if (pos != std::string::npos)
+    {
+        std::string ret = string;
+        ret.erase(pos, substring.size());
+
+        return ret;
+    }
+
+    return string;
 }
 
 bool StringUtils::isBase64(unsigned char c)
@@ -171,4 +213,25 @@ std::string StringUtils::base64Decode(const std::string& encodedString)
 
     return ret;
 }
+
+bool StringUtils::mqttTopicMatch(const std::string& wildcardTopic, const std::string& topic)
+{
+    if (endsWith(wildcardTopic, "/#"))
+    {
+        const std::string rootTopic = removeSubstring(wildcardTopic, "/#");
+
+        return startsWith(topic, rootTopic);
+    }
+
+    // TODO match single level wildcards
+    return wildcardTopic == topic;
 }
+
+std::string StringUtils::toUpperCase(const std::string& string)
+{
+    std::string transformed = string;
+    std::transform(transformed.begin(), transformed.end(), transformed.begin(), ::toupper);
+
+    return transformed;
+}
+}    // namespace wolkabout

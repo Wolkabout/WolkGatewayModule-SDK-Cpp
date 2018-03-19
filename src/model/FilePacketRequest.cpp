@@ -39,4 +39,4 @@ uint_fast64_t FilePacketRequest::getChunkSize() const
 {
     return m_chunkSize;
 }
-}
+}    // namespace wolkabout

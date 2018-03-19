@@ -33,8 +33,7 @@ CommandBuffer::CommandBuffer()
 
 CommandBuffer::~CommandBuffer()
 {
-    m_isRunning = false;
-    m_worker->join();
+    stop();
 }
 
 void CommandBuffer::pushCommand(std::shared_ptr<Command> command)
@@ -43,7 +42,14 @@ void CommandBuffer::pushCommand(std::shared_ptr<Command> command)
 
     m_pushCommandQueue.push(command);
 
-    m_condition.notify_one();
+    notify();
+}
+
+void CommandBuffer::stop()
+{
+    m_isRunning = false;
+    notify();
+    m_worker->join();
 }
 
 std::shared_ptr<CommandBuffer::Command> CommandBuffer::popCommand()
@@ -79,8 +85,6 @@ void CommandBuffer::switchBuffers()
 
 void CommandBuffer::notify()
 {
-    std::unique_lock<std::mutex> unique_lock(m_lock);
-
     m_condition.notify_one();
 }
 
@@ -102,4 +106,4 @@ void CommandBuffer::run()
         processCommands();
     }
 }
-}
+}    // namespace wolkabout

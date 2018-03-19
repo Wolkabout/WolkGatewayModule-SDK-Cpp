@@ -19,7 +19,7 @@
 
 #include "FirmwareUpdateService.h"
 #include "FirmwareInstaller.h"
-#include "OutboundDataService.h"
+#include "OutboundServiceDataHandler.h"
 #include "UrlFileDownloader.h"
 #include "WolkaboutFileDownloader.h"
 #include "model/FirmwareUpdateCommand.h"
@@ -524,6 +524,6 @@ void FirmwareUpdateService::clear()
     m_autoInstall = false;
     m_currentState = m_idleState.get();
 }
-}
+}    // namespace wolkabout
 
 #endif    // FIRMWAREUPDATESERVICE_CPP

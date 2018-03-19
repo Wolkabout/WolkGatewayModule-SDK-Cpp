@@ -13,7 +13,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.5)
-project(WolkGatewayModule C CXX)
+project(WolkAboutConnector C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -22,19 +22,16 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}    -Wall -Wextra -Weffc++ -pedantic    
                                             -Wcast-qual -Wconversion                                                   \
                                             -Wdisabled-optimization                                                    \
                                             -Wfloat-equal -Wformat=2                                                   \
-                                            -Wformat-nonliteral -Wformat-security                                      \
-                                            -Wformat-y2k                                                               \
-                                            -Wimport  -Winit-self                                                      \
-                                            -Wmissing-field-initializers -Wmissing-format-attribute                    \
+                                            -Werror=import  -Werror=init-self                                          \
+                                            -Werror=missing-field-initializers -Wmissing-format-attribute              \
                                             -Wmissing-include-dirs -Wmissing-noreturn                                  \
-                                            -Wpointer-arith                                                            \
+                                            -Werror=pointer-arith                                                      \
                                             -Wno-packed  -Wno-padded -Wredundant-decls                                 \
-                                            -Wshadow -Wstack-protector                                                 \
+                                            -Werror=shadow -Werror=stack-protector                                     \
                                             -Wstrict-aliasing=2                                                        \
-                                            -Wunreachable-code -Wunused                                                \
-                                            -Wunused-parameter                                                         \
+                                            -Werror=unreachable-code -Wunused                                          \
                                             -Wvariadic-macros                                                          \
-                                            -Wwrite-strings")
+                                            -Wwrite-strings -Werror=non-virtual-dtor")
 
 # Paho MQTT
 IF (NOT OPENSSL_INCLUDE_DIR)
@@ -55,7 +52,7 @@ include_directories("src")
 include_directories(SYSTEM "${OPENSSL_INCLUDE_DIR}")
 
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "src/*.hpp")
-file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
 
 link_directories(${PROJECT_SOURCE_DIR}/out/lib)
 

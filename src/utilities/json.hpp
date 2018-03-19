@@ -848,7 +848,7 @@ namespace
 {
     constexpr const auto& to_json = detail::static_const<detail::to_json_fn>::value;
     constexpr const auto& from_json = detail::static_const<detail::from_json_fn>::value;
-}
+}    // namespace
 
 /*!
 @brief default JSONSerializer template argument
@@ -916,12 +916,15 @@ and `from_json()` (@ref adl_serializer by default)
 
 @requirement The class satisfies the following concept requirements:
 - Basic
- - [DefaultConstructible](http://en.cppreference.com/w/cpp/concept/DefaultConstructible):
+ -
+[DefaultConstructible](http://en.cppreference.com/w/cpp/concept/DefaultConstructible):
    JSON values can be default constructed. The result will be a JSON null
    value.
- - [MoveConstructible](http://en.cppreference.com/w/cpp/concept/MoveConstructible):
+ -
+[MoveConstructible](http://en.cppreference.com/w/cpp/concept/MoveConstructible):
    A JSON value can be constructed from an rvalue argument.
- - [CopyConstructible](http://en.cppreference.com/w/cpp/concept/CopyConstructible):
+ -
+[CopyConstructible](http://en.cppreference.com/w/cpp/concept/CopyConstructible):
    A JSON value can be copy-constructed from an lvalue expression.
  - [MoveAssignable](http://en.cppreference.com/w/cpp/concept/MoveAssignable):
    A JSON value van be assigned from an rvalue argument.
@@ -930,16 +933,20 @@ and `from_json()` (@ref adl_serializer by default)
  - [Destructible](http://en.cppreference.com/w/cpp/concept/Destructible):
    JSON values can be destructed.
 - Layout
- - [StandardLayoutType](http://en.cppreference.com/w/cpp/concept/StandardLayoutType):
+ -
+[StandardLayoutType](http://en.cppreference.com/w/cpp/concept/StandardLayoutType):
    JSON values have
-   [standard layout](http://en.cppreference.com/w/cpp/language/data_members#Standard_layout):
+   [standard
+layout](http://en.cppreference.com/w/cpp/language/data_members#Standard_layout):
    All non-static data members are private and standard layout types, the
    class has no virtual functions or (virtual) base classes.
 - Library-wide
- - [EqualityComparable](http://en.cppreference.com/w/cpp/concept/EqualityComparable):
+ -
+[EqualityComparable](http://en.cppreference.com/w/cpp/concept/EqualityComparable):
    JSON values can be compared with `==`, see @ref
    operator==(const_reference,const_reference).
- - [LessThanComparable](http://en.cppreference.com/w/cpp/concept/LessThanComparable):
+ -
+[LessThanComparable](http://en.cppreference.com/w/cpp/concept/LessThanComparable):
    JSON values can be compared with `<`, see @ref
    operator<(const_reference,const_reference).
  - [Swappable](http://en.cppreference.com/w/cpp/concept/Swappable):
@@ -951,7 +958,8 @@ and `from_json()` (@ref adl_serializer by default)
 - Container
  - [Container](http://en.cppreference.com/w/cpp/concept/Container):
    JSON values can be used like STL containers and provide iterator access.
- - [ReversibleContainer](http://en.cppreference.com/w/cpp/concept/ReversibleContainer);
+ -
+[ReversibleContainer](http://en.cppreference.com/w/cpp/concept/ReversibleContainer);
    JSON values can be used like STL containers and provide reverse iterator
    access.
 
@@ -1048,12 +1056,15 @@ public:
     @return JSON object holding version information
     key         | description
     ----------- | ---------------
-    `compiler`  | Information on the used compiler. It is an object with the following keys: `c++` (the used C++
-    standard), `family` (the compiler family; possible values are `clang`, `icc`, `gcc`, `ilecpp`, `msvc`, `pgcpp`,
-    `sunpro`, and `unknown`), and `version` (the compiler version). `copyright` | The copyright line for the library as
-    string. `name`      | The name of the library as string. `platform`  | The used platform as string. Possible values
-    are `win32`, `linux`, `apple`, `unix`, and `unknown`. `url`       | The URL of the project as string. `version`   |
-    The version of the library. It is an object with the following keys: `major`, `minor`, and `patch` as defined by
+    `compiler`  | Information on the used compiler. It is an object with the
+    following keys: `c++` (the used C++ standard), `family` (the compiler family;
+    possible values are `clang`, `icc`, `gcc`, `ilecpp`, `msvc`, `pgcpp`,
+    `sunpro`, and `unknown`), and `version` (the compiler version). `copyright` |
+    The copyright line for the library as string. `name`      | The name of the
+    library as string. `platform`  | The used platform as string. Possible values
+    are `win32`, `linux`, `apple`, `unix`, and `unknown`. `url`       | The URL of
+    the project as string. `version`   | The version of the library. It is an
+    object with the following keys: `major`, `minor`, and `patch` as defined by
     [Semantic Versioning](http://semver.org), and `string` (the version string).
 
     @liveexample{The following code shows an example output of the `meta()`
@@ -1669,8 +1680,8 @@ private:
             {
                 if (t == value_t::null)
                 {
-                    JSON_THROW(
-                      std::domain_error("961c151d2e87f2686a955a9be24d316f1362bf21 2.1.1"));    // LCOV_EXCL_LINE
+                    JSON_THROW(std::domain_error("961c151d2e87f2686a955a9be24d316f1362bf2"
+                                                 "1 2.1.1"));    // LCOV_EXCL_LINE
                 }
                 break;
             }
@@ -1712,7 +1723,8 @@ public:
     This enumeration lists the parser events that can trigger calling a
     callback function of type @ref parser_callback_t during parsing.
 
-    @image html callback_events.png "Example when certain parse events are triggered"
+    @image html callback_events.png "Example when certain parse events are
+    triggered"
 
     @since version 1.0.0
     */
@@ -1750,16 +1762,21 @@ public:
 
     parameter @a event | description | parameter @a depth | parameter @a parsed
     ------------------ | ----------- | ------------------ | -------------------
-    parse_event_t::object_start | the parser read `{` and started to process a JSON object | depth of the parent of the
-    JSON object | a JSON value with type discarded parse_event_t::key | the parser read a key of a value in an object |
-    depth of the currently parsed JSON object | a JSON string containing the key parse_event_t::object_end | the parser
-    read `}` and finished processing a JSON object | depth of the parent of the JSON object | the parsed JSON object
-    parse_event_t::array_start | the parser read `[` and started to process a JSON array | depth of the parent of the
-    JSON array | a JSON value with type discarded parse_event_t::array_end | the parser read `]` and finished processing
-    a JSON array | depth of the parent of the JSON array | the parsed JSON array parse_event_t::value | the parser
-    finished reading a JSON value | depth of the value | the parsed JSON value
+    parse_event_t::object_start | the parser read `{` and started to process a
+    JSON object | depth of the parent of the JSON object | a JSON value with type
+    discarded parse_event_t::key | the parser read a key of a value in an object |
+    depth of the currently parsed JSON object | a JSON string containing the key
+    parse_event_t::object_end | the parser read `}` and finished processing a JSON
+    object | depth of the parent of the JSON object | the parsed JSON object
+    parse_event_t::array_start | the parser read `[` and started to process a JSON
+    array | depth of the parent of the JSON array | a JSON value with type
+    discarded parse_event_t::array_end | the parser read `]` and finished
+    processing a JSON array | depth of the parent of the JSON array | the parsed
+    JSON array parse_event_t::value | the parser finished reading a JSON value |
+    depth of the value | the parsed JSON value
 
-    @image html callback_events.png "Example when certain parse events are triggered"
+    @image html callback_events.png "Example when certain parse events are
+    triggered"
 
     Discarding a value (i.e., returning `false`) has different effects
     depending on the context in which function was called:
@@ -2992,8 +3009,10 @@ public:
     @brief get a value (explicit)
 
     Explicit type conversion between the JSON value and a compatible value
-    which is [CopyConstructible](http://en.cppreference.com/w/cpp/concept/CopyConstructible)
-    and [DefaultConstructible](http://en.cppreference.com/w/cpp/concept/DefaultConstructible).
+    which is
+    [CopyConstructible](http://en.cppreference.com/w/cpp/concept/CopyConstructible)
+    and
+    [DefaultConstructible](http://en.cppreference.com/w/cpp/concept/DefaultConstructible).
     The value is converted by calling the @ref json_serializer<ValueType>
     `from_json()` method.
 
@@ -3039,7 +3058,8 @@ public:
         // there is support for get<const basic_json_t>(), which is why we
         // still need the uncvref
         static_assert(not std::is_reference<ValueTypeCV>::value,
-                      "get() cannot be used with reference types, you might want to use get_ref()");
+                      "get() cannot be used with reference types, you might want "
+                      "to use get_ref()");
         static_assert(std::is_default_constructible<ValueType>::value,
                       "types must be DefaultConstructible when used with get()");
 
@@ -3052,8 +3072,10 @@ public:
     @brief get a value (explicit); special case
 
     Explicit type conversion between the JSON value and a compatible value
-    which is **not** [CopyConstructible](http://en.cppreference.com/w/cpp/concept/CopyConstructible)
-    and **not** [DefaultConstructible](http://en.cppreference.com/w/cpp/concept/DefaultConstructible).
+    which is **not**
+    [CopyConstructible](http://en.cppreference.com/w/cpp/concept/CopyConstructible)
+    and **not**
+    [DefaultConstructible](http://en.cppreference.com/w/cpp/concept/DefaultConstructible).
     The value is converted by calling the @ref json_serializer<ValueType>
     `from_json()` method.
 
@@ -3087,7 +3109,8 @@ public:
       noexcept(noexcept(JSONSerializer<ValueTypeCV>::from_json(std::declval<const basic_json_t&>())))
     {
         static_assert(not std::is_reference<ValueTypeCV>::value,
-                      "get() cannot be used with reference types, you might want to use get_ref()");
+                      "get() cannot be used with reference types, you might want "
+                      "to use get_ref()");
         return JSONSerializer<ValueTypeCV>::from_json(*this);
     }
 
@@ -3867,7 +3890,8 @@ public:
 
     /*!
     @brief overload for a default value of type const char*
-    @copydoc basic_json::value(const typename object_t::key_type&, ValueType) const
+    @copydoc basic_json::value(const typename object_t::key_type&, ValueType)
+    const
     */
     string_t value(const typename object_t::key_type& key, const char* default_value) const
     {
@@ -8424,7 +8448,8 @@ public:
           on uninitialized iterators.**
 
     @requirement The class satisfies the following concept requirements:
-    - [RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator):
+    -
+    [RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator):
       The iterator that can be moved to point (forward and backward) to any
       element in constant time.
 
@@ -9003,7 +9028,8 @@ public:
     create @ref const_reverse_iterator).
 
     @requirement The class satisfies the following concept requirements:
-    - [RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator):
+    -
+    [RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator):
       The iterator that can be moved to point (forward and backward) to any
       element in constant time.
     - [OutputIterator](http://en.cppreference.com/w/cpp/concept/OutputIterator):
@@ -9107,9 +9133,11 @@ private:
             literal_false,    ///< the `false` literal
             literal_null,    ///< the `null` literal
             value_string,    ///< a string -- use get_string() for actual value
-            value_unsigned,    ///< an unsigned integer -- use get_number() for actual value
+            value_unsigned,    ///< an unsigned integer -- use get_number() for actual
+                               ///< value
             value_integer,    ///< a signed integer -- use get_number() for actual value
-            value_float,    ///< an floating point number -- use get_number() for actual value
+            value_float,    ///< an floating point number -- use get_number() for actual
+                            ///< value
             begin_array,    ///< the character for array begin `[`
             begin_object,    ///< the character for object begin `{`
             end_array,    ///< the character for array end `]`
@@ -10500,7 +10528,8 @@ private:
                 auto e = std::find(i, m_cursor - 1, '\\');
                 if (e != i)
                 {
-                    // see https://github.com/nlohmann/json/issues/365#issuecomment-262874705
+                    // see
+                    // https://github.com/nlohmann/json/issues/365#issuecomment-262874705
                     for (auto k = i; k < e; k++)
                     {
                         result.push_back(static_cast<typename string_t::value_type>(*k));
@@ -10705,12 +10734,14 @@ private:
 
             // integral conversion
 
-            signed long long parse_integral(char** endptr, /*is_signed*/ std::true_type) const
+            signed long long parse_integral(char** endptr,
+                                            /*is_signed*/ std::true_type) const
             {
                 return std::strtoll(m_start, endptr, 10);
             }
 
-            unsigned long long parse_integral(char** endptr, /*is_signed*/ std::false_type) const
+            unsigned long long parse_integral(char** endptr,
+                                              /*is_signed*/ std::false_type) const
             {
                 return std::strtoull(m_start, endptr, 10);
             }
@@ -10728,7 +10759,8 @@ private:
 
                 return (x == static_cast<decltype(x)>(value))    // x fits into destination T
                        and (x < 0) == (value < 0)    // preserved sign
-                       // and ((x != 0) or is_integral())        // strto[u]ll did nto fail
+                       // and ((x != 0) or is_integral())        // strto[u]ll did nto
+                       // fail
                        and (errno == 0)    // strto[u]ll did not overflow
                        and (m_start < m_end)    // token was not empty
                        and (endptr == m_end);    // parsed entire token exactly
@@ -12379,8 +12411,8 @@ inline nlohmann::json operator"" _json(const char* s, std::size_t n)
 @brief user-defined string literal for JSON pointer
 
 This operator implements a user-defined string literal for JSON Pointers. It
-can be used by adding `"_json_pointer"` to a string literal and returns a JSON pointer
-object if no parse error occurred.
+can be used by adding `"_json_pointer"` to a string literal and returns a JSON
+pointer object if no parse error occurred.
 
 @param[in] s  a string representation of a JSON Pointer
 @param[in] n  the length of string @a s
