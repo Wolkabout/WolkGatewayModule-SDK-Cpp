@@ -169,8 +169,8 @@ std::shared_ptr<Message> JsonProtocol::makeMessage(const std::string& deviceKey,
 
     const json jPayload(sensorReadings);
     const std::string payload = jPayload.dump();
-    const std::string topic = SENSOR_READING_TOPIC_ROOT + deviceKey + CHANNEL_DELIMITER + REFERENCE_PATH_PREFIX +
-                              sensorReadings.front()->getReference();
+    const std::string topic = SENSOR_READING_TOPIC_ROOT + DEVICE_PATH_PREFIX + deviceKey + CHANNEL_DELIMITER +
+                              REFERENCE_PATH_PREFIX + sensorReadings.front()->getReference();
 
     return std::make_shared<Message>(payload, topic);
 }
@@ -185,8 +185,8 @@ std::shared_ptr<Message> JsonProtocol::makeMessage(const std::string& deviceKey,
 
     const json jPayload(alarms);
     const std::string payload = jPayload.dump();
-    const std::string topic =
-      EVENTS_TOPIC_ROOT + deviceKey + CHANNEL_DELIMITER + REFERENCE_PATH_PREFIX + alarms.front()->getReference();
+    const std::string topic = EVENTS_TOPIC_ROOT + DEVICE_PATH_PREFIX + deviceKey + CHANNEL_DELIMITER +
+                              REFERENCE_PATH_PREFIX + alarms.front()->getReference();
 
     return std::make_shared<Message>(payload, topic);
 }
@@ -195,7 +195,7 @@ std::shared_ptr<Message> JsonProtocol::makeMessage(const std::string& deviceKey,
                                                    std::vector<std::shared_ptr<ActuatorStatus>> actuatorStatuses) const
 {
     // JSON_SINGLE allows only 1 ActuatorStatus per Message
-    if (actuatorStatuses.size() == 1)
+    if (actuatorStatuses.size() != 1)
     {
         return nullptr;
     }

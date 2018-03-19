@@ -500,7 +500,7 @@ std::shared_ptr<Message> JsonRegistrationProtocol::makeMessage(const std::string
         const json jsonPayload(request);
         std::string channel;
 
-        channel = DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX + CHANNEL_DELIMITER + deviceKey;
+        channel = DEVICE_REGISTRATION_REQUEST_TOPIC_ROOT + DEVICE_PATH_PREFIX + deviceKey;
 
         return std::make_shared<Message>(jsonPayload.dump(), channel);
     }
