@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 
             return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
         })
-        .deviceStatusProvider([&](const std::string& deviceKey) -> wolkabout::DeviceStatus {
+        .deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus {
             if (deviceKey == "DEVICE_KEY_1")
             {
                 return wolkabout::DeviceStatus::CONNECTED;
