@@ -130,6 +130,18 @@ int main(int argc, char** argv)
 
             return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
         })
+        .deviceStatusProvider([&](const std::string& deviceKey) -> wolkabout::DeviceStatus {
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                return wolkabout::DeviceStatus::CONNECTED;
+            }
+            else if (deviceKey == "DEVICE_KEY_2")
+            {
+                return wolkabout::DeviceStatus::SLEEP;
+            }
+
+            return wolkabout::DeviceStatus::OFFLINE;
+        })
         .host(configuration.getLocalMqttUri())
         .build();
 

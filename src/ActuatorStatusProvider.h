@@ -30,7 +30,7 @@ public:
 
     ActuatorStatus operator()(const std::string& deviceKey, const std::string& reference)
     {
-        return getStatus(deviceKey, reference);
+        return getActuatorStatus(deviceKey, reference);
     }
 
 private:
@@ -42,7 +42,7 @@ private:
      * @param reference Actuator reference
      * @return ActuatorStatus of requested actuator
      */
-    virtual ActuatorStatus getStatus(const std::string& deviceKey, const std::string& reference) = 0;
+    virtual ActuatorStatus getActuatorStatus(const std::string& deviceKey, const std::string& reference) = 0;
 };
 }    // namespace wolkabout
 
