@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef JSONDTOPARSER_H
-#define JSONDTOPARSER_H
+#include "model/DeviceRegistrationResponse.h"
 
-#include <string>
+#include <utility>
 
 namespace wolkabout
 {
-class SensorReading;
-class Alarm;
-class ActuatorStatus;
-class ActuatorCommand;
-class FirmwareUpdateCommand;
-
-class JsonParser
+DeviceRegistrationResponse::DeviceRegistrationResponse(DeviceRegistrationResponse::Result result)
+: m_result(std::move(result))
 {
-public:
-    JsonParser() = delete;
-
-    static bool fromJson(const std::string& jsonString, ActuatorCommand& actuatorCommand);
-    static bool fromJson(const std::string& jsonString, FirmwareUpdateCommand& firmwareUpdateCommand);
-};
 }
 
-#endif
+DeviceRegistrationResponse::Result DeviceRegistrationResponse::getResult() const
+{
+    return m_result;
+}
+}    // namespace wolkabout

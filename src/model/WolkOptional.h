@@ -47,6 +47,6 @@ private:
     T m_value;
     bool m_null;
 };
-}
+}    // namespace wolkabout
 
 #endif    // WOLKOPTIONAL_H

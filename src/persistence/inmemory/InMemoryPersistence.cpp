@@ -166,4 +166,4 @@ std::vector<std::shared_ptr<Alarm>>& InMemoryPersistence::getOrCreateAlarmsByKey
 
     return m_alarms.at(key);
 }
-}
+}    // namespace wolkabout

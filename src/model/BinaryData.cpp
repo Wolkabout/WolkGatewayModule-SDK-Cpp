@@ -25,7 +25,8 @@ BinaryData::BinaryData(const ByteArray& value) : m_value{value}, m_data{}, m_has
 {
     if (value.size() <= 2 * ByteUtils::SHA_256_HASH_BYTE_LENGTH)
     {
-        throw std::invalid_argument("Binary data size is smaller than required to fit standard data packet");
+        throw std::invalid_argument("Binary data size is smaller than required to "
+                                    "fit standard data packet");
     }
 
     m_previousHash = {m_value.begin(), m_value.begin() + ByteUtils::SHA_256_HASH_BYTE_LENGTH};
@@ -61,4 +62,4 @@ bool BinaryData::validatePrevious(const ByteArray& previousHash) const
 {
     return m_previousHash == previousHash;
 }
-}
+}    // namespace wolkabout

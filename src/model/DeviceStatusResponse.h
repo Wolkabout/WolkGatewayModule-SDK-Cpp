@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-#ifndef OUTBOUNDMESSAGE_H
-#define OUTBOUNDMESSAGE_H
+#ifndef DEVICESTATUSRESPONSE_H
+#define DEVICESTATUSRESPONSE_H
 
-#include <string>
+#include "model/DeviceStatus.h"
 
 namespace wolkabout
 {
-class OutboundMessage
+class DeviceStatusResponse
 {
 public:
-    OutboundMessage(std::string content, std::string topic, unsigned long long int itemsCount);
-    virtual ~OutboundMessage() = default;
+    DeviceStatusResponse(DeviceStatus status);
 
-    const std::string& getContent() const;
-    const std::string& getTopic() const;
-    unsigned long long getItemsCount() const;
+    DeviceStatus getStatus() const;
 
 private:
-    std::string m_content;
-    std::string m_topic;
-    unsigned long long int m_itemsCount;
+    const DeviceStatus m_status;
 };
-}
+}    // namespace wolkabout
 
-#endif
+#endif    // DEVICESTATUSRESPONSE_H

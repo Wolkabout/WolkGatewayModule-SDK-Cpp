@@ -20,6 +20,9 @@ pushd dependencies
 ./make.sh
 popd
 
+cp tools/git/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+
 # Note
 # OPENSSL_INCLUDE_DIR is absoulte path or relative path to project source directory
 

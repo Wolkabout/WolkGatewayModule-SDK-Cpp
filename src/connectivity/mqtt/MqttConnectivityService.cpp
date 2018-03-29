@@ -15,13 +15,20 @@
  */
 
 #include "connectivity/mqtt/MqttConnectivityService.h"
-#include "model/OutboundMessage.h"
+#include "model/Message.h"
 
 namespace wolkabout
 {
-MqttConnectivityService::MqttConnectivityService(std::shared_ptr<MqttClient> mqttClient, Device device,
-                                                 std::string host)
-: m_mqttClient(std::move(mqttClient)), m_device(std::move(device)), m_host(std::move(host)), m_connected(false)
+MqttConnectivityService::MqttConnectivityService(std::shared_ptr<MqttClient> mqttClient, std::string key,
+                                                 std::string password, std::string host)
+: m_mqttClient(std::move(mqttClient))
+, m_key(std::move(key))
+, m_password(std::move(password))
+, m_host(std::move(host))
+, m_lastWillChannel("")
+, m_lastWillPayload("")
+, m_lastWillRetain(false)
+, m_connected(false)
 {
     m_mqttClient->onMessageReceived([this](std::string topic, std::string message) -> void {
         if (auto handler = m_listener.lock())
@@ -29,18 +36,24 @@ MqttConnectivityService::MqttConnectivityService(std::shared_ptr<MqttClient> mqt
             handler->messageReceived(topic, message);
         }
     });
+
+    m_mqttClient->onConnectionLost([this]() -> void {
+        if (auto handler = m_listener.lock())
+        {
+            handler->connectionLost();
+        }
+    });
 }
 
 bool MqttConnectivityService::connect()
 {
-    m_mqttClient->setLastWill(LAST_WILL_TOPIC_ROOT + m_device.getDeviceKey(), "Gone offline");
-    bool isConnected = m_mqttClient->connect(m_device.getDeviceKey(), m_device.getDevicePassword(), TRUST_STORE, m_host,
-                                             m_device.getDeviceKey());
+    m_mqttClient->setLastWill(m_lastWillChannel, m_lastWillPayload, m_lastWillRetain);
+    bool isConnected = m_mqttClient->connect(m_key, m_password, TRUST_STORE, m_host, m_key);
     if (isConnected)
     {
         if (auto handler = m_listener.lock())
         {
-            const auto& topics = handler->getTopics();
+            const auto& topics = handler->getChannels();
             for (const std::string& topic : topics)
             {
                 m_mqttClient->subscribe(topic);
@@ -56,13 +69,26 @@ void MqttConnectivityService::disconnect()
     m_mqttClient->disconnect();
 }
 
+bool MqttConnectivityService::reconnect()
+{
+    disconnect();
+    return connect();
+}
+
 bool MqttConnectivityService::isConnected()
 {
     return m_mqttClient->isConnected();
 }
 
-bool MqttConnectivityService::publish(std::shared_ptr<OutboundMessage> outboundMessage)
+bool MqttConnectivityService::publish(std::shared_ptr<Message> outboundMessage, bool persistent)
 {
-    return m_mqttClient->publish(outboundMessage->getTopic(), outboundMessage->getContent());
+    return m_mqttClient->publish(outboundMessage->getChannel(), outboundMessage->getContent(), persistent);
 }
+
+void MqttConnectivityService::setUncontrolledDisonnectMessage(std::shared_ptr<Message> outboundMessage, bool persistent)
+{
+    m_lastWillChannel = outboundMessage->getChannel();
+    m_lastWillPayload = outboundMessage->getContent();
+    m_lastWillRetain = persistent;
 }
+}    // namespace wolkabout

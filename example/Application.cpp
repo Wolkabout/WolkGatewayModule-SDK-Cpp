@@ -14,81 +14,147 @@
  * limitations under the License.
  */
 
+#include "Configuration.h"
 #include "Wolk.h"
+#include "model/DeviceManifest.h"
 #include "service/FirmwareInstaller.h"
+#include "utilities/ConsoleLogger.h"
 
 #include <chrono>
 #include <iostream>
+#include <map>
 #include <memory>
+#include <random>
 #include <string>
 #include <thread>
 
-int main(int /* argc */, char** /* argv */)
+int main(int argc, char** argv)
 {
-    wolkabout::Device device("device_key", "some_password", {"SW", "SL"});
+    if (argc < 2)
+    {
+        LOG(ERROR) << "WolkGatewayModule Application: Usage -  " << argv[0] << " [configurationFilePath]";
+        return -1;
+    }
+
+    auto logger = std::unique_ptr<wolkabout::ConsoleLogger>(new wolkabout::ConsoleLogger());
+    logger->setLogLevel(wolkabout::LogLevel::DEBUG);
+    wolkabout::Logger::setInstance(std::move(logger));
+
+    wolkabout::DeviceConfiguration configuration;
+    try
+    {
+        configuration = wolkabout::DeviceConfiguration::fromJson(argv[1]);
+    }
+    catch (std::logic_error& e)
+    {
+        LOG(ERROR) << "WolkGatewayModule Application: Unable to parse configuration file. Reason: " << e.what();
+        return -1;
+    }
 
     static bool switchValue = false;
     static int sliderValue = 0;
 
-    class CustomFirmwareInstaller : public wolkabout::FirmwareInstaller
-    {
-    public:
-        bool install(const std::string& firmwareFile) override
-        {
-            // Mock install
-            std::cout << "Updating firmware with file " << firmwareFile << std::endl;
+    wolkabout::SensorManifest temperatureSensor{"Temperature",
+                                                "T",
+                                                "Temperature sensor",
+                                                "℃",
+                                                "TEMPERATURE",
+                                                wolkabout::SensorManifest::DataType::NUMERIC,
+                                                1,
+                                                -273.15,
+                                                100000000};
+    wolkabout::SensorManifest pressureSensor{
+      "Pressure", "P", "Pressure sensor", "mb", "PRESSURE", wolkabout::SensorManifest::DataType::NUMERIC, 1, 0, 1100};
+    wolkabout::SensorManifest humiditySensor{
+      "Humidity", "H", "Humidity sensor", "%", "HUMIDITY", wolkabout::SensorManifest::DataType::NUMERIC, 1, 0, 100};
 
-            // Optionally delete 'firmwareFile
-            return true;
-        }
-    };
+    wolkabout::ActuatorManifest switchActuator{
+      "Switch", "SW", "Switch actuator", "", "SW", wolkabout::ActuatorManifest::DataType::BOOLEAN, 1, 0, 1};
+    wolkabout::ActuatorManifest sliderActuator{
+      "Slider", "SL", "Slider actuator", "", "SL", wolkabout::ActuatorManifest::DataType::NUMERIC, 1, 0, 115};
 
-    auto installer = std::make_shared<CustomFirmwareInstaller>();
+    wolkabout::AlarmManifest highHumidityAlarm{"High Humidity", wolkabout::AlarmManifest::AlarmSeverity::ALERT, "HH",
+                                               "High Humidity", ""};
+
+    wolkabout::DeviceManifest deviceManifest1{"DEVICE_MANIFEST_NAME_1",
+                                              "DEVICE_MANIFEST_DESCRIPTION_1",
+                                              "JsonProtocol",
+                                              "",
+                                              {},
+                                              {temperatureSensor, pressureSensor},
+                                              {},
+                                              {switchActuator}};
+    wolkabout::Device device1{"DEVICE_NAME_1", "DEVICE_KEY_1", deviceManifest1};
+
+    wolkabout::DeviceManifest deviceManifest2{"DEVICE_MANIFEST_NAME_2",
+                                              "DEVICE_MANIFEST_DESCRIPTION_2",
+                                              "JsonProtocol",
+                                              "",
+                                              {},
+                                              {humiditySensor},
+                                              {highHumidityAlarm},
+                                              {sliderActuator}};
+    wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceManifest2};
 
     std::unique_ptr<wolkabout::Wolk> wolk =
-      wolkabout::Wolk::newBuilder(device)
-        .actuationHandler([&](const std::string& reference, const std::string& value) -> void {
-            std::cout << "Actuation request received - Reference: " << reference << " value: " << value << std::endl;
-
-            if (reference == "SW")
-            {
-                switchValue = value == "true" ? true : false;
-            }
-            else if (reference == "SL")
-            {
-                try
-                {
-                    sliderValue = std::stoi(value);
-                }
-                catch (...)
-                {
-                    sliderValue = 0;
-                }
-            }
-        })
-        .actuatorStatusProvider([&](const std::string& reference) -> wolkabout::ActuatorStatus {
-            if (reference == "SW")
+      wolkabout::Wolk::newBuilder()
+        .actuationHandler(
+          [&](const std::string& deviceKey, const std::string& reference, const std::string& value) -> void {
+              std::cout << "Actuation request received - Reference: " << reference << " value: " << value << std::endl;
+              if (deviceKey == "DEVICE_KEY_1" && reference == "SW")
+              {
+                  switchValue = value == "true" ? true : false;
+              }
+              else if (deviceKey == "DEVICE_KEY_2" && reference == "SL")
+              {
+                  try
+                  {
+                      sliderValue = std::stoi(value);
+                  }
+                  catch (...)
+                  {
+                  }
+              }
+          })
+        .actuatorStatusProvider([&](const std::string& deviceKey,
+                                    const std::string& reference) -> wolkabout::ActuatorStatus {
+            if (deviceKey == "DEVICE_KEY_1" && reference == "SW")
             {
                 return wolkabout::ActuatorStatus(switchValue ? "true" : "false",
                                                  wolkabout::ActuatorStatus::State::READY);
             }
-            else if (reference == "SL")
+            else if (deviceKey == "DEVICE_KEY_2" && reference == "SL")
             {
                 return wolkabout::ActuatorStatus(std::to_string(sliderValue), wolkabout::ActuatorStatus::State::READY);
             }
 
             return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
         })
-        .withFirmwareUpdate("2.1.0", installer, ".", 100 * 1024 * 1024, 1024 * 1024)
+        .deviceStatusProvider([&](const std::string& deviceKey) -> wolkabout::DeviceStatus {
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                return wolkabout::DeviceStatus::CONNECTED;
+            }
+            else if (deviceKey == "DEVICE_KEY_2")
+            {
+                return wolkabout::DeviceStatus::SLEEP;
+            }
+
+            return wolkabout::DeviceStatus::OFFLINE;
+        })
+        .host(configuration.getLocalMqttUri())
         .build();
 
     wolk->connect();
 
-    wolk->addSensorReading("P", 1024);
-    wolk->addSensorReading("T", 25.6);
-    wolk->addSensorReading("H", 52);
+    wolk->addDevice(device1);
+    wolk->addDevice(device2);
 
-    wolk->addAlarm("HH", "High Humidity");
+    wolk->addSensorReading("DEVICE_KEY_1", "P", 1024);
+    wolk->addSensorReading("DEVICE_KEY_1", "T", 25.6);
+
+    wolk->addSensorReading("DEVICE_KEY_2", "H", 52);
+    wolk->addAlarm("DEVICE_KEY_2", "HH", "High Humidity");
 
     while (true)
     {

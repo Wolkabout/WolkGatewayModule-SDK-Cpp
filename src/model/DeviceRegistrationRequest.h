@@ -14,30 +14,33 @@
  * limitations under the License.
  */
 
-#include "OutboundMessage.h"
+#ifndef DEVICEREGISTRATIONREQUEST_H
+#define DEVICEREGISTRATIONREQUEST_H
+
+#include "model/Device.h"
+#include "model/DeviceManifest.h"
 
 #include <string>
-#include <utility>
 
 namespace wolkabout
 {
-OutboundMessage::OutboundMessage(std::string content, std::string topic, unsigned long long itemsCount)
-: m_content(std::move(content)), m_topic(std::move(topic)), m_itemsCount(itemsCount)
+class DeviceRegistrationRequest
 {
-}
+public:
+    DeviceRegistrationRequest() = default;
+    DeviceRegistrationRequest(std::string deviceName, std::string deviceKey, DeviceManifest deviceManifest);
+    DeviceRegistrationRequest(Device device);
 
-const std::string& OutboundMessage::getContent() const
-{
-    return m_content;
-}
+    virtual ~DeviceRegistrationRequest() = default;
 
-const std::string& OutboundMessage::getTopic() const
-{
-    return m_topic;
-}
+    const std::string& getDeviceName() const;
+    const std::string& getDeviceKey() const;
 
-unsigned long long OutboundMessage::getItemsCount() const
-{
-    return m_itemsCount;
-}
-}
+    const DeviceManifest& getManifest() const;
+
+private:
+    Device m_device;
+};
+}    // namespace wolkabout
+
+#endif    // DEVICEREGISTRATION_H

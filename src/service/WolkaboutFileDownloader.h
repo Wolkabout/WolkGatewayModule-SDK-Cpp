@@ -44,8 +44,10 @@ public:
      * @param fileSize Size of the file to be downloaded
      * @param fileHash SHA256 hash of the file to be downloaded
      * @param downloadDirectory Directory where to download file
-     * @param onSuccessCallback Function to call when file is downloaded with file path as argument
-     * @param onFailCallback Function to call when download fails with error code as argument
+     * @param onSuccessCallback Function to call when file is downloaded with file
+     * path as argument
+     * @param onFailCallback Function to call when download fails with error code
+     * as argument
      */
     virtual void download(const std::string& fileName, std::uint_fast64_t fileSize, const ByteArray& fileHash,
                           const std::string& downloadDirectory,
@@ -58,6 +60,6 @@ public:
      */
     virtual void abort() = 0;
 };
-}
+}    // namespace wolkabout
 
 #endif    // WOLKABOUTFILEDOWNLOADER_H

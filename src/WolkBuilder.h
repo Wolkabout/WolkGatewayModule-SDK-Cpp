@@ -19,8 +19,11 @@
 
 #include "ActuationHandler.h"
 #include "ActuatorStatusProvider.h"
+#include "DeviceStatusProvider.h"
 #include "connectivity/ConnectivityService.h"
+#include "model/ActuatorStatus.h"
 #include "model/Device.h"
+#include "model/DeviceStatus.h"
 #include "persistence/Persistence.h"
 
 #include <cstdint>
@@ -33,6 +36,9 @@ namespace wolkabout
 class Wolk;
 class UrlFileDownloader;
 class FirmwareInstaller;
+class DataProtocol;
+class StatusProtocol;
+class RegistrationProtocol;
 
 class WolkBuilder final
 {
@@ -45,117 +51,127 @@ public:
      * @brief WolkBuilder Initiates wolkabout::Wolk builder
      * @param device Device for which wolkabout::WolkBuilder is instantiated
      */
-    WolkBuilder(Device device);
+    WolkBuilder();
 
     /**
      * @brief Allows passing of URI to custom WolkAbout IoT platform instance
      * @param host Server URI
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
      */
     WolkBuilder& host(const std::string& host);
 
     /**
      * @brief Sets actuation handler
-     * @param actuationHandler Lambda that handles actuation requests
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     * @param actuationHandler Callable that handles actuation requests
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
      */
-    WolkBuilder& actuationHandler(
-      const std::function<void(const std::string& reference, const std::string& value)>& actuationHandler);
+    WolkBuilder& actuationHandler(const std::function<void(const std::string& deviceKey, const std::string& reference,
+                                                           const std::string& value)>& actuationHandler);
 
     /**
      * @brief Sets actuation handler
-     * @param actuationHandler Instance of wolkabout::ActuationHandler
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     * @param actuationHandler Implementation that handles actuation requests
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
      */
-    WolkBuilder& actuationHandler(std::weak_ptr<ActuationHandler> actuationHandler);
+    WolkBuilder& actuationHandler(std::shared_ptr<ActuationHandler> actuationHandler);
 
     /**
      * @brief Sets actuation status provider
-     * @param actuatorStatusProvider Lambda that provides ActuatorStatus by reference of requested actuator
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     * @param actuatorStatusProvider Callable that provides ActuatorStatus by
+     * reference of requested actuator
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
      */
     WolkBuilder& actuatorStatusProvider(
-      const std::function<ActuatorStatus(const std::string& reference)>& actuatorStatusProvider);
+      const std::function<ActuatorStatus(const std::string& deviceKey, const std::string& reference)>&
+        actuatorStatusProvider);
 
     /**
      * @brief Sets actuation status provider
-     * @param actuatorStatusProvider Instance of wolkabout::ActuatorStatusProvider
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     * @param actuatorStatusProvider Implementation that provides ActuatorStatus
+     * by reference of requested actuator
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
      */
-    WolkBuilder& actuatorStatusProvider(std::weak_ptr<ActuatorStatusProvider> actuatorStatusProvider);
+    WolkBuilder& actuatorStatusProvider(std::shared_ptr<ActuatorStatusProvider> actuatorStatusProvider);
+
+    /**
+     * @brief Sets device status provider
+     * @param deviceStatusProvider Callable that provides DeviceStatus by device
+     * key
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
+     */
+    WolkBuilder& deviceStatusProvider(
+      const std::function<DeviceStatus(const std::string& deviceKey)>& deviceStatusProvider);
+
+    /**
+     * @brief Sets device status provider
+     * @param deviceStatusProvider Implementation that provides DeviceStatus
+     * by device key
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
+     */
+    WolkBuilder& deviceStatusProvider(std::shared_ptr<DeviceStatusProvider> deviceStatusProvider);
 
     /**
      * @brief Sets underlying persistence mechanism to be used<br>
      *        Sample in-memory persistence is used as default
      * @param persistence std::shared_ptr to wolkabout::Persistence implementation
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
      */
-    WolkBuilder& withPersistence(std::shared_ptr<Persistence> persistence);
+    WolkBuilder& withPersistence(std::unique_ptr<Persistence> persistence);
 
     /**
-     * @brief withFirmwareUpdate Enables firmware update for device
-     * @param firmwareVersion Current version of the firmware
-     * @param installer Instance of wolkabout::FirmwareInstaller used to install firmware
-     * @param firmwareDownloadDirectory Directory where to download firmware file
-     * @param maxFirmwareFileSize Maximum size of firmware file that can be handled
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     * @brief withDataProtocol Defines which data protocol to use
+     * @param Protocol unique_ptr to wolkabout::DataProtocol implementation
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides
+     * fluent interface)
      */
-    WolkBuilder& withFirmwareUpdate(const std::string& firmwareVersion, std::weak_ptr<FirmwareInstaller> installer,
-                                    const std::string& firmwareDownloadDirectory,
-                                    std::uint_fast64_t maxFirmwareFileSize,
-                                    std::uint_fast64_t maxFirmwareFileChunkSize);
-
-    /**
-     * @brief withFirmwareUpdate Enables firmware update for device
-     * @param firmwareVersion Current version of the firmware
-     * @param installer Instance of wolkabout::FirmwareInstaller used to install firmware
-     * @param firmwareDownloadDirectory Directory where to download firmware file
-     * @param maxFirmwareFileSize Maximum size of firmware file that can be handled
-     * @param urlDownloader Instance of wolkabout::UrlFileDownloader used to downlad firmware from provided url
-     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
-     */
-    WolkBuilder& withFirmwareUpdate(const std::string& firmwareVersion, std::weak_ptr<FirmwareInstaller> installer,
-                                    const std::string& firmwareDownloadDirectory,
-                                    std::uint_fast64_t maxFirmwareFileSize, std::uint_fast64_t maxFirmwareFileChunkSize,
-                                    std::weak_ptr<UrlFileDownloader> urlDownloader);
+    WolkBuilder& withDataProtocol(std::unique_ptr<DataProtocol> protocol);
 
     /**
      * @brief Builds Wolk instance
      * @return Wolk instance as std::unique_ptr<Wolk>
      *
      * @throws std::logic_error if device key is not present in wolkabout::Device
-     * @throws std::logic_error if actuator status provider is not set, and wolkabout::Device has actuator references
-     * @throws std::logic_error if actuation handler is not set, and wolkabout::Device has actuator references
+     * @throws std::logic_error if actuator status provider is not set, and
+     * wolkabout::Device has actuator references
+     * @throws std::logic_error if actuation handler is not set, and
+     * wolkabout::Device has actuator references
      */
-    std::unique_ptr<Wolk> build() const;
+    std::unique_ptr<Wolk> build();
 
     /**
-     * @brief operator std::unique_ptr<Wolk> Conversion to wolkabout::wolk as result returns std::unique_ptr to built
-     * wolkabout::Wolk instance
+     * @brief operator std::unique_ptr<Wolk> Conversion to wolkabout::wolk as
+     * result returns std::unique_ptr to built wolkabout::Wolk instance
      */
-    operator std::unique_ptr<Wolk>() const;
+    operator std::unique_ptr<Wolk>();
 
 private:
     std::string m_host;
-    Device m_device;
 
-    std::function<void(std::string, std::string)> m_actuationHandlerLambda;
-    std::weak_ptr<ActuationHandler> m_actuationHandler;
+    std::function<void(const std::string&, const std::string&, const std::string&)> m_actuationHandlerLambda;
+    std::shared_ptr<ActuationHandler> m_actuationHandler;
 
-    std::function<ActuatorStatus(std::string)> m_actuatorStatusProviderLambda;
-    std::weak_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
+    std::function<ActuatorStatus(const std::string&, const std::string&)> m_actuatorStatusProviderLambda;
+    std::shared_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
 
-    std::shared_ptr<Persistence> m_persistence;
+    std::function<DeviceStatus(const std::string&)> m_deviceStatusProviderLambda;
+    std::shared_ptr<DeviceStatusProvider> m_deviceStatusProvider;
 
-    std::string m_firmwareVersion;
-    std::string m_firmwareDownloadDirectory;
-    std::uint_fast64_t m_maxFirmwareFileSize;
-    std::uint_fast64_t m_maxFirmwareFileChunkSize;
-    std::weak_ptr<FirmwareInstaller> m_firmwareInstaller;
-    std::weak_ptr<UrlFileDownloader> m_urlFileDownloader;
+    std::unique_ptr<Persistence> m_persistence;
 
-    static const constexpr char* WOLK_DEMO_HOST = "ssl://api-demo.wolkabout.com:8883";
+    std::unique_ptr<DataProtocol> m_dataProtocol;
+    std::unique_ptr<StatusProtocol> m_statusProtocol;
+    std::unique_ptr<RegistrationProtocol> m_registrationProtocol;
+
+    static const constexpr char* MESSAGE_BUS_HOST = "tcp://localhost:1883";
 };
-}
+}    // namespace wolkabout
 
 #endif

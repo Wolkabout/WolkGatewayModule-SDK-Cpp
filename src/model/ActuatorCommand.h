@@ -44,6 +44,6 @@ private:
     std::string m_reference;
     std::string m_value;
 };
-}
+}    // namespace wolkabout
 
 #endif

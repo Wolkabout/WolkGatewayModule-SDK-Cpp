@@ -40,8 +40,10 @@ public:
      * Should be implemented in a thread safe manner
      * @param url Url of the file to download
      * @param downloadDirectory Directory where to download file
-     * @param onSuccessCallback Function to call when file is downloaded with file path as argument
-     * @param onFailCallback Function to call when download fails with error code as argument
+     * @param onSuccessCallback Function to call when file is downloaded with file
+     * path as argument
+     * @param onFailCallback Function to call when download fails with error code
+     * as argument
      */
     virtual void download(const std::string& url, const std::string& downloadDirectory,
                           std::function<void(const std::string& filePath)> onSuccessCallback,
@@ -52,6 +54,6 @@ public:
      */
     virtual void abort() = 0;
 };
-}
+}    // namespace wolkabout
 
 #endif    // URLFILEDOWNLOADER_H
