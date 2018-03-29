@@ -1,8 +1,8 @@
-# WolkConnector C++
-WolkAbout C++11 Connector library for connecting devices to WolkAbout IoT platform.
+# WolkGatewayModule C++
+WolkAbout C++11 Connector library for connecting devices to WolkAbout Gateway.
 
 Supported protocol(s):
-* JSON_SINGLE
+* JSON_PROTOCOL
 
 Prerequisite
 ------
@@ -34,44 +34,103 @@ Example Usage
 wolkabout::Device device("DEVICE_KEY", "DEVICE_PASSWORD", {"ACTUATOR_REFERENCE_ONE", "ACTUATOR_REFERENCE_TWO"});
 
 std::unique_ptr<wolkabout::Wolk> wolk =
-  wolkabout::Wolk::newBuilder(device)
-    .actuationHandler([](const std::string& reference, const std::string& value) -> void {
-        // TODO Invoke your code which activates your actuator.
+  wolkabout::Wolk::newBuilder()
+    .actuationHandler([](const std::string& deviceKey, const std::string& reference, const std::string& value) -> void {
+        // TODO Invoke your code which activates actuator of specified device.
 
-        std::cout << "Actuation request received - Reference: " << reference << " value: " << value << std::endl;
+        std::cout << "Actuation request received - Key: " << deviceKey << " Reference: " << reference << " value: " << value << std::endl;
     })
-    .actuatorStatusProvider([](const std::string& reference) -> wolkabout::ActuatorStatus {
-        // TODO Invoke code which reads the state of the actuator.
+    .actuatorStatusProvider([](const std::string& deviceKey, const std::string& reference) -> wolkabout::ActuatorStatus {
+        // TODO Invoke code which reads the state of the actuator of specified device.
 
-        if (reference == "ACTUATOR_REFERENCE_ONE") {
-            return wolkabout::ActuatorStatus("65", wolkabout::ActuatorStatus::State::READY);
-        } else if (reference == "ACTUATOR_REFERENCE_TWO") {
-            return wolkabout::ActuatorStatus("false", wolkabout::ActuatorStatus::State::READY);
-        }
+        if (deviceKey == "DEVICE_KEY" && reference == "SWITCH_ACTUATOR_REF") {
+            return wolkabout::ActuatorStatus("true", wolkabout::ActuatorStatus::State::READY);
 
         return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
+    })
+	.deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus {
+        // TODO Invoke code which reads the status of specified device.
+
+        if (deviceKey == "DEVICE_KEY")
+        {
+            return wolkabout::DeviceStatus::CONNECTED;
+        }
+
+        return wolkabout::DeviceStatus::OFFLINE;
     })
     .build();
 
     wolk->connect();
 ```
 
+**Creating devices:**
+```cpp
+wolkabout::SensorManifest temperatureSensor{"Temperature",										// name
+                                            "TEMPERATURE_REF",									// reference
+                                            "Temperature sensor",								// description
+                                            "℃",												// unit
+                                            "TEMPERATURE",										// reading type
+                                            wolkabout::SensorManifest::DataType::NUMERIC,		// data type
+                                            1,													// percision
+                                            -273.15,											// min value
+                                            100000000};											// max value
+
+wolkabout::SensorManifest pressureSensor{"Pressure",
+                                         "PRESSURE_REF",
+                                         "Pressure sensor",
+                                         "mb",
+                                         "PRESSURE",
+                                         wolkabout::SensorManifest::DataType::NUMERIC,
+                                         1,
+                                         0,
+                                         1100};
+
+wolkabout::ActuatorManifest switchActuator{"Switch",
+                                           "SWITCH_ACTUATOR_REF",
+                                           "Switch actuator",
+                                           "",
+                                           "SW",
+                                           wolkabout::ActuatorManifest::DataType::BOOLEAN,
+                                           1,
+                                           0,
+                                           1};
+
+wolkabout::AlarmManifest highHumidityAlarm{"High Humidity",										// name
+                                           wolkabout::AlarmManifest::AlarmSeverity::ALERT,		// severity
+                                           "HUMIDITY_ALARM_REF",								// reference
+                                           "High Humidity",										// message
+                                           "High Humidity alarm"};								// description
+
+wolkabout::DeviceManifest deviceManifest1{"DEVICE_MANIFEST_NAME",
+                                          "DEVICE_MANIFEST_DESCRIPTION",
+                                          "JsonProtocol",
+                                          "",
+                                          {},
+                                          {temperatureSensor, pressureSensor},
+                                          {},
+                                          {switchActuator}};
+
+wolkabout::Device device1{"DEVICE_NAME", "DEVICE_KEY", deviceManifest};
+
+wolk->addDevice(device);
+```
+
 **Publishing sensor readings:**
 ```cpp
-wolk->addSensorReading("TEMPERATURE_REF", 23.4);
-wolk->addSensorReading("BOOL_SENSOR_REF", true);
+wolk->addSensorReading("DEVICE_KEY", "TEMPERATURE_REF", 23.4);
+wolk->addSensorReading("DEVICE_KEY", "PRESSURE_REF", 1080);
 ```
 
 **Publishing actuator statuses:**
 ```cpp
-wolk->publishActuatorStatus("ACTUATOR_REFERENCE_ONE ");
+wolk->publishActuatorStatus("DEVICE_KEY", "SWITCH_ACTUATOR_REF");
 ```
 This will invoke the ActuationStatusProvider to read the actuator status,
 and publish actuator status.
 
-**Publishing events:**
+**Publishing alarms:**
 ```cpp
-wolk->addAlarm("ALARM_REF", "ALARM_MESSAGE_FROM_CONNECTOR");
+wolk->addAlarm("DEVICE_KEY", "HUMIDITY_ALARM_REF", "ALARM_VALUE");
 ```
 
 **Data publish strategy:**
@@ -79,12 +138,17 @@ wolk->addAlarm("ALARM_REF", "ALARM_MESSAGE_FROM_CONNECTOR");
 Sensor readings, and alarms are pushed to WolkAbout IoT platform on demand by calling
 ```cpp
 wolk->publish();
-```
 
-Whereas actuator statuses are published automatically by calling:
+wolk->publish("DEVICE_KEY");
+```
+Publishing without providing device key publishes all available data,
+whereas publishing with device key only data for the specified device is published
+
+
+Actuator statuses are published automatically by calling:
 
 ```cpp
-wolk->publishActuatorStatus("ACTUATOR_REFERENCE_ONE ");
+wolk->publishActuatorStatus("DEVICE_KEY", "ACTUATOR_REFERENCE_ONE");
 ```
 
 **Disconnecting from the platform:**
@@ -94,30 +158,39 @@ wolk->disconnect();
 
 **Data persistence:**
 
-WolkAbout C++ Connector provides mechanism for persisting data in situations where readings can not be sent to WolkAbout IoT platform.
+WolkAbout C++ Connector provides mechanism for persisting data in situations where readings can not be sent to WolkAbout Gateway.
 
-Persisted readings are sent to WolkAbout IoT platform once connection is established.
+Persisted readings are sent to WolkAbout Gateway once connection is established.
 Data persistence mechanism used **by default** stores data in-memory.
 
 In cases when provided in-memory persistence is suboptimal, one can use custom persistence by implementing wolkabout::Persistence interface,
 and forwarding it to builder in following manner:
 
 ```cpp
-wolkabout::Device device("DEVICE_KEY", "DEVICE_PASSWORD", {"ACTUATOR_REFERENCE_ONE", "ACTUATOR_REFERENCE_TWO"});
-
 std::unique_ptr<wolkabout::Wolk> wolk =
-  wolkabout::Wolk::newBuilder(device)
-    .actuationHandler([](const std::string& reference, const std::string& value) -> void {
-        std::cout << "Actuation request received - Reference: " << reference << " value: " << value << std::endl;
+  wolkabout::Wolk::newBuilder()
+    .actuationHandler([](const std::string& deviceKey, const std::string& reference, const std::string& value) -> void {
+        // TODO Invoke your code which activates actuator of specified device.
+
+        std::cout << "Actuation request received - Key: " << deviceKey << " Reference: " << reference << " value: " << value << std::endl;
     })
-    .actuatorStatusProvider([](const std::string& reference) -> wolkabout::ActuatorStatus {
-        if (reference == "ACTUATOR_REFERENCE_ONE") {
-            return wolkabout::ActuatorStatus("65", wolkabout::ActuatorStatus::State::READY);
-        } else if (reference == "ACTUATOR_REFERENCE_TWO") {
-            return wolkabout::ActuatorStatus("false", wolkabout::ActuatorStatus::State::READY);
-        }
+    .actuatorStatusProvider([](const std::string& deviceKey, const std::string& reference) -> wolkabout::ActuatorStatus {
+        // TODO Invoke code which reads the state of the actuator of specified device.
+
+        if (deviceKey == "DEVICE_KEY" && reference == "SWITCH_ACTUATOR_REF") {
+            return wolkabout::ActuatorStatus("true", wolkabout::ActuatorStatus::State::READY);
 
         return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
+    })
+	.deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus {
+        // TODO Invoke code which reads the status of specified device.
+
+        if (deviceKey == "DEVICE_KEY")
+        {
+            return wolkabout::DeviceStatus::CONNECTED;
+        }
+
+        return wolkabout::DeviceStatus::OFFLINE;
     })
     .withPersistence(std::make_shared<CustomPersistenceImpl>()) // Enable data persistance via custom persistence mechanism
     .build();
@@ -126,56 +199,3 @@ std::unique_ptr<wolkabout::Wolk> wolk =
 ```
 
 For more info on persistence mechanism see wolkabout::Persistence and wolkabout::InMemoryPersistence classes
-
-**Firmware Update:**
-
-WolkAbout c++ Connector provides mechanism for updating device firmware.
-
-By default this feature is disabled.
-See code snippet below on how to enable device firmware update.
-
-```c++
-
-wolkabout::Device device("DEVICE_KEY", "DEVICE_PASSWORD", {"ACTUATOR_REFERENCE_ONE", "ACTUATOR_REFERENCE_TWO"});
-
-class CustomFirmwareInstaller: public wolkabout::FirmwareInstaller
-{
-public:
-	bool install(const std::string& firmwareFile) override
-	{
-		// Mock install
-		std::cout << "Updating firmware with file " << firmwareFile << std::endl;
-
-		// Optionally delete 'firmwareFile
-		return true;
-	}
-};
-
-auto installer = std::make_shared<CustomFirmwareInstaller>();
-
-std::unique_ptr<wolkabout::Wolk> wolk =
-  wolkabout::Wolk::newBuilder(device)
-    .actuationHandler([](const std::string& reference, const std::string& value) -> void {
-        std::cout << "Actuation request received - Reference: " << reference << " value: " << value << std::endl;
-    })
-    .actuatorStatusProvider([](const std::string& reference) -> wolkabout::ActuatorStatus {
-        if (reference == "ACTUATOR_REFERENCE_ONE") {
-            return wolkabout::ActuatorStatus("65", wolkabout::ActuatorStatus::State::READY);
-        } else if (reference == "ACTUATOR_REFERENCE_TWO") {
-            return wolkabout::ActuatorStatus("false", wolkabout::ActuatorStatus::State::READY);
-        }
-
-        return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
-    })
-    .withPersistence(std::make_shared<CustomPersistenceImpl>()) // Enable data persistance via custom persistence mechanism
-	// Enable firmware update
-	.withFirmwareUpdate("2.1.0",								// Current firmware version
-						installer,								// Implementation of FirmwareInstaller, which performs installation of obtained device firmware
-						".",									// Directory where downloaded device firmware files will be stored
-						100 * 1024 * 1024,						// Maximum acceptable size of firmware file, in bytes
-						1024 * 1024,							// Size of firmware file transfer chunk, in bytes
-						urlDownloader)							// Optional implementation of UrlFileDownloader for cases when one wants to download device firmware via given URL
-    .build();
-
-    wolk->connect();
-```
