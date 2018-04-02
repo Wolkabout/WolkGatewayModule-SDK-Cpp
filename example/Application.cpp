@@ -40,10 +40,10 @@ int main(int argc, char** argv)
     logger->setLogLevel(wolkabout::LogLevel::DEBUG);
     wolkabout::Logger::setInstance(std::move(logger));
 
-    wolkabout::DeviceConfiguration configuration;
+    wolkabout::DeviceConfiguration appConfiguration;
     try
     {
-        configuration = wolkabout::DeviceConfiguration::fromJson(argv[1]);
+        appConfiguration = wolkabout::DeviceConfiguration::fromJson(argv[1]);
     }
     catch (std::logic_error& e)
     {
@@ -53,6 +53,8 @@ int main(int argc, char** argv)
 
     static bool switchValue = false;
     static int sliderValue = 0;
+    static std::map<std::string, std::string> device1configuration = {{"KEY_1", "value1"}, {"KEY_2", "50"}};
+    static std::map<std::string, std::string> device2configuration = {{"KEY_3", "value3"}};
 
     wolkabout::SensorManifest temperatureSensor{"Temperature",
                                                 "T",
@@ -76,24 +78,32 @@ int main(int argc, char** argv)
     wolkabout::AlarmManifest highHumidityAlarm{"High Humidity", wolkabout::AlarmManifest::AlarmSeverity::ALERT, "HH",
                                                "High Humidity", ""};
 
+    wolkabout::ConfigurationManifest configurationItem1{
+      "Item1", "KEY_1", "", "", wolkabout::ConfigurationManifest::DataType::STRING, 0, 0, "", "value1",
+      "",      false,   25, "_"};
+
+    wolkabout::ConfigurationManifest configurationItem2{
+      "Item2", "KEY_2", "", "", wolkabout::ConfigurationManifest::DataType::NUMERIC, 0, 100, "", "50",
+      "",      false,   25, "_"};
+
+    wolkabout::ConfigurationManifest configurationItem3{
+      "Item3", "KEY_3", "", "", wolkabout::ConfigurationManifest::DataType::STRING, 0, 0, "", "value3",
+      "",      false,   25, "_"};
+
     wolkabout::DeviceManifest deviceManifest1{"DEVICE_MANIFEST_NAME_1",
                                               "DEVICE_MANIFEST_DESCRIPTION_1",
                                               "JsonProtocol",
                                               "",
-                                              {},
+                                              {configurationItem1, configurationItem2},
                                               {temperatureSensor, pressureSensor},
                                               {},
                                               {switchActuator}};
     wolkabout::Device device1{"DEVICE_NAME_1", "DEVICE_KEY_1", deviceManifest1};
 
-    wolkabout::DeviceManifest deviceManifest2{"DEVICE_MANIFEST_NAME_2",
-                                              "DEVICE_MANIFEST_DESCRIPTION_2",
-                                              "JsonProtocol",
-                                              "",
-                                              {},
-                                              {humiditySensor},
-                                              {highHumidityAlarm},
-                                              {sliderActuator}};
+    wolkabout::DeviceManifest deviceManifest2{"DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2",
+                                              "JsonProtocol",           "",
+                                              {configurationItem3},     {humiditySensor},
+                                              {highHumidityAlarm},      {sliderActuator}};
     wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceManifest2};
 
     std::unique_ptr<wolkabout::Wolk> wolk =
@@ -142,13 +152,36 @@ int main(int argc, char** argv)
 
             return wolkabout::DeviceStatus::OFFLINE;
         })
-        .host(configuration.getLocalMqttUri())
-        .build();
+        .configurationHandler(
+          [&](const std::string& deviceKey, const std::map<std::string, std::string>& configuration) {
+              if (deviceKey == "DEVICE_KEY_1")
+              {
+                  device1configuration = configuration;
+              }
+              else if (deviceKey == "DEVICE_KEY_2")
+              {
+                  device2configuration = configuration;
+              }
+          })
+        .configurationProvider([&](const std::string& deviceKey) -> std::map<std::string, std::string> {
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                return device1configuration;
+            }
+            else if (deviceKey == "DEVICE_KEY_2")
+            {
+                return device2configuration;
+            }
 
-    wolk->connect();
+            return {};
+        })
+        .host(appConfiguration.getLocalMqttUri())
+        .build();
 
     wolk->addDevice(device1);
     wolk->addDevice(device2);
+
+    wolk->connect();
 
     wolk->addSensorReading("DEVICE_KEY_1", "P", 1024);
     wolk->addSensorReading("DEVICE_KEY_1", "T", 25.6);
