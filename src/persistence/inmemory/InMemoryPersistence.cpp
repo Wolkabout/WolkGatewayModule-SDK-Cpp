@@ -131,7 +131,7 @@ void InMemoryPersistence::removeActuatorStatus(const std::string& key)
     m_actuatorStatuses.erase(key);
 }
 
-std::vector<std::string> InMemoryPersistence::getGetActuatorStatusesKeys()
+std::vector<std::string> InMemoryPersistence::getActuatorStatusesKeys()
 {
     std::vector<std::string> keys;
     for (const std::pair<std::string, std::shared_ptr<ActuatorStatus>>& pair : m_actuatorStatuses)
@@ -165,5 +165,33 @@ std::vector<std::shared_ptr<Alarm>>& InMemoryPersistence::getOrCreateAlarmsByKey
     }
 
     return m_alarms.at(key);
+}
+
+bool InMemoryPersistence::putConfiguration(const std::string& key,
+                                           const std::map<std::string, std::string>& configuration)
+{
+    m_configurations[key] = std::make_shared<std::map<std::string, std::string>>(configuration);
+    return true;
+}
+
+std::shared_ptr<std::map<std::string, std::string>> InMemoryPersistence::getConfiguration(const std::string& key)
+{
+    return m_configurations.at(key);
+}
+
+void InMemoryPersistence::removeConfiguration(const std::string& key)
+{
+    m_configurations.erase(key);
+}
+
+std::vector<std::string> InMemoryPersistence::getConfigurationKeys()
+{
+    std::vector<std::string> keys;
+    for (const auto& pair : m_configurations)
+    {
+        keys.push_back(pair.first);
+    }
+
+    return keys;
 }
 }    // namespace wolkabout

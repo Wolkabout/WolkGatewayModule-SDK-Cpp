@@ -22,6 +22,7 @@
 #include "model/SensorReading.h"
 
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -167,7 +168,31 @@ public:
      * @return {@code std::vector<std::string>} containing keys, or empty {@code
      * std::vector<std::string>} if no wolkabout::ActuatorStatuses are present.
      */
-    virtual std::vector<std::string> getGetActuatorStatusesKeys() = 0;
+    virtual std::vector<std::string> getActuatorStatusesKeys() = 0;
+
+    /**
+     * @brief Inserts the device configuration.
+     *
+     * @param configuration {@code std::map<std::string, std::string>} containing device configuration
+     * @return {@code true} if successful, or {@code false} if
+     * element can not be inserted
+     */
+    virtual bool putConfiguration(const std::string& key, const std::map<std::string, std::string>& configuration) = 0;
+
+    /**
+     * @brief Retrieves device configuration contained in this storage.
+     *
+     * @return Device configuration as {@code std::shared_ptr<std::map<std::string, std::string>>}, or {@code nullptr}
+     * if this storage does not contain persisted device configuration
+     */
+    virtual std::shared_ptr<std::map<std::string, std::string>> getConfiguration(const std::string& key) = 0;
+
+    /**
+     * @brief Removes device configuration from this storage, associated with given {@code key}.
+     */
+    virtual void removeConfiguration(const std::string& key) = 0;
+
+    virtual std::vector<std::string> getConfigurationKeys() = 0;
 
     /**
      * Returns {@code true} if this storage contains no wolkabout::SensorReadings,

@@ -35,8 +35,14 @@ public:
     bool isActuatorSetMessage(const std::string& channel) const override;
     bool isActuatorGetMessage(const std::string& channel) const override;
 
+    bool isConfigurationSetMessage(const std::string& channel) const override;
+    bool isConfigurationGetMessage(const std::string& channel) const override;
+
     std::unique_ptr<ActuatorGetCommand> makeActuatorGetCommand(std::shared_ptr<Message> message) const override;
     std::unique_ptr<ActuatorSetCommand> makeActuatorSetCommand(std::shared_ptr<Message> message) const override;
+
+    std::unique_ptr<ConfigurationSetCommand> makeConfigurationSetCommand(
+      std::shared_ptr<Message> message) const override;
 
     std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
                                          std::vector<std::shared_ptr<SensorReading>> sensorReadings) const override;
@@ -44,6 +50,9 @@ public:
                                          std::vector<std::shared_ptr<Alarm>> alarms) const override;
     std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
                                          std::vector<std::shared_ptr<ActuatorStatus>> actuatorStatuses) const override;
+
+    std::shared_ptr<Message> makeFromConfiguration(
+      const std::string& deviceKey, const std::map<std::string, std::string> configuration) const override;
 
     std::string extractReferenceFromChannel(const std::string& topic) const override;
     std::string extractDeviceKeyFromChannel(const std::string& topic) const override;
@@ -67,8 +76,7 @@ private:
     static const std::string SENSOR_READING_TOPIC_ROOT;
     static const std::string EVENTS_TOPIC_ROOT;
     static const std::string ACTUATION_STATUS_TOPIC_ROOT;
-    static const std::string CONFIGURATION_SET_RESPONSE_TOPIC_ROOT;
-    static const std::string CONFIGURATION_GET_RESPONSE_TOPIC_ROOT;
+    static const std::string CONFIGURATION_RESPONSE_TOPIC_ROOT;
 
     static const std::string ACTUATION_SET_TOPIC_ROOT;
     static const std::string ACTUATION_GET_TOPIC_ROOT;
