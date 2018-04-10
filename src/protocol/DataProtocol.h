@@ -3,6 +3,7 @@
 
 #include "protocol/Protocol.h"
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -13,6 +14,7 @@ class ActuatorSetCommand;
 class ActuatorGetCommand;
 class ActuatorStatus;
 class Alarm;
+class ConfigurationSetCommand;
 class SensorReading;
 
 class DataProtocol : public Protocol
@@ -23,8 +25,14 @@ public:
     virtual bool isActuatorSetMessage(const std::string& channel) const = 0;
     virtual bool isActuatorGetMessage(const std::string& channel) const = 0;
 
+    virtual bool isConfigurationSetMessage(const std::string& channel) const = 0;
+    virtual bool isConfigurationGetMessage(const std::string& channel) const = 0;
+
     virtual std::unique_ptr<ActuatorGetCommand> makeActuatorGetCommand(std::shared_ptr<Message> message) const = 0;
     virtual std::unique_ptr<ActuatorSetCommand> makeActuatorSetCommand(std::shared_ptr<Message> message) const = 0;
+
+    virtual std::unique_ptr<ConfigurationSetCommand> makeConfigurationSetCommand(
+      std::shared_ptr<Message> message) const = 0;
 
     virtual std::shared_ptr<Message> makeMessage(const std::string& deviceKey,
                                                  std::vector<std::shared_ptr<SensorReading>> sensorReadings) const = 0;
@@ -32,6 +40,9 @@ public:
                                                  std::vector<std::shared_ptr<Alarm>> alarms) const = 0;
     virtual std::shared_ptr<Message> makeMessage(
       const std::string& deviceKey, std::vector<std::shared_ptr<ActuatorStatus>> actuatorStatuses) const = 0;
+
+    virtual std::shared_ptr<Message> makeFromConfiguration(
+      const std::string& deviceKey, const std::map<std::string, std::string> configuration) const = 0;
 
     inline Type getType() const override final { return Protocol::Type::DATA; }
 };

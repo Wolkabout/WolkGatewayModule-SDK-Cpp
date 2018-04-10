@@ -18,6 +18,7 @@
 #include "connectivity/ConnectivityService.h"
 #include "model/ActuatorGetCommand.h"
 #include "model/ActuatorSetCommand.h"
+#include "model/ConfigurationSetCommand.h"
 #include "model/Message.h"
 #include "model/SensorReading.h"
 #include "persistence/Persistence.h"
@@ -31,12 +32,16 @@ namespace wolkabout
 const std::string DataService::PERSISTENCE_KEY_DELIMITER = "+";
 
 DataService::DataService(DataProtocol& protocol, Persistence& persistence, ConnectivityService& connectivityService,
-                         const ActuatorSetHandler& actuatorSetHandler, const ActuatorGetHandler& actuatorGetHandler)
+                         const ActuatorSetHandler& actuatorSetHandler, const ActuatorGetHandler& actuatorGetHandler,
+                         const ConfigurationSetHandler& configurationSetHandler,
+                         const ConfigurationGetHandler& configurationGetHandler)
 : m_protocol{protocol}
 , m_persistence{persistence}
 , m_connectivityService{connectivityService}
 , m_actuatorSetHandler{actuatorSetHandler}
 , m_actuatorGetHandler{actuatorGetHandler}
+, m_configurationSetHandler{configurationSetHandler}
+, m_configurationGetHandler{configurationGetHandler}
 {
 }
 
@@ -58,7 +63,10 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
             return;
         }
 
-        m_actuatorGetHandler(deviceKey, command->getReference());
+        if (m_actuatorGetHandler)
+        {
+            m_actuatorGetHandler(deviceKey, command->getReference());
+        }
     }
     else if (m_protocol.isActuatorSetMessage(message->getChannel()))
     {
@@ -69,7 +77,31 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
             return;
         }
 
-        m_actuatorSetHandler(deviceKey, command->getReference(), command->getValue());
+        if (m_actuatorSetHandler)
+        {
+            m_actuatorSetHandler(deviceKey, command->getReference(), command->getValue());
+        }
+    }
+    else if (m_protocol.isConfigurationGetMessage(message->getChannel()))
+    {
+        if (m_configurationGetHandler)
+        {
+            m_configurationGetHandler(deviceKey);
+        }
+    }
+    else if (m_protocol.isConfigurationSetMessage(message->getChannel()))
+    {
+        auto command = m_protocol.makeConfigurationSetCommand(message);
+        if (!command)
+        {
+            LOG(WARN) << "Unable to parse message contents: " << message->getContent();
+            return;
+        }
+
+        if (m_configurationSetHandler)
+        {
+            m_configurationSetHandler(deviceKey, command->getValues());
+        }
     }
     else
     {
@@ -104,6 +136,12 @@ void DataService::addActuatorStatus(const std::string& deviceKey, const std::str
     auto actuatorStatusWithRef = std::make_shared<ActuatorStatus>(value, reference, state);
 
     m_persistence.putActuatorStatus(makePersistenceKey(deviceKey, reference), actuatorStatusWithRef);
+}
+
+void DataService::addConfiguration(const std::string& deviceKey,
+                                   const std::map<std::string, std::string>& configuration)
+{
+    m_persistence.putConfiguration(deviceKey, configuration);
 }
 
 void DataService::publishSensorReadings()
@@ -250,7 +288,7 @@ void DataService::publishAlarms(const std::string& deviceKey)
 
 void DataService::publishActuatorStatuses()
 {
-    for (const auto& key : m_persistence.getGetActuatorStatusesKeys())
+    for (const auto& key : m_persistence.getActuatorStatusesKeys())
     {
         const auto actuatorStatus = m_persistence.getActuatorStatus(key);
 
@@ -270,14 +308,14 @@ void DataService::publishActuatorStatuses()
         }
     }
 
-    if (!m_persistence.getGetActuatorStatusesKeys().empty())
+    if (!m_persistence.getActuatorStatusesKeys().empty())
     {
         publishActuatorStatuses();
     }
 }
 void DataService::publishActuatorStatuses(const std::string& deviceKey)
 {
-    const auto& keys = m_persistence.getGetActuatorStatusesKeys();
+    const auto& keys = m_persistence.getActuatorStatusesKeys();
 
     auto searchForKey = [&] {
         return std::find_if(keys.begin(), keys.end(), [&](const std::string& key) {
@@ -311,10 +349,42 @@ void DataService::publishActuatorStatuses(const std::string& deviceKey)
         m_persistence.removeActuatorStatus(key);
     }
 
-    const auto& newKeys = m_persistence.getGetActuatorStatusesKeys();
+    const auto& newKeys = m_persistence.getActuatorStatusesKeys();
     if (auto tmp = searchForKey() != newKeys.end())
     {
         publishActuatorStatuses(deviceKey);
+    }
+}
+
+void DataService::publishConfiguration()
+{
+    const auto& keys = m_persistence.getConfigurationKeys();
+
+    for (const auto& key : keys)
+    {
+        publishConfiguration(key);
+    }
+}
+
+void DataService::publishConfiguration(const std::string& deviceKey)
+{
+    const auto& keys = m_persistence.getConfigurationKeys();
+
+    auto searchForKey = [&] { return std::find(keys.begin(), keys.end(), deviceKey); };
+
+    auto it = searchForKey();
+    if (it == keys.end())
+    {
+        return;
+    }
+
+    const auto configuration = m_persistence.getConfiguration(deviceKey);
+
+    const std::shared_ptr<Message> outboundMessage = m_protocol.makeFromConfiguration(deviceKey, *configuration);
+
+    if (outboundMessage && m_connectivityService.publish(outboundMessage))
+    {
+        m_persistence.removeConfiguration(deviceKey);
     }
 }
 

@@ -19,7 +19,9 @@
 
 #include "InboundMessageHandler.h"
 #include "model/ActuatorStatus.h"
+#include <map>
 #include <memory>
+#include <string>
 
 namespace wolkabout
 {
@@ -30,11 +32,16 @@ class ConnectivityService;
 typedef std::function<void(const std::string&, const std::string&, const std::string&)> ActuatorSetHandler;
 typedef std::function<void(const std::string&, const std::string&)> ActuatorGetHandler;
 
+typedef std::function<void(const std::string&, const std::map<std::string, std::string>&)> ConfigurationSetHandler;
+typedef std::function<void(const std::string&)> ConfigurationGetHandler;
+
 class DataService : public MessageListener
 {
 public:
     DataService(DataProtocol& protocol, Persistence& persistence, ConnectivityService& connectivityService,
-                const ActuatorSetHandler& actuatorSetHandler, const ActuatorGetHandler& actuatorGetHandler);
+                const ActuatorSetHandler& actuatorSetHandler, const ActuatorGetHandler& actuatorGetHandler,
+                const ConfigurationSetHandler& configurationSetHandler,
+                const ConfigurationGetHandler& configurationGetHandler);
 
     void messageReceived(std::shared_ptr<Message> message) override;
     const Protocol& getProtocol() override;
@@ -48,6 +55,8 @@ public:
     void addActuatorStatus(const std::string& deviceKey, const std::string& reference, const std::string& value,
                            ActuatorStatus::State state);
 
+    void addConfiguration(const std::string& deviceKey, const std::map<std::string, std::string>& configuration);
+
     void publishSensorReadings();
     void publishSensorReadings(const std::string& deviceKey);
 
@@ -56,6 +65,9 @@ public:
 
     void publishActuatorStatuses();
     void publishActuatorStatuses(const std::string& deviceKey);
+
+    void publishConfiguration();
+    void publishConfiguration(const std::string& deviceKey);
 
 private:
     std::string makePersistenceKey(const std::string& deviceKey, const std::string& reference);
@@ -67,6 +79,9 @@ private:
 
     ActuatorSetHandler m_actuatorSetHandler;
     ActuatorGetHandler m_actuatorGetHandler;
+
+    ConfigurationSetHandler m_configurationSetHandler;
+    ConfigurationGetHandler m_configurationGetHandler;
 
     static const std::string PERSISTENCE_KEY_DELIMITER;
     static const constexpr unsigned int PUBLISH_BATCH_ITEMS_COUNT = 50;

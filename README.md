@@ -48,6 +48,13 @@ std::unique_ptr<wolkabout::Wolk> wolk =
 
         return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
     })
+    .configurationHandler([](const std::map<std::string, std::string>& configuration) -> void {
+        // TODO invoke code which sets device configuration
+    })
+    .configurationProvider([]() -> const std::map<std::string, std::string>& {
+        // TODO invoke code which reads device configuration
+        return std::map<std::string, std::string>();
+    })
 	.deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus {
         // TODO Invoke code which reads the status of specified device.
 
@@ -128,6 +135,12 @@ wolk->publishActuatorStatus("DEVICE_KEY", "SWITCH_ACTUATOR_REF");
 This will invoke the ActuationStatusProvider to read the actuator status,
 and publish actuator status.
 
+**Publish device configuration to platform:**
+```cpp
+wolk->publishConfiguration("DEVICE_KEY");
+```
+This will invoke the ConfigurationProvider to read the configuration and publish it.
+
 **Publishing alarms:**
 ```cpp
 wolk->addAlarm("DEVICE_KEY", "HUMIDITY_ALARM_REF", "ALARM_VALUE");
@@ -149,6 +162,12 @@ Actuator statuses are published automatically by calling:
 
 ```cpp
 wolk->publishActuatorStatus("DEVICE_KEY", "ACTUATOR_REFERENCE_ONE");
+```
+
+Configuration is published automatically by calling:
+
+```cpp
+wolk->publishConfiguration("DEVICE_KEY");
 ```
 
 **Disconnecting from the platform:**
@@ -181,6 +200,13 @@ std::unique_ptr<wolkabout::Wolk> wolk =
             return wolkabout::ActuatorStatus("true", wolkabout::ActuatorStatus::State::READY);
 
         return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
+    })
+    .configurationHandler([](const std::map<std::string, std::string>& configuration) -> void {
+        // TODO invoke code which sets device configuration
+    })
+    .configurationProvider([]() -> const std::map<std::string, std::string>& {
+        // TODO invoke code which reads device configuration
+        return std::map<std::string, std::string>();
     })
 	.deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus {
         // TODO Invoke code which reads the status of specified device.

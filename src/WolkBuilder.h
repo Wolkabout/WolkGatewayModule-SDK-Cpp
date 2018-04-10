@@ -19,6 +19,8 @@
 
 #include "ActuationHandler.h"
 #include "ActuatorStatusProvider.h"
+#include "ConfigurationHandler.h"
+#include "ConfigurationProvider.h"
 #include "DeviceStatusProvider.h"
 #include "connectivity/ConnectivityService.h"
 #include "model/ActuatorStatus.h"
@@ -99,6 +101,37 @@ public:
     WolkBuilder& actuatorStatusProvider(std::shared_ptr<ActuatorStatusProvider> actuatorStatusProvider);
 
     /**
+     * @brief Sets device configuration handler
+     * @param configurationHandler Lambda that handles setting of configuration
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     */
+    WolkBuilder& configurationHandler(
+      const std::function<void(const std::string& deviceKey, const std::map<std::string, std::string>& configuration)>&
+        configurationHandler);
+
+    /**
+     * @brief Sets device configuration handler
+     * @param configurationHandler Instance of wolkabout::ConfigurationHandler that handles setting of configuration
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     */
+    WolkBuilder& configurationHandler(std::shared_ptr<ConfigurationHandler> configurationHandler);
+
+    /**
+     * @brief Sets device configuration provider
+     * @param configurationProvider Lambda that provides device configuration
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     */
+    WolkBuilder& configurationProvider(
+      const std::function<std::map<std::string, std::string>(const std::string& deviceKey)>& configurationProvider);
+
+    /**
+     * @brief Sets device configuration provider
+     * @param configurationProvider Instance of wolkabout::ConfigurationProvider that provides device configuration
+     * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
+     */
+    WolkBuilder& configurationProvider(std::shared_ptr<ConfigurationProvider> configurationProvider);
+
+    /**
      * @brief Sets device status provider
      * @param deviceStatusProvider Callable that provides DeviceStatus by device
      * key
@@ -160,6 +193,13 @@ private:
 
     std::function<ActuatorStatus(const std::string&, const std::string&)> m_actuatorStatusProviderLambda;
     std::shared_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
+
+    std::function<void(const std::string&, const std::map<std::string, std::string>& configuration)>
+      m_configurationHandlerLambda;
+    std::shared_ptr<ConfigurationHandler> m_configurationHandler;
+
+    std::function<std::map<std::string, std::string>(const std::string&)> m_configurationProviderLambda;
+    std::shared_ptr<ConfigurationProvider> m_configurationProvider;
 
     std::function<DeviceStatus(const std::string&)> m_deviceStatusProviderLambda;
     std::shared_ptr<DeviceStatusProvider> m_deviceStatusProvider;
