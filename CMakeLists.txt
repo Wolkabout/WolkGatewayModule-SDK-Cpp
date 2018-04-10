@@ -13,7 +13,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.5)
-project(WolkAboutConnector C CXX)
+project(WolkGatewayModule C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 
