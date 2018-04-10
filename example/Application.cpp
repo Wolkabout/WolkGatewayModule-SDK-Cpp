@@ -30,15 +30,15 @@
 
 int main(int argc, char** argv)
 {
+    auto logger = std::unique_ptr<wolkabout::ConsoleLogger>(new wolkabout::ConsoleLogger());
+    logger->setLogLevel(wolkabout::LogLevel::DEBUG);
+    wolkabout::Logger::setInstance(std::move(logger));
+
     if (argc < 2)
     {
         LOG(ERROR) << "WolkGatewayModule Application: Usage -  " << argv[0] << " [configurationFilePath]";
         return -1;
     }
-
-    auto logger = std::unique_ptr<wolkabout::ConsoleLogger>(new wolkabout::ConsoleLogger());
-    logger->setLogLevel(wolkabout::LogLevel::DEBUG);
-    wolkabout::Logger::setInstance(std::move(logger));
 
     wolkabout::DeviceConfiguration appConfiguration;
     try
