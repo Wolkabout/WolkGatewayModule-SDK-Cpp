@@ -16,7 +16,8 @@ cmake_minimum_required(VERSION 3.5)
 
 set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
 
-project(WolkAboutConnector C CXX)
+project(WolkGatewayModule C CXX)
+
 
 set(CMAKE_CXX_STANDARD 11)
 
