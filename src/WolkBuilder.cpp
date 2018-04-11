@@ -156,12 +156,12 @@ std::unique_ptr<Wolk> WolkBuilder::build()
     if ((m_configurationHandlerLambda == nullptr && m_configurationProviderLambda != nullptr) ||
         (m_configurationHandlerLambda != nullptr && m_configurationProviderLambda == nullptr))
     {
-        throw std::logic_error("Both ConfigurationPRovider and ConfigurationHandler must be set.");
+        throw std::logic_error("Both ConfigurationProvider and ConfigurationHandler must be set.");
     }
 
     if ((m_configurationHandler && !m_configurationProvider) || (!m_configurationHandler && m_configurationProvider))
     {
-        throw std::logic_error("Both ConfigurationPRovider and ConfigurationHandler must be set.");
+        throw std::logic_error("Both ConfigurationProvider and ConfigurationHandler must be set.");
     }
 
     auto wolk = std::unique_ptr<Wolk>(new Wolk());
