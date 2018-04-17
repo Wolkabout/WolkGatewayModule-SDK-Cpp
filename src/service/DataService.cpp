@@ -122,6 +122,19 @@ void DataService::addSensorReading(const std::string& deviceKey, const std::stri
     m_persistence.putSensorReading(makePersistenceKey(deviceKey, reference), sensorReading);
 }
 
+void DataService::addSensorReading(const std::string& deviceKey, const std::string& reference,
+                                   const std::vector<std::string>& values, const std::string& delimiter,
+                                   unsigned long long int rtc)
+{
+    auto sensorReading = std::make_shared<SensorReading>(values, reference, rtc);
+
+    auto key = makePersistenceKey(deviceKey, reference);
+
+    m_sensorDelimiters[key] = delimiter;
+
+    m_persistence.putSensorReading(key, sensorReading);
+}
+
 void DataService::addAlarm(const std::string& deviceKey, const std::string& reference, const std::string& value,
                            unsigned long long int rtc)
 {
@@ -148,70 +161,71 @@ void DataService::publishSensorReadings()
 {
     for (const auto& key : m_persistence.getSensorReadingsKeys())
     {
-        const auto sensorReadings = m_persistence.getSensorReadings(key, PUBLISH_BATCH_ITEMS_COUNT);
-
-        auto pair = parsePersistenceKey(key);
-        if (pair.first.empty() || pair.second.empty())
-        {
-            LOG(ERROR) << "Unable to parse persistence key: " << key;
-            m_persistence.removeSensorReadings(key, PUBLISH_BATCH_ITEMS_COUNT);
-            break;
-        }
-
-        const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(pair.first, sensorReadings);
-
-        if (outboundMessage && m_connectivityService.publish(outboundMessage))
-        {
-            m_persistence.removeSensorReadings(key, PUBLISH_BATCH_ITEMS_COUNT);
-        }
-    }
-
-    if (!m_persistence.getSensorReadingsKeys().empty())
-    {
-        publishSensorReadings();
+        publishSensorReadingsForPersistanceKey(key);
     }
 }
 
 void DataService::publishSensorReadings(const std::string& deviceKey)
 {
-    const auto& keys = m_persistence.getSensorReadingsKeys();
+    const auto& readingskeys = m_persistence.getSensorReadingsKeys();
 
-    auto searchForKey = [&] {
-        return std::find_if(keys.begin(), keys.end(), [&](const std::string& key) {
+    auto searchForKeys = [&](const std::vector<std::string>& keys) {
+        std::vector<std::string> matchingKeys;
+
+        for (const auto& key : keys)
+        {
             auto pair = parsePersistenceKey(key);
-            return pair.first == deviceKey;
-        });
+            if (pair.first == deviceKey)
+            {
+                matchingKeys.push_back(key);
+            }
+        }
+
+        return matchingKeys;
     };
 
-    auto it = searchForKey();
-    if (it == keys.end())
+    const std::vector<std::string> matchingReadingsKeys = searchForKeys(readingskeys);
+
+    for (const std::string& matchingKey : matchingReadingsKeys)
+    {
+        publishSensorReadingsForPersistanceKey(matchingKey);
+    }
+}
+
+void DataService::publishSensorReadingsForPersistanceKey(const std::string& persistanceKey)
+{
+    const auto sensorReadings = m_persistence.getSensorReadings(persistanceKey, PUBLISH_BATCH_ITEMS_COUNT);
+
+    if (sensorReadings.empty())
     {
         return;
     }
 
-    const auto key = *it;
-
-    const auto sensorReadings = m_persistence.getSensorReadings(key, PUBLISH_BATCH_ITEMS_COUNT);
-
-    auto pair = parsePersistenceKey(key);
+    auto pair = parsePersistenceKey(persistanceKey);
     if (pair.first.empty() || pair.second.empty())
     {
-        LOG(ERROR) << "Unable to parse persistence key: " << key;
-        m_persistence.removeSensorReadings(key, PUBLISH_BATCH_ITEMS_COUNT);
+        LOG(ERROR) << "Unable to parse persistence key: " << persistanceKey;
+        m_persistence.removeSensorReadings(persistanceKey, PUBLISH_BATCH_ITEMS_COUNT);
         return;
     }
 
-    const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(pair.first, sensorReadings);
+    const auto delimiter = getSensorDelimiter(persistanceKey);
 
-    if (outboundMessage && m_connectivityService.publish(outboundMessage))
+    const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(pair.first, sensorReadings, delimiter);
+
+    if (!outboundMessage)
     {
-        m_persistence.removeSensorReadings(key, PUBLISH_BATCH_ITEMS_COUNT);
+        LOG(ERROR) << "Unable to create message from readings: " << persistanceKey;
+        m_persistence.removeSensorReadings(persistanceKey, PUBLISH_BATCH_ITEMS_COUNT);
+        return;
     }
 
-    const auto& newKeys = m_persistence.getSensorReadingsKeys();
-    if (auto tmp = searchForKey() != newKeys.end())
+    if (m_connectivityService.publish(outboundMessage))
     {
-        publishSensorReadings(deviceKey);
+        m_persistence.removeSensorReadings(persistanceKey, PUBLISH_BATCH_ITEMS_COUNT);
+
+        // proceed to publish next batch only if publish is successfull
+        publishSensorReadingsForPersistanceKey(persistanceKey);
     }
 }
 
@@ -219,70 +233,69 @@ void DataService::publishAlarms()
 {
     for (const auto& key : m_persistence.getAlarmsKeys())
     {
-        const auto alarms = m_persistence.getAlarms(key, PUBLISH_BATCH_ITEMS_COUNT);
-
-        auto pair = parsePersistenceKey(key);
-        if (pair.first.empty() || pair.second.empty())
-        {
-            LOG(ERROR) << "Unable to parse persistence key: " << key;
-            m_persistence.removeAlarms(key, PUBLISH_BATCH_ITEMS_COUNT);
-            break;
-        }
-
-        const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(pair.first, alarms);
-
-        if (outboundMessage && m_connectivityService.publish(outboundMessage))
-        {
-            m_persistence.removeAlarms(key, PUBLISH_BATCH_ITEMS_COUNT);
-        }
-    }
-
-    if (!m_persistence.getAlarmsKeys().empty())
-    {
-        publishAlarms();
+        publishAlarmsForPersistanceKey(key);
     }
 }
 
 void DataService::publishAlarms(const std::string& deviceKey)
 {
-    const auto& keys = m_persistence.getAlarmsKeys();
+    const auto& alarmsKeys = m_persistence.getAlarmsKeys();
 
-    auto searchForKey = [&] {
-        return std::find_if(keys.begin(), keys.end(), [&](const std::string& key) {
+    auto searchForKeys = [&](const std::vector<std::string>& keys) {
+        std::vector<std::string> matchingKeys;
+
+        for (const auto& key : keys)
+        {
             auto pair = parsePersistenceKey(key);
-            return pair.first == deviceKey;
-        });
+            if (pair.first == deviceKey)
+            {
+                matchingKeys.push_back(key);
+            }
+        }
+
+        return matchingKeys;
     };
 
-    auto it = searchForKey();
-    if (it == keys.end())
+    const std::vector<std::string> matchingAlarmsKeys = searchForKeys(alarmsKeys);
+
+    for (const std::string& matchingKey : matchingAlarmsKeys)
+    {
+        publishAlarmsForPersistanceKey(matchingKey);
+    }
+}
+
+void DataService::publishAlarmsForPersistanceKey(const std::string& persistanceKey)
+{
+    const auto alarms = m_persistence.getAlarms(persistanceKey, PUBLISH_BATCH_ITEMS_COUNT);
+
+    if (alarms.empty())
     {
         return;
     }
 
-    const auto key = *it;
-
-    const auto alarms = m_persistence.getAlarms(key, PUBLISH_BATCH_ITEMS_COUNT);
-
-    auto pair = parsePersistenceKey(key);
+    auto pair = parsePersistenceKey(persistanceKey);
     if (pair.first.empty() || pair.second.empty())
     {
-        LOG(ERROR) << "Unable to parse persistence key: " << key;
-        m_persistence.removeAlarms(key, PUBLISH_BATCH_ITEMS_COUNT);
+        LOG(ERROR) << "Unable to parse persistence key: " << persistanceKey;
+        m_persistence.removeAlarms(persistanceKey, PUBLISH_BATCH_ITEMS_COUNT);
         return;
     }
 
     const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(pair.first, alarms);
 
-    if (outboundMessage && m_connectivityService.publish(outboundMessage))
+    if (!outboundMessage)
     {
-        m_persistence.removeAlarms(key, PUBLISH_BATCH_ITEMS_COUNT);
+        LOG(ERROR) << "Unable to create message from alarms: " << persistanceKey;
+        m_persistence.removeAlarms(persistanceKey, PUBLISH_BATCH_ITEMS_COUNT);
+        return;
     }
 
-    const auto& newKeys = m_persistence.getAlarmsKeys();
-    if (auto tmp = searchForKey() != newKeys.end())
+    if (m_connectivityService.publish(outboundMessage))
     {
-        publishAlarms(deviceKey);
+        m_persistence.removeAlarms(persistanceKey, PUBLISH_BATCH_ITEMS_COUNT);
+
+        // proceed to publish next batch only if publish is successfull
+        publishAlarmsForPersistanceKey(persistanceKey);
     }
 }
 
@@ -290,77 +303,71 @@ void DataService::publishActuatorStatuses()
 {
     for (const auto& key : m_persistence.getActuatorStatusesKeys())
     {
-        const auto actuatorStatus = m_persistence.getActuatorStatus(key);
-
-        auto pair = parsePersistenceKey(key);
-        if (pair.first.empty() || pair.second.empty())
-        {
-            LOG(ERROR) << "Unable to parse persistence key: " << key;
-            m_persistence.removeActuatorStatus(key);
-            break;
-        }
-
-        const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(pair.first, {actuatorStatus});
-
-        if (outboundMessage && m_connectivityService.publish(outboundMessage))
-        {
-            m_persistence.removeActuatorStatus(key);
-        }
-    }
-
-    if (!m_persistence.getActuatorStatusesKeys().empty())
-    {
-        publishActuatorStatuses();
+        publishActuatorStatusesForPersistanceKey(key);
     }
 }
 void DataService::publishActuatorStatuses(const std::string& deviceKey)
 {
-    const auto& keys = m_persistence.getActuatorStatusesKeys();
+    const auto& actuatorStatusesKeys = m_persistence.getActuatorStatusesKeys();
 
-    auto searchForKey = [&] {
-        return std::find_if(keys.begin(), keys.end(), [&](const std::string& key) {
+    auto searchForKeys = [&](const std::vector<std::string>& keys) {
+        std::vector<std::string> matchingKeys;
+
+        for (const auto& key : keys)
+        {
             auto pair = parsePersistenceKey(key);
-            return pair.first == deviceKey;
-        });
+            if (pair.first == deviceKey)
+            {
+                matchingKeys.push_back(key);
+            }
+        }
+
+        return matchingKeys;
     };
 
-    auto it = searchForKey();
-    if (it == keys.end())
+    const std::vector<std::string> matchingActuatorStatusesKeys = searchForKeys(actuatorStatusesKeys);
+
+    for (const std::string& matchingKey : matchingActuatorStatusesKeys)
+    {
+        publishActuatorStatusesForPersistanceKey(matchingKey);
+    }
+}
+
+void DataService::publishActuatorStatusesForPersistanceKey(const std::string& persistanceKey)
+{
+    const auto actuatorStatus = m_persistence.getActuatorStatus(persistanceKey);
+
+    if (!actuatorStatus)
     {
         return;
     }
 
-    const auto key = *it;
-
-    const auto actuatorStatus = m_persistence.getActuatorStatus(key);
-
-    auto pair = parsePersistenceKey(key);
+    auto pair = parsePersistenceKey(persistanceKey);
     if (pair.first.empty() || pair.second.empty())
     {
-        LOG(ERROR) << "Unable to parse persistence key: " << key;
-        m_persistence.removeActuatorStatus(key);
+        LOG(ERROR) << "Unable to parse persistence key: " << persistanceKey;
+        m_persistence.removeActuatorStatus(persistanceKey);
         return;
     }
 
     const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(pair.first, {actuatorStatus});
 
-    if (outboundMessage && m_connectivityService.publish(outboundMessage))
+    if (!outboundMessage)
     {
-        m_persistence.removeActuatorStatus(key);
+        LOG(ERROR) << "Unable to create message from actuator status: " << persistanceKey;
+        m_persistence.removeActuatorStatus(persistanceKey);
+        return;
     }
 
-    const auto& newKeys = m_persistence.getActuatorStatusesKeys();
-    if (auto tmp = searchForKey() != newKeys.end())
+    if (m_connectivityService.publish(outboundMessage))
     {
-        publishActuatorStatuses(deviceKey);
+        m_persistence.removeActuatorStatus(persistanceKey);
     }
 }
 
 void DataService::publishConfiguration()
 {
-    const auto& keys = m_persistence.getConfigurationKeys();
-
-    for (const auto& key : keys)
+    for (const auto& key : m_persistence.getConfigurationKeys())
     {
         publishConfiguration(key);
     }
@@ -368,23 +375,52 @@ void DataService::publishConfiguration()
 
 void DataService::publishConfiguration(const std::string& deviceKey)
 {
-    const auto& keys = m_persistence.getConfigurationKeys();
+    const auto& configurationKeys = m_persistence.getConfigurationKeys();
 
-    auto searchForKey = [&] { return std::find(keys.begin(), keys.end(), deviceKey); };
+    auto searchForKeys = [&](const std::vector<std::string>& keys) {
+        std::vector<std::string> matchingKeys;
 
-    auto it = searchForKey();
-    if (it == keys.end())
+        for (const auto& key : keys)
+        {
+            // configuration is persisted by device key directly
+            if (key == deviceKey)
+            {
+                matchingKeys.push_back(key);
+            }
+        }
+
+        return matchingKeys;
+    };
+
+    const std::vector<std::string> matchingConfigurationKeys = searchForKeys(configurationKeys);
+
+    for (const std::string& matchingKey : matchingConfigurationKeys)
+    {
+        publishConfigurationForPersistanceKey(matchingKey);
+    }
+}
+
+void DataService::publishConfigurationForPersistanceKey(const std::string& persistanceKey)
+{
+    const auto configuration = m_persistence.getConfiguration(persistanceKey);
+
+    if (!configuration)
     {
         return;
     }
 
-    const auto configuration = m_persistence.getConfiguration(deviceKey);
+    const std::shared_ptr<Message> outboundMessage = m_protocol.makeFromConfiguration(persistanceKey, *configuration);
 
-    const std::shared_ptr<Message> outboundMessage = m_protocol.makeFromConfiguration(deviceKey, *configuration);
-
-    if (outboundMessage && m_connectivityService.publish(outboundMessage))
+    if (!outboundMessage)
     {
-        m_persistence.removeConfiguration(deviceKey);
+        LOG(ERROR) << "Unable to create message from configuration: " << persistanceKey;
+        m_persistence.removeConfiguration(persistanceKey);
+        return;
+    }
+
+    if (m_connectivityService.publish(outboundMessage))
+    {
+        m_persistence.removeConfiguration(persistanceKey);
     }
 }
 
@@ -405,5 +441,12 @@ std::pair<std::string, std::string> DataService::parsePersistenceKey(const std::
     auto reference = key.substr(pos + PERSISTENCE_KEY_DELIMITER.size(), std::string::npos);
 
     return std::make_pair(deviceKey, reference);
+}
+
+std::string DataService::getSensorDelimiter(const std::string& key)
+{
+    const auto it = m_sensorDelimiters.find(key);
+
+    return it != m_sensorDelimiters.end() ? it->second : "";
 }
 }    // namespace wolkabout
