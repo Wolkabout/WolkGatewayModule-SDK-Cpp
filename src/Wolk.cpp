@@ -37,7 +37,11 @@
 
 #define INSTANTIATE_ADD_SENSOR_READING_FOR(x)                                                                    \
     template void Wolk::addSensorReading<x>(const std::string& deviceKey, const std::string& reference, x value, \
-                                            unsigned long long rtc)
+                                            unsigned long long rtc);                                             \
+    template void Wolk::addSensorReading<x>(const std::string& deviceKey, const std::string& reference,          \
+                                            std::initializer_list<x> value, unsigned long long int rtc);         \
+    template void Wolk::addSensorReading<x>(const std::string& deviceKey, const std::string& reference,          \
+                                            const std::vector<x> values, unsigned long long int rtc)
 
 namespace wolkabout
 {

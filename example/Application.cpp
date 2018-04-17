@@ -70,6 +70,18 @@ int main(int argc, char** argv)
     wolkabout::SensorManifest humiditySensor{
       "Humidity", "H", "Humidity sensor", "%", "HUMIDITY", wolkabout::SensorManifest::DataType::NUMERIC, 1, 0, 100};
 
+    wolkabout::SensorManifest accelerationSensor{"Acceleration",
+                                                 "ACCELEROMETER_REF",
+                                                 "Acceleration sensor",
+                                                 "m/s²",
+                                                 "ACCELEROMETER",
+                                                 wolkabout::SensorManifest::DataType::NUMERIC,
+                                                 1,
+                                                 0,
+                                                 20000,
+                                                 "%",
+                                                 {"x", "y", "z"}};
+
     wolkabout::ActuatorManifest switchActuator{
       "Switch", "SW", "Switch actuator", "", "SW", wolkabout::ActuatorManifest::DataType::BOOLEAN, 1, 0, 1};
     wolkabout::ActuatorManifest sliderActuator{
@@ -100,11 +112,10 @@ int main(int argc, char** argv)
                                               {switchActuator}};
     wolkabout::Device device1{"DEVICE_NAME_1", "DEVICE_KEY_1", deviceManifest1};
 
-    wolkabout::DeviceManifest deviceManifest2{"DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2",
-                                              "JsonProtocol",           "",
-                                              {configurationItem3},     {humiditySensor},
-                                              {highHumidityAlarm},      {sliderActuator}};
-    wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceManifest2};
+    wolkabout::DeviceManifest deviceManifest2{
+      "DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2",      "JsonProtocol",      "",
+      {configurationItem3},     {humiditySensor, accelerationSensor}, {highHumidityAlarm}, {sliderActuator}};
+    wolkabout::Device device2{"DEVICE_NAME_2", "xsm5lqfta6ay5sop", deviceManifest2};
 
     std::unique_ptr<wolkabout::Wolk> wolk =
       wolkabout::Wolk::newBuilder()
@@ -188,6 +199,8 @@ int main(int argc, char** argv)
 
     wolk->addSensorReading("DEVICE_KEY_2", "H", 52);
     wolk->addAlarm("DEVICE_KEY_2", "HH", "High Humidity");
+
+    wolk->addSensorReading("DEVICE_KEY_2", "ACCELEROMETER_REF", {0, -5, 10});
 
     while (true)
     {
