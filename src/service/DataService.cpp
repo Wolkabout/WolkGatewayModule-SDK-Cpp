@@ -169,22 +169,7 @@ void DataService::publishSensorReadings(const std::string& deviceKey)
 {
     const auto& readingskeys = m_persistence.getSensorReadingsKeys();
 
-    auto searchForKeys = [&](const std::vector<std::string>& keys) {
-        std::vector<std::string> matchingKeys;
-
-        for (const auto& key : keys)
-        {
-            auto pair = parsePersistenceKey(key);
-            if (pair.first == deviceKey)
-            {
-                matchingKeys.push_back(key);
-            }
-        }
-
-        return matchingKeys;
-    };
-
-    const std::vector<std::string> matchingReadingsKeys = searchForKeys(readingskeys);
+    const std::vector<std::string> matchingReadingsKeys = findMatchingPersistanceKeys(deviceKey, readingskeys);
 
     for (const std::string& matchingKey : matchingReadingsKeys)
     {
@@ -241,22 +226,7 @@ void DataService::publishAlarms(const std::string& deviceKey)
 {
     const auto& alarmsKeys = m_persistence.getAlarmsKeys();
 
-    auto searchForKeys = [&](const std::vector<std::string>& keys) {
-        std::vector<std::string> matchingKeys;
-
-        for (const auto& key : keys)
-        {
-            auto pair = parsePersistenceKey(key);
-            if (pair.first == deviceKey)
-            {
-                matchingKeys.push_back(key);
-            }
-        }
-
-        return matchingKeys;
-    };
-
-    const std::vector<std::string> matchingAlarmsKeys = searchForKeys(alarmsKeys);
+    const std::vector<std::string> matchingAlarmsKeys = findMatchingPersistanceKeys(deviceKey, alarmsKeys);
 
     for (const std::string& matchingKey : matchingAlarmsKeys)
     {
@@ -310,22 +280,8 @@ void DataService::publishActuatorStatuses(const std::string& deviceKey)
 {
     const auto& actuatorStatusesKeys = m_persistence.getActuatorStatusesKeys();
 
-    auto searchForKeys = [&](const std::vector<std::string>& keys) {
-        std::vector<std::string> matchingKeys;
-
-        for (const auto& key : keys)
-        {
-            auto pair = parsePersistenceKey(key);
-            if (pair.first == deviceKey)
-            {
-                matchingKeys.push_back(key);
-            }
-        }
-
-        return matchingKeys;
-    };
-
-    const std::vector<std::string> matchingActuatorStatusesKeys = searchForKeys(actuatorStatusesKeys);
+    const std::vector<std::string> matchingActuatorStatusesKeys =
+      findMatchingPersistanceKeys(deviceKey, actuatorStatusesKeys);
 
     for (const std::string& matchingKey : matchingActuatorStatusesKeys)
     {
@@ -369,35 +325,13 @@ void DataService::publishConfiguration()
 {
     for (const auto& key : m_persistence.getConfigurationKeys())
     {
-        publishConfiguration(key);
+        publishConfigurationForPersistanceKey(key);
     }
 }
 
 void DataService::publishConfiguration(const std::string& deviceKey)
 {
-    const auto& configurationKeys = m_persistence.getConfigurationKeys();
-
-    auto searchForKeys = [&](const std::vector<std::string>& keys) {
-        std::vector<std::string> matchingKeys;
-
-        for (const auto& key : keys)
-        {
-            // configuration is persisted by device key directly
-            if (key == deviceKey)
-            {
-                matchingKeys.push_back(key);
-            }
-        }
-
-        return matchingKeys;
-    };
-
-    const std::vector<std::string> matchingConfigurationKeys = searchForKeys(configurationKeys);
-
-    for (const std::string& matchingKey : matchingConfigurationKeys)
-    {
-        publishConfigurationForPersistanceKey(matchingKey);
-    }
+    publishConfigurationForPersistanceKey(deviceKey);
 }
 
 void DataService::publishConfigurationForPersistanceKey(const std::string& persistanceKey)
@@ -424,12 +358,12 @@ void DataService::publishConfigurationForPersistanceKey(const std::string& persi
     }
 }
 
-std::string DataService::makePersistenceKey(const std::string& deviceKey, const std::string& reference)
+std::string DataService::makePersistenceKey(const std::string& deviceKey, const std::string& reference) const
 {
     return deviceKey + PERSISTENCE_KEY_DELIMITER + reference;
 }
 
-std::pair<std::string, std::string> DataService::parsePersistenceKey(const std::string& key)
+std::pair<std::string, std::string> DataService::parsePersistenceKey(const std::string& key) const
 {
     auto pos = key.find(PERSISTENCE_KEY_DELIMITER);
     if (pos == std::string::npos)
@@ -443,10 +377,27 @@ std::pair<std::string, std::string> DataService::parsePersistenceKey(const std::
     return std::make_pair(deviceKey, reference);
 }
 
-std::string DataService::getSensorDelimiter(const std::string& key)
+std::string DataService::getSensorDelimiter(const std::string& key) const
 {
     const auto it = m_sensorDelimiters.find(key);
 
     return it != m_sensorDelimiters.end() ? it->second : "";
+}
+
+std::vector<std::string> DataService::findMatchingPersistanceKeys(const std::string& deviceKey,
+                                                                  const std::vector<std::string>& persistanceKeys) const
+{
+    std::vector<std::string> matchingKeys;
+
+    for (const auto& key : persistanceKeys)
+    {
+        auto pair = parsePersistenceKey(key);
+        if (pair.first == deviceKey)
+        {
+            matchingKeys.push_back(key);
+        }
+    }
+
+    return matchingKeys;
 }
 }    // namespace wolkabout

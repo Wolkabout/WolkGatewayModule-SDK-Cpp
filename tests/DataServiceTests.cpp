@@ -902,18 +902,16 @@ TEST_F(
       .Times(1)
       .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
 
-    EXPECT_CALL(*persistence, getConfigurationKeys())
-      .Times(testing::AtLeast(1))
-      .WillRepeatedly(testing::InvokeWithoutArgs([&] {
-          std::vector<std::string> keys;
-          // if(!removeCalledForKey1)
-          keys.push_back(key1);
-          // if(!removeCalledForKey2)
-          keys.push_back(key2);
-          if (!removeCalledForKey3)
-              keys.push_back(key3);
-          return keys;
-      }));
+    ON_CALL(*persistence, getConfigurationKeys()).WillByDefault(testing::InvokeWithoutArgs([&] {
+        std::vector<std::string> keys;
+        // if(!removeCalledForKey1)
+        keys.push_back(key1);
+        // if(!removeCalledForKey2)
+        keys.push_back(key2);
+        if (!removeCalledForKey3)
+            keys.push_back(key3);
+        return keys;
+    }));
 
     EXPECT_CALL(*persistence, removeConfiguration(key1)).Times(0);
     EXPECT_CALL(*persistence, removeConfiguration(key2)).Times(0);

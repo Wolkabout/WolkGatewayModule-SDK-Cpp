@@ -75,9 +75,11 @@ public:
     void publishConfiguration(const std::string& deviceKey);
 
 private:
-    std::string makePersistenceKey(const std::string& deviceKey, const std::string& reference);
-    std::pair<std::string, std::string> parsePersistenceKey(const std::string& key);
-    std::string getSensorDelimiter(const std::string& key);
+    std::string makePersistenceKey(const std::string& deviceKey, const std::string& reference) const;
+    std::pair<std::string, std::string> parsePersistenceKey(const std::string& key) const;
+    std::string getSensorDelimiter(const std::string& key) const;
+    std::vector<std::string> findMatchingPersistanceKeys(const std::string& deviceKey,
+                                                         const std::vector<std::string>& persistanceKeys) const;
 
     void publishSensorReadingsForPersistanceKey(const std::string& persistanceKey);
     void publishAlarmsForPersistanceKey(const std::string& persistanceKey);
