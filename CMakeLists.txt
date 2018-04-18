@@ -13,11 +13,12 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.5)
+project(WolkGatewayModule C CXX)
 
 set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
 
-project(WolkGatewayModule C CXX)
-
+include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(NO_OUTPUT_DIRS KEEP_RPATHS)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -37,6 +38,8 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}    -Wall -Wextra -Weffc++ -pedantic    
                                             -Wvariadic-macros                                                          \
                                             -Wwrite-strings -Werror=non-virtual-dtor")
 
+set(OPENSSL_INCLUDE_DIR "${CONAN_INCLUDE_DIRS_OPENSSL}")
+
 # library output
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 link_directories(${CMAKE_BINARY_DIR}/lib)
@@ -48,7 +51,6 @@ add_subdirectory(WolkSDK-Cpp)
 include_directories("src")
 include_directories("WolkSDK-Cpp/mqtt")
 include_directories("WolkSDK-Cpp/src")
-include_directories(SYSTEM "${OPENSSL_INCLUDE_DIR}")
 
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "src/*.hpp")
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
@@ -56,6 +58,17 @@ file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} WolkAboutCore)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-rpath,./")
+
+# Tests
+include_directories("tests")
+include_directories(SYSTEM "${CONAN_INCLUDE_DIRS_GTEST}")
+
+file(GLOB_RECURSE TESTS_HEADER_FILES "tests/*.h" "tests/*.hpp")
+file(GLOB_RECURSE TESTS_SOURCE_FILES "tests/*.cpp")
+
+add_executable(tests ${TESTS_HEADER_FILES} ${TESTS_SOURCE_FILES})
+target_link_libraries(tests gmock_main gmock gtest WolkGatewayModule)
+set_target_properties(tests PROPERTIES LINK_FLAGS "-Wl,-rpath,./lib")
 
 add_subdirectory(cmake)
 

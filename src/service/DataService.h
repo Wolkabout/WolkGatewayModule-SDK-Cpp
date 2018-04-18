@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace wolkabout
 {
@@ -49,6 +50,10 @@ public:
     void addSensorReading(const std::string& deviceKey, const std::string& reference, const std::string& value,
                           unsigned long long int rtc);
 
+    void addSensorReading(const std::string& deviceKey, const std::string& reference,
+                          const std::vector<std::string>& values, const std::string& delimiter,
+                          unsigned long long int rtc);
+
     void addAlarm(const std::string& deviceKey, const std::string& reference, const std::string& value,
                   unsigned long long int rtc);
 
@@ -70,8 +75,16 @@ public:
     void publishConfiguration(const std::string& deviceKey);
 
 private:
-    std::string makePersistenceKey(const std::string& deviceKey, const std::string& reference);
-    std::pair<std::string, std::string> parsePersistenceKey(const std::string& key);
+    std::string makePersistenceKey(const std::string& deviceKey, const std::string& reference) const;
+    std::pair<std::string, std::string> parsePersistenceKey(const std::string& key) const;
+    std::string getSensorDelimiter(const std::string& key) const;
+    std::vector<std::string> findMatchingPersistanceKeys(const std::string& deviceKey,
+                                                         const std::vector<std::string>& persistanceKeys) const;
+
+    void publishSensorReadingsForPersistanceKey(const std::string& persistanceKey);
+    void publishAlarmsForPersistanceKey(const std::string& persistanceKey);
+    void publishActuatorStatusesForPersistanceKey(const std::string& persistanceKey);
+    void publishConfigurationForPersistanceKey(const std::string& persistanceKey);
 
     DataProtocol& m_protocol;
     Persistence& m_persistence;
@@ -82,6 +95,8 @@ private:
 
     ConfigurationSetHandler m_configurationSetHandler;
     ConfigurationGetHandler m_configurationGetHandler;
+
+    std::map<std::string, std::string> m_sensorDelimiters;
 
     static const std::string PERSISTENCE_KEY_DELIMITER;
     static const constexpr unsigned int PUBLISH_BATCH_ITEMS_COUNT = 50;

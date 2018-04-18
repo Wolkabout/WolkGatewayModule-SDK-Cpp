@@ -92,6 +92,18 @@ wolkabout::SensorManifest pressureSensor{"Pressure",
                                          0,
                                          1100};
 
+wolkabout::SensorManifest accelerationSensor{"Acceleration",
+                                             "ACCELEROMETER_REF",
+                                             "Acceleration sensor",
+                                             "m/s²",
+                                             "ACCELEROMETER",
+                                             wolkabout::SensorManifest::DataType::NUMERIC,
+                                             1,
+                                             0,
+                                             20000,
+                                             "%",                                               // delimiter
+                                             {"x", "y", "z"}};                                  // labels
+
 wolkabout::ActuatorManifest switchActuator{"Switch",
                                            "SWITCH_ACTUATOR_REF",
                                            "Switch actuator",
@@ -126,6 +138,8 @@ wolk->addDevice(device);
 ```cpp
 wolk->addSensorReading("DEVICE_KEY", "TEMPERATURE_REF", 23.4);
 wolk->addSensorReading("DEVICE_KEY", "PRESSURE_REF", 1080);
+
+wolk->addSensorReading("DEVICE_KEY_2", "ACCELEROMETER_REF", {0, -5, 10});
 ```
 
 **Publishing actuator statuses:**
