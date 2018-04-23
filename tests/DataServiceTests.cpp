@@ -68,18 +68,18 @@ public:
         persistence = std::unique_ptr<MockPersistence>(new MockPersistence());
         connectivityService = std::unique_ptr<ConnectivityService>(new ConnectivityService());
 
-        dataService = std::unique_ptr<wolkabout::DataService>(
-          new wolkabout::DataService(*dataProtocol, *persistence, *connectivityService,
-                                     [&](const std::string& key, const std::string& ref, const std::string& value) {
-                                         actuatorSetCommands.push_back(std::make_tuple(key, ref, value));
-                                     },
-                                     [&](const std::string& key, const std::string& ref) {
-                                         actuatorGetCommands.push_back(std::make_tuple(key, ref));
-                                     },
-                                     [&](const std::string& key, const std::map<std::string, std::string>& values) {
-                                         configurationSetCommands.push_back(std::make_tuple(key, values));
-                                     },
-                                     [&](const std::string& key) { configurationGetCommands.push_back(key); }));
+        dataService = std::unique_ptr<wolkabout::DataService>(new wolkabout::DataService(
+          *dataProtocol, *persistence, *connectivityService,
+          [&](const std::string& key, const std::string& ref, const std::string& value) {
+              actuatorSetCommands.push_back(std::make_tuple(key, ref, value));
+          },
+          [&](const std::string& key, const std::string& ref) {
+              actuatorGetCommands.push_back(std::make_tuple(key, ref));
+          },
+          [&](const std::string& key, const std::vector<wolkabout::ConfigurationItem>& values) {
+              configurationSetCommands.push_back(std::make_tuple(key, values));
+          },
+          [&](const std::string& key) { configurationGetCommands.push_back(key); }));
     }
 
     void TearDown() override {}
@@ -90,7 +90,7 @@ public:
 
     std::vector<std::tuple<std::string, std::string, std::string>> actuatorSetCommands;
     std::vector<std::tuple<std::string, std::string>> actuatorGetCommands;
-    std::vector<std::tuple<std::string, std::map<std::string, std::string>>> configurationSetCommands;
+    std::vector<std::tuple<std::string, std::vector<wolkabout::ConfigurationItem>>> configurationSetCommands;
     std::vector<std::string> configurationGetCommands;
 
     std::unique_ptr<wolkabout::DataService> dataService;
@@ -259,7 +259,7 @@ TEST_F(DataService, Given_When_ConfigurationSetMessageIsReceived_Then_Configurat
 
     EXPECT_CALL(*dataProtocol, isConfigurationSetMessage(testing::_)).Times(1).WillOnce(testing::Return(true));
 
-    EXPECT_CALL(*dataProtocol, makeConfigurationSetCommandProxy(testing::_))
+    EXPECT_CALL(*dataProtocol, makeConfigurationSetCommandProxy(testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(new wolkabout::ConfigurationSetCommand({})));
 
@@ -287,7 +287,7 @@ TEST_F(DataService, Given_When_InvalidConfigurationSetMessageIsReceived_Then_Mes
 
     EXPECT_CALL(*dataProtocol, isConfigurationSetMessage(testing::_)).Times(1).WillOnce(testing::Return(true));
 
-    EXPECT_CALL(*dataProtocol, makeConfigurationSetCommandProxy(testing::_))
+    EXPECT_CALL(*dataProtocol, makeConfigurationSetCommandProxy(testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(nullptr));
 
@@ -373,12 +373,12 @@ TEST_F(DataService, Given_Configuration_When_AddConfigurationIsCalled_Then_Confi
     // Given
     const std::string key = "DEVICE_KEY";
     const std::string ref = "REF";
-    const std::map<std::string, std::string> values = {{"KEY", "VALUE"}};
+    const std::vector<wolkabout::ConfigurationItem> values = {{{"VALUE"}, "KEY"}};
 
     EXPECT_CALL(*persistence, putConfiguration(key, testing::_)).Times(1).WillOnce(testing::Return(true));
 
     // When
-    dataService->addConfiguration(key, values);
+    dataService->addConfiguration(key, values, {});
 }
 
 TEST_F(
@@ -412,10 +412,11 @@ TEST_F(
 
     EXPECT_CALL(
       *dataProtocol,
-      makeMessage(testing::_, testing::Matcher<std::vector<std::shared_ptr<wolkabout::SensorReading>>>(testing::_),
-                  testing::_))
+      makeMessageProxy(testing::_,
+                       testing::Matcher<const std::vector<std::shared_ptr<wolkabout::SensorReading>>&>(testing::_),
+                       testing::_))
       .Times(3)
-      .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
     EXPECT_CALL(*persistence, getSensorReadingsKeys())
       .Times(testing::AtLeast(1))
@@ -492,10 +493,11 @@ TEST_F(
 
     EXPECT_CALL(
       *dataProtocol,
-      makeMessage(testing::_, testing::Matcher<std::vector<std::shared_ptr<wolkabout::SensorReading>>>(testing::_),
-                  testing::_))
+      makeMessageProxy(testing::_,
+                       testing::Matcher<const std::vector<std::shared_ptr<wolkabout::SensorReading>>&>(testing::_),
+                       testing::_))
       .Times(2)
-      .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
     EXPECT_CALL(*persistence, getSensorReadingsKeys())
       .Times(testing::AtLeast(1))
@@ -562,10 +564,11 @@ TEST_F(DataService,
     bool removeCalledForKey2 = false;
     bool removeCalledForKey3 = false;
 
-    EXPECT_CALL(*dataProtocol,
-                makeMessage(testing::_, testing::Matcher<std::vector<std::shared_ptr<wolkabout::Alarm>>>(testing::_)))
+    EXPECT_CALL(
+      *dataProtocol,
+      makeMessageProxy(testing::_, testing::Matcher<const std::vector<std::shared_ptr<wolkabout::Alarm>>&>(testing::_)))
       .Times(3)
-      .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
     EXPECT_CALL(*persistence, getAlarmsKeys())
       .Times(testing::AtLeast(1))
@@ -637,10 +640,11 @@ TEST_F(DataService,
     // bool removeCalledForKey2 = false;
     bool removeCalledForKey3 = false;
 
-    EXPECT_CALL(*dataProtocol,
-                makeMessage(testing::_, testing::Matcher<std::vector<std::shared_ptr<wolkabout::Alarm>>>(testing::_)))
+    EXPECT_CALL(
+      *dataProtocol,
+      makeMessageProxy(testing::_, testing::Matcher<const std::vector<std::shared_ptr<wolkabout::Alarm>>&>(testing::_)))
       .Times(1)
-      .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
     EXPECT_CALL(*persistence, getAlarmsKeys())
       .Times(testing::AtLeast(1))
@@ -701,9 +705,10 @@ TEST_F(
 
     EXPECT_CALL(
       *dataProtocol,
-      makeMessage(testing::_, testing::Matcher<std::vector<std::shared_ptr<wolkabout::ActuatorStatus>>>(testing::_)))
+      makeMessageProxy(testing::_,
+                       testing::Matcher<const std::vector<std::shared_ptr<wolkabout::ActuatorStatus>>&>(testing::_)))
       .Times(3)
-      .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
     EXPECT_CALL(*persistence, getActuatorStatusesKeys())
       .Times(testing::AtLeast(1))
@@ -770,9 +775,10 @@ TEST_F(
 
     EXPECT_CALL(
       *dataProtocol,
-      makeMessage(testing::_, testing::Matcher<std::vector<std::shared_ptr<wolkabout::ActuatorStatus>>>(testing::_)))
+      makeMessageProxy(testing::_,
+                       testing::Matcher<const std::vector<std::shared_ptr<wolkabout::ActuatorStatus>>&>(testing::_)))
       .Times(2)
-      .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
     EXPECT_CALL(*persistence, getActuatorStatusesKeys())
       .Times(testing::AtLeast(1))
@@ -824,22 +830,26 @@ TEST_F(
     const auto key2 = "KEY2";
     const auto key3 = "KEY3";
 
-    auto conf1 = std::make_shared<std::map<std::string, std::string>>(
-      std::initializer_list<std::map<std::string, std::string>::value_type>{{"R1", "V1"}, {"R2", "V2"}});
+    auto conf1 = std::make_shared<std::vector<wolkabout::ConfigurationItem>>(
+      std::initializer_list<std::vector<wolkabout::ConfigurationItem>::value_type>{{{"V1"}, "R1"}, {{"V2"}, "R2"}});
 
-    auto conf2 = std::make_shared<std::map<std::string, std::string>>(
-      std::initializer_list<std::map<std::string, std::string>::value_type>{{"R2", "V2"}});
+    auto conf2 = std::make_shared<std::vector<wolkabout::ConfigurationItem>>(
+      std::initializer_list<std::vector<wolkabout::ConfigurationItem>::value_type>{{{"V2"}, "R2"}});
 
-    auto conf3 = std::make_shared<std::map<std::string, std::string>>(
-      std::initializer_list<std::map<std::string, std::string>::value_type>{{"R1", "V1"}, {"R2", "V2"}, {"R3", "V3"}});
+    auto conf3 = std::make_shared<std::vector<wolkabout::ConfigurationItem>>(
+      std::initializer_list<std::vector<wolkabout::ConfigurationItem>::value_type>{
+        {{"V1"}, "R1"}, {{"V2"}, "R2"}, {{"V3"}, "R3"}});
 
     bool removeCalledForKey1 = false;
     bool removeCalledForKey2 = false;
     bool removeCalledForKey3 = false;
 
-    EXPECT_CALL(*dataProtocol, makeFromConfiguration(testing::_, testing::_))
+    EXPECT_CALL(
+      *dataProtocol,
+      makeMessageProxy(testing::_, testing::Matcher<const std::vector<wolkabout::ConfigurationItem>&>(testing::_),
+                       testing::_))
       .Times(3)
-      .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
     EXPECT_CALL(*persistence, getConfigurationKeys())
       .Times(testing::AtLeast(1))
@@ -885,22 +895,26 @@ TEST_F(
     const auto key2 = "KEY2";
     const auto key3 = "KEY3";
 
-    auto conf1 = std::make_shared<std::map<std::string, std::string>>(
-      std::initializer_list<std::map<std::string, std::string>::value_type>{{"R1", "V1"}, {"R2", "V2"}});
+    auto conf1 = std::make_shared<std::vector<wolkabout::ConfigurationItem>>(
+      std::initializer_list<std::vector<wolkabout::ConfigurationItem>::value_type>{{{"V1"}, "R1"}, {{"V2"}, "R2"}});
 
-    auto conf2 = std::make_shared<std::map<std::string, std::string>>(
-      std::initializer_list<std::map<std::string, std::string>::value_type>{{"R2", "V2"}});
+    auto conf2 = std::make_shared<std::vector<wolkabout::ConfigurationItem>>(
+      std::initializer_list<std::vector<wolkabout::ConfigurationItem>::value_type>{{{"V2"}, "R2"}});
 
-    auto conf3 = std::make_shared<std::map<std::string, std::string>>(
-      std::initializer_list<std::map<std::string, std::string>::value_type>{{"R1", "V1"}, {"R2", "V2"}, {"R3", "V3"}});
+    auto conf3 = std::make_shared<std::vector<wolkabout::ConfigurationItem>>(
+      std::initializer_list<std::vector<wolkabout::ConfigurationItem>::value_type>{
+        {{"V1"}, "R1"}, {{"V2"}, "R2"}, {{"V3"}, "R3"}});
 
     // bool removeCalledForKey1 = false;
     // bool removeCalledForKey2 = false;
     bool removeCalledForKey3 = false;
 
-    EXPECT_CALL(*dataProtocol, makeFromConfiguration(testing::_, testing::_))
+    EXPECT_CALL(
+      *dataProtocol,
+      makeMessageProxy(testing::_, testing::Matcher<const std::vector<wolkabout::ConfigurationItem>&>(testing::_),
+                       testing::_))
       .Times(1)
-      .WillRepeatedly(testing::Return(std::make_shared<wolkabout::Message>("", "")));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
     ON_CALL(*persistence, getConfigurationKeys()).WillByDefault(testing::InvokeWithoutArgs([&] {
         std::vector<std::string> keys;

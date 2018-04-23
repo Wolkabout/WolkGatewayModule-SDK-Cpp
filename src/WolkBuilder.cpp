@@ -79,7 +79,7 @@ WolkBuilder& WolkBuilder::actuatorStatusProvider(std::shared_ptr<ActuatorStatusP
 }
 
 WolkBuilder& WolkBuilder::configurationHandler(
-  const std::function<void(const std::string&, const std::map<std::string, std::string>& configuration)>&
+  const std::function<void(const std::string&, const std::vector<ConfigurationItem>& configuration)>&
     configurationHandler)
 {
     m_configurationHandlerLambda = configurationHandler;
@@ -95,7 +95,7 @@ WolkBuilder& WolkBuilder::configurationHandler(std::shared_ptr<ConfigurationHand
 }
 
 WolkBuilder& WolkBuilder::configurationProvider(
-  const std::function<std::map<std::string, std::string>(const std::string&)>& configurationProvider)
+  const std::function<std::vector<ConfigurationItem>(const std::string&)>& configurationProvider)
 {
     m_configurationProviderLambda = configurationProvider;
     m_configurationProvider.reset();
@@ -204,7 +204,7 @@ std::unique_ptr<Wolk> WolkBuilder::build()
           wolk->handleActuatorSetCommand(key, reference, value);
       },
       [&](const std::string& key, const std::string& reference) { wolk->handleActuatorGetCommand(key, reference); },
-      [&](const std::string& key, const std::map<std::string, std::string>& configuration) {
+      [&](const std::string& key, const std::vector<ConfigurationItem>& configuration) {
           wolk->handleConfigurationSetCommand(key, configuration);
       },
       [&](const std::string& key) { wolk->handleConfigurationGetCommand(key); });

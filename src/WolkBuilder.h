@@ -106,7 +106,7 @@ public:
      * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
      */
     WolkBuilder& configurationHandler(
-      const std::function<void(const std::string& deviceKey, const std::map<std::string, std::string>& configuration)>&
+      const std::function<void(const std::string& deviceKey, const std::vector<ConfigurationItem>& configuration)>&
         configurationHandler);
 
     /**
@@ -122,7 +122,7 @@ public:
      * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
      */
     WolkBuilder& configurationProvider(
-      const std::function<std::map<std::string, std::string>(const std::string& deviceKey)>& configurationProvider);
+      const std::function<std::vector<ConfigurationItem>(const std::string& deviceKey)>& configurationProvider);
 
     /**
      * @brief Sets device configuration provider
@@ -194,11 +194,11 @@ private:
     std::function<ActuatorStatus(const std::string&, const std::string&)> m_actuatorStatusProviderLambda;
     std::shared_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
 
-    std::function<void(const std::string&, const std::map<std::string, std::string>& configuration)>
+    std::function<void(const std::string&, const std::vector<ConfigurationItem>& configuration)>
       m_configurationHandlerLambda;
     std::shared_ptr<ConfigurationHandler> m_configurationHandler;
 
-    std::function<std::map<std::string, std::string>(const std::string&)> m_configurationProviderLambda;
+    std::function<std::vector<ConfigurationItem>(const std::string&)> m_configurationProviderLambda;
     std::shared_ptr<ConfigurationProvider> m_configurationProvider;
 
     std::function<DeviceStatus(const std::string&)> m_deviceStatusProviderLambda;

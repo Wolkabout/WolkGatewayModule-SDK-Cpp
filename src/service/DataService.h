@@ -19,6 +19,7 @@
 
 #include "InboundMessageHandler.h"
 #include "model/ActuatorStatus.h"
+#include "model/ConfigurationItem.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -33,7 +34,7 @@ class ConnectivityService;
 typedef std::function<void(const std::string&, const std::string&, const std::string&)> ActuatorSetHandler;
 typedef std::function<void(const std::string&, const std::string&)> ActuatorGetHandler;
 
-typedef std::function<void(const std::string&, const std::map<std::string, std::string>&)> ConfigurationSetHandler;
+typedef std::function<void(const std::string&, const std::vector<ConfigurationItem>&)> ConfigurationSetHandler;
 typedef std::function<void(const std::string&)> ConfigurationGetHandler;
 
 class DataService : public MessageListener
@@ -60,7 +61,8 @@ public:
     void addActuatorStatus(const std::string& deviceKey, const std::string& reference, const std::string& value,
                            ActuatorStatus::State state);
 
-    void addConfiguration(const std::string& deviceKey, const std::map<std::string, std::string>& configuration);
+    void addConfiguration(const std::string& deviceKey, const std::vector<ConfigurationItem>& configuration,
+                          const std::map<std::string, std::string>& delimiters);
 
     void publishSensorReadings();
     void publishSensorReadings(const std::string& deviceKey);
@@ -78,6 +80,7 @@ private:
     std::string makePersistenceKey(const std::string& deviceKey, const std::string& reference) const;
     std::pair<std::string, std::string> parsePersistenceKey(const std::string& key) const;
     std::string getSensorDelimiter(const std::string& key) const;
+    std::map<std::string, std::string> getConfigurationDelimiters(const std::string& key) const;
     std::vector<std::string> findMatchingPersistanceKeys(const std::string& deviceKey,
                                                          const std::vector<std::string>& persistanceKeys) const;
 
@@ -97,6 +100,7 @@ private:
     ConfigurationGetHandler m_configurationGetHandler;
 
     std::map<std::string, std::string> m_sensorDelimiters;
+    std::map<std::string, std::map<std::string, std::string>> m_configurationDelimiters;
 
     static const std::string PERSISTENCE_KEY_DELIMITER;
     static const constexpr unsigned int PUBLISH_BATCH_ITEMS_COUNT = 50;

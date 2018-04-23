@@ -44,10 +44,10 @@ public:
 
     MOCK_METHOD0(getActuatorStatusesKeys, std::vector<std::string>());
 
-    MOCK_METHOD2(putConfiguration,
-                 bool(const std::string& key, const std::map<std::string, std::string>& configuration));
+    MOCK_METHOD2(putConfiguration, bool(const std::string& key,
+                                        std::shared_ptr<std::vector<wolkabout::ConfigurationItem>> configuration));
 
-    MOCK_METHOD1(getConfiguration, std::shared_ptr<std::map<std::string, std::string>>(const std::string& key));
+    MOCK_METHOD1(getConfiguration, std::shared_ptr<std::vector<wolkabout::ConfigurationItem>>(const std::string& key));
 
     MOCK_METHOD1(removeConfiguration, void(const std::string& key));
 
