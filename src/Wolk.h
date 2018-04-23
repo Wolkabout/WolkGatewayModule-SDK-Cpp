@@ -219,7 +219,7 @@ private:
     void handleActuatorSetCommand(const std::string& key, const std::string& reference, const std::string& value);
     void handleActuatorGetCommand(const std::string& key, const std::string& reference);
     void handleDeviceStatusRequest(const std::string& key);
-    void handleConfigurationSetCommand(const std::string& key, const std::map<std::string, std::string>& configuration);
+    void handleConfigurationSetCommand(const std::string& key, const std::vector<ConfigurationItem>& configuration);
     void handleConfigurationGetCommand(const std::string& key);
 
     void registerDevices();
@@ -229,6 +229,7 @@ private:
     bool deviceExists(const std::string& deviceKey);
     bool sensorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     std::string getSensorDelimiter(const std::string& deviceKey, const std::string& reference);
+    std::map<std::string, std::string> getConfigurationDelimiters(const std::string& deviceKey);
     bool alarmDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     bool actuatorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     bool configurationItemDefinedForDevice(const std::string& deviceKey, const std::string& reference);
@@ -256,11 +257,11 @@ private:
     std::function<DeviceStatus(const std::string&)> m_deviceStatusProviderLambda;
     std::shared_ptr<DeviceStatusProvider> m_deviceStatusProvider;
 
-    std::function<void(const std::string&, const std::map<std::string, std::string>& configuration)>
+    std::function<void(const std::string&, const std::vector<ConfigurationItem>& configuration)>
       m_configurationHandlerLambda;
     std::shared_ptr<ConfigurationHandler> m_configurationHandler;
 
-    std::function<std::map<std::string, std::string>(const std::string&)> m_configurationProviderLambda;
+    std::function<std::vector<ConfigurationItem>(const std::string&)> m_configurationProviderLambda;
     std::shared_ptr<ConfigurationProvider> m_configurationProvider;
 
     std::shared_ptr<DataService> m_dataService;

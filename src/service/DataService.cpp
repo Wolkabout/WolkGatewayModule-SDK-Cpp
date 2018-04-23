@@ -26,6 +26,7 @@
 #include "utilities/Logger.h"
 
 #include <algorithm>
+#include <cassert>
 
 namespace wolkabout
 {
@@ -47,6 +48,8 @@ DataService::DataService(DataProtocol& protocol, Persistence& persistence, Conne
 
 void DataService::messageReceived(std::shared_ptr<Message> message)
 {
+    assert(message);
+
     const std::string deviceKey = m_protocol.extractDeviceKeyFromChannel(message->getChannel());
     if (deviceKey.empty())
     {
@@ -56,7 +59,7 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
 
     if (m_protocol.isActuatorGetMessage(message->getChannel()))
     {
-        auto command = m_protocol.makeActuatorGetCommand(message);
+        auto command = m_protocol.makeActuatorGetCommand(*message);
         if (!command)
         {
             LOG(WARN) << "Unable to parse message contents: " << message->getContent();
@@ -70,7 +73,7 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
     }
     else if (m_protocol.isActuatorSetMessage(message->getChannel()))
     {
-        auto command = m_protocol.makeActuatorSetCommand(message);
+        auto command = m_protocol.makeActuatorSetCommand(*message);
         if (!command)
         {
             LOG(WARN) << "Unable to parse message contents: " << message->getContent();
@@ -91,7 +94,7 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
     }
     else if (m_protocol.isConfigurationSetMessage(message->getChannel()))
     {
-        auto command = m_protocol.makeConfigurationSetCommand(message);
+        auto command = m_protocol.makeConfigurationSetCommand(*message);
         if (!command)
         {
             LOG(WARN) << "Unable to parse message contents: " << message->getContent();
@@ -151,10 +154,14 @@ void DataService::addActuatorStatus(const std::string& deviceKey, const std::str
     m_persistence.putActuatorStatus(makePersistenceKey(deviceKey, reference), actuatorStatusWithRef);
 }
 
-void DataService::addConfiguration(const std::string& deviceKey,
-                                   const std::map<std::string, std::string>& configuration)
+void DataService::addConfiguration(const std::string& deviceKey, const std::vector<ConfigurationItem>& configuration,
+                                   const std::map<std::string, std::string>& delimiters)
 {
-    m_persistence.putConfiguration(deviceKey, configuration);
+    auto conf = std::make_shared<std::vector<ConfigurationItem>>(configuration);
+
+    m_configurationDelimiters[deviceKey] = delimiters;
+
+    m_persistence.putConfiguration(deviceKey, conf);
 }
 
 void DataService::publishSensorReadings()
@@ -343,7 +350,9 @@ void DataService::publishConfigurationForPersistanceKey(const std::string& persi
         return;
     }
 
-    const std::shared_ptr<Message> outboundMessage = m_protocol.makeFromConfiguration(persistanceKey, *configuration);
+    const auto delimiters = getConfigurationDelimiters(persistanceKey);
+
+    const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(persistanceKey, *configuration, delimiters);
 
     if (!outboundMessage)
     {
@@ -382,6 +391,13 @@ std::string DataService::getSensorDelimiter(const std::string& key) const
     const auto it = m_sensorDelimiters.find(key);
 
     return it != m_sensorDelimiters.end() ? it->second : "";
+}
+
+std::map<std::string, std::string> DataService::getConfigurationDelimiters(const std::string& key) const
+{
+    const auto it = m_configurationDelimiters.find(key);
+
+    return it != m_configurationDelimiters.end() ? it->second : std::map<std::string, std::string>{};
 }
 
 std::vector<std::string> DataService::findMatchingPersistanceKeys(const std::string& deviceKey,

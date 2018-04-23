@@ -15,6 +15,9 @@
  */
 
 #include "Configuration.h"
+#include "ConfigurationHandler.h"
+#include "ConfigurationManager.h"
+#include "ConfigurationProvider.h"
 #include "Wolk.h"
 #include "model/DeviceManifest.h"
 #include "service/FirmwareInstaller.h"
@@ -53,8 +56,9 @@ int main(int argc, char** argv)
 
     static bool switchValue = false;
     static int sliderValue = 0;
-    static std::map<std::string, std::string> device1configuration = {{"KEY_1", "value1"}, {"KEY_2", "50"}};
-    static std::map<std::string, std::string> device2configuration = {{"KEY_3", "value3"}};
+    static std::vector<wolkabout::ConfigurationItem> device1configuration = {{{"value1"}, "KEY_1"},
+                                                                             {{"50", "32", "-2"}, "KEY_2"}};
+    static std::vector<wolkabout::ConfigurationItem> device2configuration = {{{"value3"}, "KEY_3"}};
 
     wolkabout::SensorManifest temperatureSensor{"Temperature",
                                                 "T",
@@ -91,16 +95,14 @@ int main(int argc, char** argv)
                                                "High Humidity", ""};
 
     wolkabout::ConfigurationManifest configurationItem1{
-      "Item1", "KEY_1", "", "", wolkabout::ConfigurationManifest::DataType::STRING, 0, 0, "", "value1",
-      "",      false,   25, "_"};
+      "Item1", "KEY_1", "", "", wolkabout::ConfigurationManifest::DataType::STRING, 0, 0, "value1"};
 
     wolkabout::ConfigurationManifest configurationItem2{
-      "Item2", "KEY_2", "", "", wolkabout::ConfigurationManifest::DataType::NUMERIC, 0, 100, "", "50",
-      "",      false,   25, "_"};
+      "Item2", "KEY_2",        "", "", wolkabout::ConfigurationManifest::DataType::NUMERIC, 0, 100, "50", 3,
+      "?",     {"x", "y", "z"}};
 
     wolkabout::ConfigurationManifest configurationItem3{
-      "Item3", "KEY_3", "", "", wolkabout::ConfigurationManifest::DataType::STRING, 0, 0, "", "value3",
-      "",      false,   25, "_"};
+      "Item3", "KEY_3", "", "", wolkabout::ConfigurationManifest::DataType::STRING, 0, 0, "value3"};
 
     wolkabout::DeviceManifest deviceManifest1{"DEVICE_MANIFEST_NAME_1",
                                               "DEVICE_MANIFEST_DESCRIPTION_1",
@@ -115,7 +117,7 @@ int main(int argc, char** argv)
     wolkabout::DeviceManifest deviceManifest2{
       "DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2",      "JsonProtocol",      "",
       {configurationItem3},     {humiditySensor, accelerationSensor}, {highHumidityAlarm}, {sliderActuator}};
-    wolkabout::Device device2{"DEVICE_NAME_2", "xsm5lqfta6ay5sop", deviceManifest2};
+    wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceManifest2};
 
     std::unique_ptr<wolkabout::Wolk> wolk =
       wolkabout::Wolk::newBuilder()
@@ -164,17 +166,17 @@ int main(int argc, char** argv)
             return wolkabout::DeviceStatus::OFFLINE;
         })
         .configurationHandler(
-          [&](const std::string& deviceKey, const std::map<std::string, std::string>& configuration) {
+          [&](const std::string& deviceKey, const std::vector<wolkabout::ConfigurationItem>& configuration) {
               if (deviceKey == "DEVICE_KEY_1")
               {
-                  device1configuration = configuration;
+                  // device1configuration = configuration;
               }
               else if (deviceKey == "DEVICE_KEY_2")
               {
-                  device2configuration = configuration;
+                  // device2configuration = configuration;
               }
           })
-        .configurationProvider([&](const std::string& deviceKey) -> std::map<std::string, std::string> {
+        .configurationProvider([&](const std::string& deviceKey) -> std::vector<wolkabout::ConfigurationItem> {
             if (deviceKey == "DEVICE_KEY_1")
             {
                 return device1configuration;

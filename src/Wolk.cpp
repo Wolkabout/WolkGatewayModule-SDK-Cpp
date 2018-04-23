@@ -391,8 +391,7 @@ void Wolk::handleDeviceStatusRequest(const std::string& key)
     });
 }
 
-void Wolk::handleConfigurationSetCommand(const std::string& key,
-                                         const std::map<std::string, std::string>& configuration)
+void Wolk::handleConfigurationSetCommand(const std::string& key, const std::vector<ConfigurationItem>& configuration)
 {
     addToCommandBuffer([=] {
         if (!deviceExists(key))
@@ -401,12 +400,12 @@ void Wolk::handleConfigurationSetCommand(const std::string& key,
             return;
         }
 
-        for (const auto& configurationItems : configuration)
+        for (const auto& configurationItem : configuration)
         {
-            if (!configurationItemDefinedForDevice(key, configurationItems.first))
+            if (!configurationItemDefinedForDevice(key, configurationItem.getReference()))
             {
                 LOG(ERROR) << "Configuration item does not exist for device: " << key << ", "
-                           << configurationItems.first;
+                           << configurationItem.getReference();
                 return;
             }
         }
@@ -420,7 +419,7 @@ void Wolk::handleConfigurationSetCommand(const std::string& key,
             m_configurationHandlerLambda(key, configuration);
         }
 
-        const std::map<std::string, std::string> configFromDevice = [&] {
+        const std::vector<ConfigurationItem> configFromDevice = [&] {
             if (m_configurationProvider)
             {
                 return m_configurationProvider->operator()(key);
@@ -430,10 +429,10 @@ void Wolk::handleConfigurationSetCommand(const std::string& key,
                 return m_configurationProviderLambda(key);
             }
 
-            return std::map<std::string, std::string>{};
+            return std::vector<ConfigurationItem>{};
         }();
 
-        m_dataService->addConfiguration(key, configFromDevice);
+        m_dataService->addConfiguration(key, configFromDevice, getConfigurationDelimiters(key));
         m_dataService->publishConfiguration();
     });
 }
@@ -447,7 +446,7 @@ void Wolk::handleConfigurationGetCommand(const std::string& key)
             return;
         }
 
-        const std::map<std::string, std::string> configFromDevice = [&] {
+        const std::vector<ConfigurationItem> configFromDevice = [&] {
             if (m_configurationProvider)
             {
                 return m_configurationProvider->operator()(key);
@@ -457,10 +456,10 @@ void Wolk::handleConfigurationGetCommand(const std::string& key)
                 return m_configurationProviderLambda(key);
             }
 
-            return std::map<std::string, std::string>{};
+            return std::vector<ConfigurationItem>{};
         }();
 
-        m_dataService->addConfiguration(key, configFromDevice);
+        m_dataService->addConfiguration(key, configFromDevice, getConfigurationDelimiters(key));
         m_dataService->publishConfiguration();
     });
 }
@@ -530,6 +529,28 @@ std::string Wolk::getSensorDelimiter(const std::string& deviceKey, const std::st
     }
 
     return sensorIt->getDelimiter();
+}
+
+std::map<std::string, std::string> Wolk::getConfigurationDelimiters(const std::string& deviceKey)
+{
+    std::map<std::string, std::string> delimiters;
+
+    auto it = m_devices.find(deviceKey);
+    if (it == m_devices.end())
+    {
+        return delimiters;
+    }
+
+    const auto configurationItems = it->second.getManifest().getConfigurations();
+    for (const auto& item : configurationItems)
+    {
+        if (!item.getDelimiter().empty())
+        {
+            delimiters[item.getReference()] = item.getDelimiter();
+        }
+    }
+
+    return delimiters;
 }
 
 bool Wolk::alarmDefinedForDevice(const std::string& deviceKey, const std::string& reference)
