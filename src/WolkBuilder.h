@@ -17,10 +17,10 @@
 #ifndef WOLKBUILDER_H
 #define WOLKBUILDER_H
 
-#include "ActuationHandler.h"
-#include "ActuatorStatusProvider.h"
-#include "ConfigurationHandler.h"
-#include "ConfigurationProvider.h"
+#include "ActuationHandlerPerDevice.h"
+#include "ActuatorStatusProviderPerDevice.h"
+#include "ConfigurationHandlerPerDevice.h"
+#include "ConfigurationProviderPerDevice.h"
 #include "DeviceStatusProvider.h"
 #include "connectivity/ConnectivityService.h"
 #include "model/ActuatorStatus.h"
@@ -36,8 +36,6 @@
 namespace wolkabout
 {
 class Wolk;
-class UrlFileDownloader;
-class FirmwareInstaller;
 class DataProtocol;
 class StatusProtocol;
 class RegistrationProtocol;
@@ -78,7 +76,7 @@ public:
      * @return Reference to current wolkabout::WolkBuilder instance (Provides
      * fluent interface)
      */
-    WolkBuilder& actuationHandler(std::shared_ptr<ActuationHandler> actuationHandler);
+    WolkBuilder& actuationHandler(std::shared_ptr<ActuationHandlerPerDevice> actuationHandler);
 
     /**
      * @brief Sets actuation status provider
@@ -98,7 +96,7 @@ public:
      * @return Reference to current wolkabout::WolkBuilder instance (Provides
      * fluent interface)
      */
-    WolkBuilder& actuatorStatusProvider(std::shared_ptr<ActuatorStatusProvider> actuatorStatusProvider);
+    WolkBuilder& actuatorStatusProvider(std::shared_ptr<ActuatorStatusProviderPerDevice> actuatorStatusProvider);
 
     /**
      * @brief Sets device configuration handler
@@ -114,7 +112,7 @@ public:
      * @param configurationHandler Instance of wolkabout::ConfigurationHandler that handles setting of configuration
      * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
      */
-    WolkBuilder& configurationHandler(std::shared_ptr<ConfigurationHandler> configurationHandler);
+    WolkBuilder& configurationHandler(std::shared_ptr<ConfigurationHandlerPerDevice> configurationHandler);
 
     /**
      * @brief Sets device configuration provider
@@ -129,7 +127,7 @@ public:
      * @param configurationProvider Instance of wolkabout::ConfigurationProvider that provides device configuration
      * @return Reference to current wolkabout::WolkBuilder instance (Provides fluent interface)
      */
-    WolkBuilder& configurationProvider(std::shared_ptr<ConfigurationProvider> configurationProvider);
+    WolkBuilder& configurationProvider(std::shared_ptr<ConfigurationProviderPerDevice> configurationProvider);
 
     /**
      * @brief Sets device status provider
@@ -189,17 +187,17 @@ private:
     std::string m_host;
 
     std::function<void(const std::string&, const std::string&, const std::string&)> m_actuationHandlerLambda;
-    std::shared_ptr<ActuationHandler> m_actuationHandler;
+    std::shared_ptr<ActuationHandlerPerDevice> m_actuationHandler;
 
     std::function<ActuatorStatus(const std::string&, const std::string&)> m_actuatorStatusProviderLambda;
-    std::shared_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
+    std::shared_ptr<ActuatorStatusProviderPerDevice> m_actuatorStatusProvider;
 
     std::function<void(const std::string&, const std::vector<ConfigurationItem>& configuration)>
       m_configurationHandlerLambda;
-    std::shared_ptr<ConfigurationHandler> m_configurationHandler;
+    std::shared_ptr<ConfigurationHandlerPerDevice> m_configurationHandler;
 
     std::function<std::vector<ConfigurationItem>(const std::string&)> m_configurationProviderLambda;
-    std::shared_ptr<ConfigurationProvider> m_configurationProvider;
+    std::shared_ptr<ConfigurationProviderPerDevice> m_configurationProvider;
 
     std::function<DeviceStatus(const std::string&)> m_deviceStatusProviderLambda;
     std::shared_ptr<DeviceStatusProvider> m_deviceStatusProvider;

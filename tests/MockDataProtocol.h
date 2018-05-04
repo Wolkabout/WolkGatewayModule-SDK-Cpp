@@ -15,17 +15,21 @@ public:
 
     const std::string& getName() const override { return m_name; }
 
-    const std::vector<std::string>& getInboundChannels() const override { return m_channels; };
+    std::vector<std::string> getInboundChannels() const override { return m_channels; };
+    std::vector<std::string> getInboundChannelsForDevice(const std::string& deviceKey) const override
+    {
+        return m_channels;
+    };
 
     MOCK_CONST_METHOD1(extractDeviceKeyFromChannel, std::string(const std::string&));
 
-    MOCK_CONST_METHOD1(isActuatorSetMessage, bool(const std::string& channel));
+    MOCK_CONST_METHOD1(isActuatorSetMessage, bool(const wolkabout::Message& message));
 
-    MOCK_CONST_METHOD1(isActuatorGetMessage, bool(const std::string& channel));
+    MOCK_CONST_METHOD1(isActuatorGetMessage, bool(const wolkabout::Message& message));
 
-    MOCK_CONST_METHOD1(isConfigurationSetMessage, bool(const std::string& channel));
+    MOCK_CONST_METHOD1(isConfigurationSetMessage, bool(const wolkabout::Message& message));
 
-    MOCK_CONST_METHOD1(isConfigurationGetMessage, bool(const std::string& channel));
+    MOCK_CONST_METHOD1(isConfigurationGetMessage, bool(const wolkabout::Message& message));
 
     std::unique_ptr<wolkabout::ActuatorGetCommand> makeActuatorGetCommand(
       const wolkabout::Message& message) const override

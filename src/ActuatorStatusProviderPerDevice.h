@@ -13,26 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef ACTUATORSTATUSPROVIDERPERDEVICE_H
+#define ACTUATORSTATUSPROVIDERPERDEVICE_H
 
-#ifndef FIRMWAREINSTALLER_H
-#define FIRMWAREINSTALLER_H
+#include "model/ActuatorStatus.h"
 
 #include <string>
 
 namespace wolkabout
 {
-class FirmwareInstaller
+class ActuatorStatusProviderPerDevice
 {
 public:
-    virtual ~FirmwareInstaller() = default;
-
     /**
-     * @brief install Install the firmware from provided file
-     * @param firmwareFile Firmware file to install
-     * @return false if fails, on success does not return
+     * @brief Actuator status provider callback<br>
+     *        Must be implemented as non blocking<br>
+     *        Must be implemented as thread safe
+     * @param deviceKey Device key
+     * @param reference Actuator reference
+     * @return ActuatorStatus of requested actuator
      */
-    virtual bool install(const std::string& firmwareFile) = 0;
+    virtual ActuatorStatus getActuatorStatus(const std::string& deviceKey, const std::string& reference) = 0;
+
+    virtual ~ActuatorStatusProviderPerDevice() = default;
 };
 }    // namespace wolkabout
 
-#endif    // FIRMWAREINSTALLER_H
+#endif    // ACTUATORSTATUSPROVIDERPERDEVICE_H

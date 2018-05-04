@@ -15,16 +15,14 @@
  */
 
 #include "WolkBuilder.h"
-#include "ActuationHandler.h"
-#include "ActuatorStatusProvider.h"
-#include "FileHandler.h"
+#include "ActuationHandlerPerDevice.h"
+#include "ActuatorStatusProviderPerDevice.h"
 #include "InboundMessageHandler.h"
 #include "Wolk.h"
 #include "connectivity/ConnectivityService.h"
 #include "connectivity/mqtt/MqttConnectivityService.h"
 #include "connectivity/mqtt/PahoMqttClient.h"
 #include "model/Device.h"
-#include "model/FirmwareUpdateCommand.h"
 #include "persistence/Persistence.h"
 #include "persistence/inmemory/InMemoryPersistence.h"
 #include "protocol/json/JsonProtocol.h"
@@ -33,8 +31,6 @@
 #include "service/DataService.h"
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
-#include "service/FileDownloadService.h"
-#include "service/FirmwareUpdateService.h"
 
 #include <functional>
 #include <stdexcept>
@@ -56,7 +52,7 @@ WolkBuilder& WolkBuilder::actuationHandler(
     return *this;
 }
 
-WolkBuilder& WolkBuilder::actuationHandler(std::shared_ptr<ActuationHandler> actuationHandler)
+WolkBuilder& WolkBuilder::actuationHandler(std::shared_ptr<ActuationHandlerPerDevice> actuationHandler)
 {
     m_actuationHandler = actuationHandler;
     m_actuationHandlerLambda = nullptr;
@@ -71,7 +67,8 @@ WolkBuilder& WolkBuilder::actuatorStatusProvider(
     return *this;
 }
 
-WolkBuilder& WolkBuilder::actuatorStatusProvider(std::shared_ptr<ActuatorStatusProvider> actuatorStatusProvider)
+WolkBuilder& WolkBuilder::actuatorStatusProvider(
+  std::shared_ptr<ActuatorStatusProviderPerDevice> actuatorStatusProvider)
 {
     m_actuatorStatusProvider = actuatorStatusProvider;
     m_actuatorStatusProviderLambda = nullptr;
@@ -87,7 +84,7 @@ WolkBuilder& WolkBuilder::configurationHandler(
     return *this;
 }
 
-WolkBuilder& WolkBuilder::configurationHandler(std::shared_ptr<ConfigurationHandler> configurationHandler)
+WolkBuilder& WolkBuilder::configurationHandler(std::shared_ptr<ConfigurationHandlerPerDevice> configurationHandler)
 {
     m_configurationHandler = configurationHandler;
     m_configurationHandlerLambda = nullptr;
@@ -102,7 +99,7 @@ WolkBuilder& WolkBuilder::configurationProvider(
     return *this;
 }
 
-WolkBuilder& WolkBuilder::configurationProvider(std::shared_ptr<ConfigurationProvider> configurationProvider)
+WolkBuilder& WolkBuilder::configurationProvider(std::shared_ptr<ConfigurationProviderPerDevice> configurationProvider)
 {
     m_configurationProvider = configurationProvider;
     m_configurationProviderLambda = nullptr;

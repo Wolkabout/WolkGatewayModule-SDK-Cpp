@@ -15,12 +15,8 @@
  */
 
 #include "Configuration.h"
-#include "ConfigurationHandler.h"
-#include "ConfigurationManager.h"
-#include "ConfigurationProvider.h"
 #include "Wolk.h"
 #include "model/DeviceManifest.h"
-#include "service/FirmwareInstaller.h"
 #include "utilities/ConsoleLogger.h"
 
 #include <chrono>

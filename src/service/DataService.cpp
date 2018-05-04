@@ -57,7 +57,7 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
         return;
     }
 
-    if (m_protocol.isActuatorGetMessage(message->getChannel()))
+    if (m_protocol.isActuatorGetMessage(*message))
     {
         auto command = m_protocol.makeActuatorGetCommand(*message);
         if (!command)
@@ -71,7 +71,7 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
             m_actuatorGetHandler(deviceKey, command->getReference());
         }
     }
-    else if (m_protocol.isActuatorSetMessage(message->getChannel()))
+    else if (m_protocol.isActuatorSetMessage(*message))
     {
         auto command = m_protocol.makeActuatorSetCommand(*message);
         if (!command)
@@ -85,14 +85,14 @@ void DataService::messageReceived(std::shared_ptr<Message> message)
             m_actuatorSetHandler(deviceKey, command->getReference(), command->getValue());
         }
     }
-    else if (m_protocol.isConfigurationGetMessage(message->getChannel()))
+    else if (m_protocol.isConfigurationGetMessage(*message))
     {
         if (m_configurationGetHandler)
         {
             m_configurationGetHandler(deviceKey);
         }
     }
-    else if (m_protocol.isConfigurationSetMessage(message->getChannel()))
+    else if (m_protocol.isConfigurationSetMessage(*message))
     {
         auto command = m_protocol.makeConfigurationSetCommand(*message);
         if (!command)
