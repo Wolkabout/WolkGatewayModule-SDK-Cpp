@@ -19,6 +19,8 @@
 #include "model/DeviceManifest.h"
 #include "utilities/ConsoleLogger.h"
 
+#include "model/SensorManifest.h"
+
 #include <chrono>
 #include <iostream>
 #include <map>
@@ -58,62 +60,61 @@ int main(int argc, char** argv)
 
     wolkabout::SensorManifest temperatureSensor{"Temperature",
                                                 "T",
-                                                "Temperature sensor",
-                                                "℃",
-                                                "TEMPERATURE",
-                                                wolkabout::SensorManifest::DataType::NUMERIC,
-                                                1,
+                                                wolkabout::ReadingType::Name::TEMPERATURE,
+                                                wolkabout::ReadingType::MeasurmentUnit::CELSIUS,
+                                                "",
                                                 -273.15,
                                                 100000000};
     wolkabout::SensorManifest pressureSensor{
-      "Pressure", "P", "Pressure sensor", "mb", "PRESSURE", wolkabout::SensorManifest::DataType::NUMERIC, 1, 0, 1100};
-    wolkabout::SensorManifest humiditySensor{
-      "Humidity", "H", "Humidity sensor", "%", "HUMIDITY", wolkabout::SensorManifest::DataType::NUMERIC, 1, 0, 100};
+      "Pressure", "P", wolkabout::ReadingType::Name::PRESSURE, wolkabout::ReadingType::MeasurmentUnit::MILLIBAR, "",
+      0,          1100};
+    wolkabout::SensorManifest humiditySensor{"Humidity",
+                                             "H",
+                                             wolkabout::ReadingType::Name::HUMIDITY,
+                                             wolkabout::ReadingType::MeasurmentUnit::HUMIDITY_PERCENT,
+                                             "",
+                                             0,
+                                             100};
 
     wolkabout::SensorManifest accelerationSensor{"Acceleration",
                                                  "ACCELEROMETER_REF",
-                                                 "Acceleration sensor",
-                                                 "m/s²",
-                                                 "ACCELEROMETER",
-                                                 wolkabout::SensorManifest::DataType::NUMERIC,
-                                                 1,
+                                                 wolkabout::ReadingType::Name::ACCELEROMETER,
+                                                 wolkabout::ReadingType::MeasurmentUnit::METRES_PER_SQUARE_SECOND,
+                                                 "",
                                                  0,
-                                                 20000,
-                                                 "%",
-                                                 {"x", "y", "z"}};
+                                                 20000};
 
-    wolkabout::ActuatorManifest switchActuator{
-      "Switch", "SW", "Switch actuator", "", "SW", wolkabout::ActuatorManifest::DataType::BOOLEAN, 1, 0, 1};
-    wolkabout::ActuatorManifest sliderActuator{
-      "Slider", "SL", "Slider actuator", "", "SL", wolkabout::ActuatorManifest::DataType::NUMERIC, 1, 0, 115};
+    wolkabout::ActuatorManifest switchActuator{"Switch", "SW", wolkabout::DataType::BOOLEAN, "Light switch"};
+    wolkabout::ActuatorManifest sliderActuator{"Slider", "SL", wolkabout::DataType::NUMERIC, "Light dimmer", 0, 115};
+    wolkabout::ActuatorManifest textActuator{"Message", "MSG", wolkabout::DataType::STRING, "Text"};
 
     wolkabout::AlarmManifest highHumidityAlarm{"High Humidity", wolkabout::AlarmManifest::AlarmSeverity::ALERT, "HH",
                                                "High Humidity", ""};
 
-    wolkabout::ConfigurationManifest configurationItem1{
-      "Item1", "KEY_1", "", "", wolkabout::ConfigurationManifest::DataType::STRING, 0, 0, "value1"};
+    wolkabout::ConfigurationManifest configurationItem1{"Item1", "KEY_1", wolkabout::DataType::STRING, "", "value1"};
 
     wolkabout::ConfigurationManifest configurationItem2{
-      "Item2", "KEY_2",        "", "", wolkabout::ConfigurationManifest::DataType::NUMERIC, 0, 100, "50", 3,
-      "?",     {"x", "y", "z"}};
+      "Item2", "KEY_2", wolkabout::DataType::NUMERIC, "", "5", {"x", "y", "z"}, 0, 100};
 
-    wolkabout::ConfigurationManifest configurationItem3{
-      "Item3", "KEY_3", "", "", wolkabout::ConfigurationManifest::DataType::STRING, 0, 0, "value3"};
+    wolkabout::ConfigurationManifest configurationItem3{"Item3", "KEY_3", wolkabout::DataType::BOOLEAN, "", "false"};
 
-    wolkabout::DeviceManifest deviceManifest1{"DEVICE_MANIFEST_NAME_1",
-                                              "DEVICE_MANIFEST_DESCRIPTION_1",
-                                              "JsonProtocol",
-                                              "",
-                                              {configurationItem1, configurationItem2},
-                                              {temperatureSensor, pressureSensor},
-                                              {},
-                                              {switchActuator}};
-    wolkabout::Device device1{"DEVICE_NAME_1", "DEVICE_KEY_1", deviceManifest1};
+    wolkabout::DeviceManifest deviceManifest1{
+      "DEVICE_MANIFEST_NAME_1",
+      "DEVICE_MANIFEST_DESCRIPTION_1",
+      "JsonProtocol",
+      "",
+      {configurationItem1, configurationItem2, configurationItem3},
+      {temperatureSensor, accelerationSensor},    //, humiditySensor, pressureSensor},
+      {highHumidityAlarm},
+      {sliderActuator}};
+    wolkabout::Device device1{"DEVICE_NAME_1", "m6939iarfbae6gdn", deviceManifest1};
 
     wolkabout::DeviceManifest deviceManifest2{
-      "DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2",      "JsonProtocol",      "",
-      {configurationItem3},     {humiditySensor, accelerationSensor}, {highHumidityAlarm}, {sliderActuator}};
-    wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceManifest2};
+      "DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2", "JsonProtocol", "", {}, {},    //accelerationSensor},
+      {highHumidityAlarm}
+      //{switchActuator, sliderActuator}
+    };
+    wolkabout::Device device2{"DEVICE_NAME_2", "gw_device_key_22-05_3", deviceManifest2};
 
     std::unique_ptr<wolkabout::Wolk> wolk =
       wolkabout::Wolk::newBuilder()
