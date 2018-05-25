@@ -98,23 +98,20 @@ int main(int argc, char** argv)
 
     wolkabout::ConfigurationManifest configurationItem3{"Item3", "KEY_3", wolkabout::DataType::BOOLEAN, "", "false"};
 
-    wolkabout::DeviceManifest deviceManifest1{
-      "DEVICE_MANIFEST_NAME_1",
-      "DEVICE_MANIFEST_DESCRIPTION_1",
-      "JsonProtocol",
-      "",
-      {configurationItem1, configurationItem2, configurationItem3},
-      {temperatureSensor, accelerationSensor},    //, humiditySensor, pressureSensor},
-      {highHumidityAlarm},
-      {sliderActuator}};
-    wolkabout::Device device1{"DEVICE_NAME_1", "m6939iarfbae6gdn", deviceManifest1};
+    wolkabout::DeviceManifest deviceManifest1{"DEVICE_MANIFEST_NAME_1",
+                                              "DEVICE_MANIFEST_DESCRIPTION_1",
+                                              "JsonProtocol",
+                                              "",
+                                              {configurationItem1, configurationItem2},
+                                              {temperatureSensor, humiditySensor},
+                                              {},
+                                              {switchActuator, textActuator}};
+    wolkabout::Device device1{"DEVICE_NAME_1", "DEVICE_KEY_1", deviceManifest1};
 
     wolkabout::DeviceManifest deviceManifest2{
-      "DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2", "JsonProtocol", "", {}, {},    //accelerationSensor},
-      {highHumidityAlarm}
-      //{switchActuator, sliderActuator}
-    };
-    wolkabout::Device device2{"DEVICE_NAME_2", "gw_device_key_22-05_3", deviceManifest2};
+      "DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2",      "JsonProtocol",      "",
+      {configurationItem3},     {pressureSensor, accelerationSensor}, {highHumidityAlarm}, {sliderActuator}};
+    wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceManifest2};
 
     std::unique_ptr<wolkabout::Wolk> wolk =
       wolkabout::Wolk::newBuilder()
@@ -200,6 +197,9 @@ int main(int argc, char** argv)
     wolk->addAlarm("DEVICE_KEY_2", "HH", "High Humidity");
 
     wolk->addSensorReading("DEVICE_KEY_2", "ACCELEROMETER_REF", {0, -5, 10});
+
+    wolk->addDeviceStatus("DEVICE_KEY_1", wolkabout::DeviceStatus::CONNECTED);
+    wolk->addDeviceStatus("DEVICE_KEY_2", wolkabout::DeviceStatus::CONNECTED);
 
     while (true)
     {
