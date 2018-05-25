@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef BINARYDATALISTENER_H
-#define BINARYDATALISTENER_H
+#ifndef DEVICE_H
+#define DEVICE_H
+
+#include "model/DetailedDevice.h"
 
 namespace wolkabout
 {
-class BinaryData;
+typedef DetailedDevice Device;
+}
 
-class BinaryDataListener
-{
-public:
-    virtual ~BinaryDataListener() = default;
-    virtual void handleBinaryData(const BinaryData& binaryData) = 0;
-};
-}    // namespace wolkabout
-
-#endif    // BINARYDATALISTENER_H
+#endif    // DEVICE_H

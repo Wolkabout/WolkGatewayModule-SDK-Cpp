@@ -13,21 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef DEVICESTATUSPROVIDER_H
+#define DEVICESTATUSPROVIDER_H
 
-#ifndef FIRMWAREUPDATECOMMANDLISTENER_H
-#define FIRMWAREUPDATECOMMANDLISTENER_H
+#include "model/DeviceStatus.h"
+
+#include <string>
 
 namespace wolkabout
 {
-class FirmwareUpdateCommand;
-
-class FirmwareUpdateCommandListener
+class DeviceStatusProvider
 {
 public:
-    virtual ~FirmwareUpdateCommandListener() = default;
+    /**
+     * @brief Device status provider callback<br>
+     *        Must be implemented as non blocking<br>
+     *        Must be implemented as thread safe
+     * @param deviceKey Device key
+     * @return DeviceStatus of specified device
+     */
+    virtual DeviceStatus getDeviceStatus(const std::string& deviceKey) = 0;
 
-    virtual void handleFirmwareUpdateCommand(const FirmwareUpdateCommand& firmwareUpdateCommand) = 0;
+    virtual ~DeviceStatusProvider() = default;
 };
 }    // namespace wolkabout
 
-#endif    // FIRMWAREUPDATECOMMANDLISTENER_H
+#endif    // DEVICESTATUSPROVIDER_H

@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef ACTUATIONHANDLERPERDEVICE_H
+#define ACTUATIONHANDLERPERDEVICE_H
 
-#ifndef OUTBOUNDSERVICEDATAHANDLER_H
-#define OUTBOUNDSERVICEDATAHANDLER_H
+#include <string>
 
 namespace wolkabout
 {
-class FirmwareUpdateResponse;
-class FilePacketRequest;
-
-class OutboundServiceDataHandler
+class ActuationHandlerPerDevice
 {
 public:
-    virtual ~OutboundServiceDataHandler() = default;
+    /**
+     * @brief Actuation handler callback<br>
+     *        Must be implemented as non blocking<br>
+     *        Must be implemented as thread safe
+     * @param deviceKey Device key
+     * @param reference Actuator reference
+     * @param value Desired actuator value
+     */
+    virtual void handleActuation(const std::string& deviceKey, const std::string& reference,
+                                 const std::string& value) = 0;
 
-    virtual void addFirmwareUpdateResponse(const FirmwareUpdateResponse& response) = 0;
-
-    virtual void addFilePacketRequest(const FilePacketRequest& request) = 0;
+    virtual ~ActuationHandlerPerDevice() = default;
 };
 }    // namespace wolkabout
 
-#endif    // OUTBOUNDSERVICEDATAHANDLER_H
+#endif    // ACTUATIONHANDLERPERDEVICE_H

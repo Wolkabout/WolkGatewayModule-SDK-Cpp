@@ -38,7 +38,8 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}    -Wall -Wextra -Weffc++ -pedantic    
                                             -Wvariadic-macros                                                          \
                                             -Wwrite-strings -Werror=non-virtual-dtor")
 
-set(OPENSSL_INCLUDE_DIR "${CONAN_INCLUDE_DIRS_OPENSSL}")
+set(SSL_INCLUDE_DIR "${CONAN_INCLUDE_DIRS_OPENSSL}")
+set(SSL_LIBS "${CONAN_LIBS}")
 
 # library output
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -50,12 +51,12 @@ add_subdirectory(WolkSDK-Cpp)
 # WolkAbout c++ Connector
 include_directories("src")
 include_directories("WolkSDK-Cpp/mqtt")
-include_directories("WolkSDK-Cpp/src")
+include_directories("WolkSDK-Cpp/core")
 
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "src/*.hpp")
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
 
-add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} WolkAboutCore)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-rpath,./")
 
@@ -66,13 +67,18 @@ include_directories(SYSTEM "${CONAN_INCLUDE_DIRS_GTEST}")
 file(GLOB_RECURSE TESTS_HEADER_FILES "tests/*.h" "tests/*.hpp")
 file(GLOB_RECURSE TESTS_SOURCE_FILES "tests/*.cpp")
 
-add_executable(tests ${TESTS_HEADER_FILES} ${TESTS_SOURCE_FILES})
-target_link_libraries(tests gmock_main gmock gtest WolkGatewayModule)
+add_executable(tests ${TESTS_SOURCE_FILES})
+target_link_libraries(tests gmock_main gmock gtest ${PROJECT_NAME})
 set_target_properties(tests PROPERTIES LINK_FLAGS "-Wl,-rpath,./lib")
 
-add_subdirectory(cmake)
-
 # Example
-add_executable(example example/Application.cpp)
+include_directories("example")
+
+file(GLOB_RECURSE EXAMPLE_HEADER_FILES "example/*.h")
+file(GLOB_RECURSE EXAMPLE_SOURCE_FILES "example/*.cpp")
+
+add_executable(example ${EXAMPLE_SOURCE_FILES})
 target_link_libraries(example ${PROJECT_NAME})
 set_target_properties(example PROPERTIES LINK_FLAGS "-Wl,-rpath,./lib")
+
+add_subdirectory(cmake)

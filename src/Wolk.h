@@ -17,10 +17,10 @@
 #ifndef WOLK_H
 #define WOLK_H
 
-#include "ActuationHandler.h"
-#include "ActuatorStatusProvider.h"
-#include "ConfigurationHandler.h"
-#include "ConfigurationProvider.h"
+#include "ActuationHandlerPerDevice.h"
+#include "ActuatorStatusProviderPerDevice.h"
+#include "ConfigurationHandlerPerDevice.h"
+#include "ConfigurationProviderPerDevice.h"
 #include "InboundGatewayMessageHandler.h"
 #include "WolkBuilder.h"
 #include "model/ActuatorStatus.h"
@@ -249,20 +249,20 @@ private:
     std::shared_ptr<ConnectivityFacade> m_connectivityManager;
 
     std::function<void(const std::string&, const std::string&, const std::string&)> m_actuationHandlerLambda;
-    std::shared_ptr<ActuationHandler> m_actuationHandler;
+    std::shared_ptr<ActuationHandlerPerDevice> m_actuationHandler;
 
     std::function<ActuatorStatus(const std::string&, const std::string&)> m_actuatorStatusProviderLambda;
-    std::shared_ptr<ActuatorStatusProvider> m_actuatorStatusProvider;
+    std::shared_ptr<ActuatorStatusProviderPerDevice> m_actuatorStatusProvider;
 
     std::function<DeviceStatus(const std::string&)> m_deviceStatusProviderLambda;
     std::shared_ptr<DeviceStatusProvider> m_deviceStatusProvider;
 
     std::function<void(const std::string&, const std::vector<ConfigurationItem>& configuration)>
       m_configurationHandlerLambda;
-    std::shared_ptr<ConfigurationHandler> m_configurationHandler;
+    std::shared_ptr<ConfigurationHandlerPerDevice> m_configurationHandler;
 
     std::function<std::vector<ConfigurationItem>(const std::string&)> m_configurationProviderLambda;
-    std::shared_ptr<ConfigurationProvider> m_configurationProvider;
+    std::shared_ptr<ConfigurationProviderPerDevice> m_configurationProvider;
 
     std::shared_ptr<DataService> m_dataService;
     std::shared_ptr<DeviceStatusService> m_deviceStatusService;

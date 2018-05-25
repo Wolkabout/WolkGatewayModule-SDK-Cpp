@@ -39,7 +39,7 @@ void DeviceStatusService::messageReceived(std::shared_ptr<Message> message)
         return;
     }
 
-    if (m_protocol.isStatusRequestMessage(message->getChannel()))
+    if (m_protocol.isStatusRequestMessage(*message))
     {
         m_statusRequestHandler(deviceKey);
     }
@@ -56,9 +56,7 @@ const Protocol& DeviceStatusService::getProtocol()
 
 void DeviceStatusService::publishDeviceStatus(const std::string& deviceKey, DeviceStatus status)
 {
-    auto statusResponse = std::make_shared<DeviceStatusResponse>(status);
-
-    const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(deviceKey, statusResponse);
+    std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(deviceKey, status);
 
     if (!outboundMessage || !m_connectivityService.publish(outboundMessage))
     {
@@ -68,7 +66,7 @@ void DeviceStatusService::publishDeviceStatus(const std::string& deviceKey, Devi
 
 void DeviceStatusService::devicesUpdated(const std::vector<std::string>& deviceKeys)
 {
-    auto lastWillMessage = m_protocol.makeLastWillMessage(deviceKeys);
+    std::shared_ptr<Message> lastWillMessage = m_protocol.makeLastWillMessage(deviceKeys);
 
     if (!lastWillMessage)
     {

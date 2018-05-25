@@ -15,8 +15,8 @@
  */
 
 #include "Wolk.h"
-#include "ActuationHandler.h"
-#include "ActuatorStatusProvider.h"
+#include "ActuationHandlerPerDevice.h"
+#include "ActuatorStatusProviderPerDevice.h"
 #include "WolkBuilder.h"
 #include "connectivity/ConnectivityService.h"
 #include "model/ActuatorStatus.h"
@@ -24,7 +24,6 @@
 #include "service/DataService.h"
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
-#include "service/FirmwareUpdateService.h"
 #include "utilities/Logger.h"
 #include "utilities/StringUtils.h"
 
@@ -116,7 +115,7 @@ void Wolk::addSensorReading(const std::string& deviceKey, const std::string& ref
                             unsigned long long int rtc)
 {
     std::vector<std::string> stringifiedValues(values.size());
-    std::transform(values.begin(), values.end(), stringifiedValues.begin(),
+    std::transform(values.cbegin(), values.cend(), stringifiedValues.begin(),
                    [&](const T& value) -> std::string { return StringUtils::toString(value); });
 
     addSensorReading(deviceKey, reference, stringifiedValues, rtc);
@@ -313,7 +312,7 @@ void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& r
 
         if (m_actuationHandler)
         {
-            m_actuationHandler->operator()(key, reference, value);
+            m_actuationHandler->handleActuation(key, reference, value);
         }
         else if (m_actuationHandlerLambda)
         {
@@ -323,7 +322,7 @@ void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& r
         const ActuatorStatus actuatorStatus = [&] {
             if (m_actuatorStatusProvider)
             {
-                return m_actuatorStatusProvider->operator()(key, reference);
+                return m_actuatorStatusProvider->getActuatorStatus(key, reference);
             }
             else if (m_actuatorStatusProviderLambda)
             {
@@ -356,7 +355,7 @@ void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& r
         const ActuatorStatus actuatorStatus = [&] {
             if (m_actuatorStatusProvider)
             {
-                return m_actuatorStatusProvider->operator()(key, reference);
+                return m_actuatorStatusProvider->getActuatorStatus(key, reference);
             }
             else if (m_actuatorStatusProviderLambda)
             {
@@ -377,7 +376,7 @@ void Wolk::handleDeviceStatusRequest(const std::string& key)
         const DeviceStatus status = [&] {
             if (m_deviceStatusProvider)
             {
-                return m_deviceStatusProvider->operator()(key);
+                return m_deviceStatusProvider->getDeviceStatus(key);
             }
             else if (m_deviceStatusProviderLambda)
             {
@@ -412,7 +411,7 @@ void Wolk::handleConfigurationSetCommand(const std::string& key, const std::vect
 
         if (m_configurationHandler)
         {
-            m_configurationHandler->operator()(key, configuration);
+            m_configurationHandler->handleConfiguration(key, configuration);
         }
         else if (m_configurationHandlerLambda)
         {
@@ -422,7 +421,7 @@ void Wolk::handleConfigurationSetCommand(const std::string& key, const std::vect
         const std::vector<ConfigurationItem> configFromDevice = [&] {
             if (m_configurationProvider)
             {
-                return m_configurationProvider->operator()(key);
+                return m_configurationProvider->getConfiguration(key);
             }
             else if (m_configurationProviderLambda)
             {
@@ -449,7 +448,7 @@ void Wolk::handleConfigurationGetCommand(const std::string& key)
         const std::vector<ConfigurationItem> configFromDevice = [&] {
             if (m_configurationProvider)
             {
-                return m_configurationProvider->operator()(key);
+                return m_configurationProvider->getConfiguration(key);
             }
             else if (m_configurationProviderLambda)
             {
@@ -505,7 +504,7 @@ bool Wolk::sensorDefinedForDevice(const std::string& deviceKey, const std::strin
     }
 
     const auto sensors = it->second.getManifest().getSensors();
-    auto sensorIt = std::find_if(sensors.begin(), sensors.end(),
+    auto sensorIt = std::find_if(sensors.cbegin(), sensors.cend(),
                                  [&](const SensorManifest& manifest) { return manifest.getReference() == reference; });
 
     return sensorIt != sensors.end();
@@ -520,7 +519,7 @@ std::string Wolk::getSensorDelimiter(const std::string& deviceKey, const std::st
     }
 
     const auto sensors = it->second.getManifest().getSensors();
-    auto sensorIt = std::find_if(sensors.begin(), sensors.end(),
+    auto sensorIt = std::find_if(sensors.cbegin(), sensors.cend(),
                                  [&](const SensorManifest& manifest) { return manifest.getReference() == reference; });
 
     if (sensorIt == sensors.end())
@@ -562,7 +561,7 @@ bool Wolk::alarmDefinedForDevice(const std::string& deviceKey, const std::string
     }
 
     const auto alarms = it->second.getManifest().getAlarms();
-    auto alarmIt = std::find_if(alarms.begin(), alarms.end(),
+    auto alarmIt = std::find_if(alarms.cbegin(), alarms.cend(),
                                 [&](const AlarmManifest& manifest) { return manifest.getReference() == reference; });
 
     return alarmIt != alarms.end();
@@ -577,7 +576,7 @@ bool Wolk::actuatorDefinedForDevice(const std::string& deviceKey, const std::str
     }
 
     const auto actuators = it->second.getActuatorReferences();
-    auto actuatorIt = std::find(actuators.begin(), actuators.end(), reference);
+    auto actuatorIt = std::find(actuators.cbegin(), actuators.cend(), reference);
 
     return actuatorIt != actuators.end();
 }
@@ -592,7 +591,7 @@ bool Wolk::configurationItemDefinedForDevice(const std::string& deviceKey, const
 
     const auto configurations = it->second.getManifest().getConfigurations();
     auto configurationIt =
-      std::find_if(configurations.begin(), configurations.end(),
+      std::find_if(configurations.cbegin(), configurations.cend(),
                    [&](const ConfigurationManifest& manifest) { return manifest.getReference() == reference; });
 
     return configurationIt != configurations.end();
