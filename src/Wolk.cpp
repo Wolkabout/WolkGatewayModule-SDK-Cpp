@@ -134,8 +134,7 @@ INSTANTIATE_ADD_SENSOR_READING_FOR(unsigned int);
 INSTANTIATE_ADD_SENSOR_READING_FOR(unsigned long int);
 INSTANTIATE_ADD_SENSOR_READING_FOR(unsigned long long int);
 
-void Wolk::addAlarm(const std::string& deviceKey, const std::string& reference, const std::string& value,
-                    unsigned long long rtc)
+void Wolk::addAlarm(const std::string& deviceKey, const std::string& reference, bool active, unsigned long long rtc)
 {
     if (rtc == 0)
     {
@@ -155,7 +154,7 @@ void Wolk::addAlarm(const std::string& deviceKey, const std::string& reference, 
             return;
         }
 
-        m_dataService->addAlarm(deviceKey, reference, value, rtc);
+        m_dataService->addAlarm(deviceKey, reference, active, rtc);
     });
 }
 

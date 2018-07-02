@@ -345,7 +345,7 @@ TEST_F(DataService, Given_Alarm_When_AddAlarmIsCalled_Then_AlarmIsAddedToPerista
     // Given
     const std::string key = "DEVICE_KEY";
     const std::string ref = "REF";
-    const std::string value = "VALUE";
+    const bool value = true;
     const auto rtc = 2463477347;
 
     EXPECT_CALL(*persistence, putAlarm(key + "+" + ref, testing::_)).Times(1).WillOnce(testing::Return(true));

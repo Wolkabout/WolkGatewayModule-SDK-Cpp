@@ -146,11 +146,11 @@ public:
      * simultaneously
      * @param deviceKey key of the device that holds the alarm
      * @param reference Alarm reference
-     * @param value Alarm value
+     * @param active Is alarm active or not
      * @param rtc POSIX time at which event occurred - Number of seconds since
      * 01/01/1970<br> If omitted current POSIX time is adopted
      */
-    void addAlarm(const std::string& deviceKey, const std::string& reference, const std::string& value,
+    void addAlarm(const std::string& deviceKey, const std::string& reference, bool active,
                   unsigned long long int rtc = 0);
 
     /**
