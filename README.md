@@ -4,6 +4,14 @@ WolkAbout C++11 Connector library for connecting devices to WolkAbout Gateway.
 Supported protocol(s):
 * JSON_PROTOCOL
 
+Installing from source
+----------------------
+
+This repository must be cloned from the command line using:
+```sh
+git clone --recurse-submodules https://github.com/Wolkabout/WolkGatewayModule-Cpp.git
+```
+
 Prerequisite
 ------
 Following tools/libraries are required in order to build WolkAbout C++ connector
