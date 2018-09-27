@@ -20,6 +20,8 @@
 #include "InboundMessageHandler.h"
 #include "model/DeviceRegistrationResponse.h"
 
+#include <functional>
+
 namespace wolkabout
 {
 class ConnectivityService;
