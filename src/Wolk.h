@@ -241,6 +241,7 @@ private:
     std::unique_ptr<DataProtocol> m_dataProtocol;
     std::unique_ptr<StatusProtocol> m_statusProtocol;
     std::unique_ptr<RegistrationProtocol> m_registrationProtocol;
+    std::unique_ptr<FirmwareUpdateProtocol> m_firmwareUpdateProtocol;
 
     std::unique_ptr<Persistence> m_persistence;
 
@@ -267,6 +268,7 @@ private:
     std::shared_ptr<DataService> m_dataService;
     std::shared_ptr<DeviceStatusService> m_deviceStatusService;
     std::shared_ptr<DeviceRegistrationService> m_deviceRegistrationService;
+    std::shared_ptr<FirmwareUpdateService> m_firmwareUpdateService;
 
     std::map<std::string, Device> m_devices;
 
