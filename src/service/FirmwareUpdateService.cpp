@@ -186,6 +186,7 @@ void FirmwareUpdateService::LocalFileDownloader::download(const std::string& fil
     if (FileSystemUtils::isFilePresent(filePath))
     {
         onSuccess(filePath);
+        return;
     }
 
     onFail(ErrorCode::FILE_DOES_NOT_EXIST);

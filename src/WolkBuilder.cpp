@@ -140,6 +140,7 @@ WolkBuilder& WolkBuilder::withFirmwareUpdate(std::shared_ptr<FirmwareInstaller> 
 {
     m_firmwareInstaller = installer;
     m_firmwareVersionProvider = provider;
+    return *this;
 }
 
 std::unique_ptr<Wolk> WolkBuilder::build()
