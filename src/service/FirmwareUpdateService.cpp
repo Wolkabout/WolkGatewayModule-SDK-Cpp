@@ -15,6 +15,8 @@
  */
 
 #include "service/FirmwareUpdateService.h"
+#include "FirmwareInstaller.h"
+#include "FirmwareVersionProvider.h"
 #include "connectivity/ConnectivityService.h"
 #include "model/FirmwareUpdateCommand.h"
 #include "model/FirmwareUpdateResponse.h"
@@ -67,6 +69,33 @@ const Protocol& FirmwareUpdateService::getProtocol()
     return m_protocol;
 }
 
+void FirmwareUpdateService::publishFirmwareVersion(const std::string& deviceKey)
+{
+    addToCommandBuffer([=] {
+        const std::string firmwareVersion = m_firmwareVersionProvider->getFirmwareVersion(deviceKey);
+
+        if (firmwareVersion.empty())
+        {
+            LOG(WARN) << "Failed to get firmware version for device " << deviceKey;
+            return;
+        }
+
+        const std::shared_ptr<Message> message = m_protocol.makeFromFirmwareVersion(deviceKey, firmwareVersion);
+
+        if (!message)
+        {
+            LOG(WARN) << "Failed to create firmware version message";
+            return;
+        }
+
+        if (!m_connectivityService.publish(message))
+        {
+            LOG(WARN) << "Failed to publish firmware version message";
+            return;
+        }
+    });
+}
+
 void FirmwareUpdateService::handleFirmwareUpdateCommand(const FirmwareUpdateCommand& command,
                                                         const std::string deviceKey)
 {
@@ -95,12 +124,23 @@ void FirmwareUpdateService::handleFirmwareUpdateCommand(const FirmwareUpdateComm
     }
     case FirmwareUpdateCommand::Type::INSTALL:
     {
-        // TODO
+        const std::string firmwareFile = getFirmwareFile(deviceKey);
+        if (firmwareFile.empty())
+        {
+            LOG(WARN) << "Firmware file info missing for device: " << deviceKey;
+            sendResponse(FirmwareUpdateResponse{FirmwareUpdateResponse::Status::ERROR,
+                                                FirmwareUpdateResponse::ErrorCode::UNSPECIFIED_ERROR},
+                         deviceKey);
+            return;
+        }
+
+        install(deviceKey, firmwareFile);
+
         break;
     }
     case FirmwareUpdateCommand::Type::ABORT:
     {
-        // TODO
+        abort(deviceKey);
         break;
     }
     default:
@@ -123,6 +163,8 @@ void FirmwareUpdateService::downloadCompleted(const std::string& filePath, const
                                               bool autoInstall)
 {
     addToCommandBuffer([=] {
+        addFirmwareFile(deviceKey, filePath);
+
         sendResponse(FirmwareUpdateResponse{FirmwareUpdateResponse::Status::FILE_READY}, deviceKey);
 
         if (autoInstall)
@@ -152,11 +194,39 @@ void FirmwareUpdateService::downloadFailed(LocalFileDownloader::ErrorCode errorC
         break;
     }
     }
-
-    // TODO remove from map
 }
 
-void FirmwareUpdateService::install(const std::string& deviceKey, const std::string& firmwareFilePath) {}
+void FirmwareUpdateService::install(const std::string& deviceKey, const std::string& firmwareFilePath)
+{
+    sendResponse(FirmwareUpdateResponse{FirmwareUpdateResponse::Status::INSTALLATION}, deviceKey);
+
+    m_firmwareInstaller->install(deviceKey, firmwareFilePath, [=](const std::string& key) { installSucceeded(key); },
+                                 [=](const std::string& key) { installFailed(key); });
+}
+
+void FirmwareUpdateService::installSucceeded(const std::string& deviceKey)
+{
+    sendResponse(FirmwareUpdateResponse{FirmwareUpdateResponse::Status::COMPLETED}, deviceKey);
+    publishFirmwareVersion(deviceKey);
+
+    addToCommandBuffer([=] { removeFirmwareFile(deviceKey); });
+}
+
+void FirmwareUpdateService::installFailed(const std::string& deviceKey)
+{
+    sendResponse(FirmwareUpdateResponse{FirmwareUpdateResponse::Status::ERROR,
+                                        FirmwareUpdateResponse::ErrorCode::INSTALLATION_FAILED},
+                 deviceKey);
+
+    addToCommandBuffer([=] { removeFirmwareFile(deviceKey); });
+}
+
+void FirmwareUpdateService::abort(const std::string& deviceKey)
+{
+    sendResponse(FirmwareUpdateResponse{FirmwareUpdateResponse::Status::ABORTED}, deviceKey);
+
+    addToCommandBuffer([=] { removeFirmwareFile(deviceKey); });
+}
 
 void FirmwareUpdateService::sendResponse(const FirmwareUpdateResponse& response, const std::string& deviceKey)
 {
@@ -177,6 +247,31 @@ void FirmwareUpdateService::sendResponse(const FirmwareUpdateResponse& response,
 void FirmwareUpdateService::addToCommandBuffer(std::function<void()> command)
 {
     m_commandBuffer.pushCommand(std::make_shared<std::function<void()>>(command));
+}
+
+void FirmwareUpdateService::addFirmwareFile(const std::string& deviceKey, const std::string& firmwareFilePath)
+{
+    m_firmwareFiles[deviceKey] = firmwareFilePath;
+}
+
+void FirmwareUpdateService::removeFirmwareFile(const std::string& deviceKey)
+{
+    auto it = m_firmwareFiles.find(deviceKey);
+    if (it != m_firmwareFiles.end())
+    {
+        m_firmwareFiles.erase(it);
+    }
+}
+
+std::string FirmwareUpdateService::getFirmwareFile(const std::string& deviceKey)
+{
+    auto it = m_firmwareFiles.find(deviceKey);
+    if (it != m_firmwareFiles.end())
+    {
+        return it->second;
+    }
+
+    return "";
 }
 
 void FirmwareUpdateService::LocalFileDownloader::download(const std::string& filePath,

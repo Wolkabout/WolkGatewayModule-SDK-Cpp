@@ -116,10 +116,19 @@ int main(int argc, char** argv)
     class FirmwareInstallerImpl : public wolkabout::FirmwareInstaller
     {
     public:
-        bool install(const std::string& deviceKey, const std::string& firmwareFile)
+        void install(const std::string& deviceKey, const std::string& firmwareFile,
+                     std::function<void(const std::string& deviceKey)> onSuccess,
+                     std::function<void(const std::string& deviceKey)> onFail) override
         {
             LOG(INFO) << "Install firmware: " << firmwareFile << ", for device " << deviceKey;
-            return true;
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                onSuccess(deviceKey);
+            }
+            else
+            {
+                onFail(deviceKey);
+            }
         }
     };
 

@@ -19,9 +19,8 @@
 #include "InboundGatewayMessageHandler.h"
 
 #include <map>
+#include <memory>
 #include <string>
-#include <tuple>
-#include <vector>
 
 namespace wolkabout
 {
@@ -41,6 +40,8 @@ public:
 
     void messageReceived(std::shared_ptr<Message> message) override;
     const Protocol& getProtocol() override;
+
+    void publishFirmwareVersion(const std::string& deviceKey);
 
 private:
     class LocalFileDownloader
@@ -66,9 +67,19 @@ private:
 
     void install(const std::string& deviceKey, const std::string& firmwareFilePath);
 
+    void installSucceeded(const std::string& deviceKey);
+
+    void installFailed(const std::string& deviceKey);
+
+    void abort(const std::string& deviceKey);
+
     void sendResponse(const FirmwareUpdateResponse& response, const std::string& deviceKey);
 
     void addToCommandBuffer(std::function<void()> command);
+
+    void addFirmwareFile(const std::string& deviceKey, const std::string& firmwareFilePath);
+    void removeFirmwareFile(const std::string& deviceKey);
+    std::string getFirmwareFile(const std::string& deviceKey);
 
     FirmwareUpdateProtocol& m_protocol;
 
@@ -76,6 +87,8 @@ private:
     std::shared_ptr<FirmwareVersionProvider> m_firmwareVersionProvider;
 
     ConnectivityService& m_connectivityService;
+
+    std::map<std::string, std::string> m_firmwareFiles;
 
     CommandBuffer m_commandBuffer;
 };

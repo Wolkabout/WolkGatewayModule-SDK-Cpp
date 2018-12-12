@@ -16,6 +16,7 @@
 #ifndef FIRMWAREINSTALLER_H
 #define FIRMWAREINSTALLER_H
 
+#include <functional>
 #include <string>
 
 namespace wolkabout
@@ -29,9 +30,13 @@ public:
      * @brief install Install the firmware from provided file
      * @param deviceKey Key of the device
      * @param firmwareFile Firmware file to install
+     * @param onSuccess Function to call if install is successful
+     * @param onFail Function to call if install has failed
      * @return false if fails, on success does not return
      */
-    virtual bool install(const std::string& deviceKey, const std::string& firmwareFile) = 0;
+    virtual void install(const std::string& deviceKey, const std::string& firmwareFile,
+                         std::function<void(const std::string& deviceKey)> onSuccess,
+                         std::function<void(const std::string& deviceKey)> onFail) = 0;
 };
 }    // namespace wolkabout
 

@@ -225,6 +225,8 @@ private:
     void registerDevices();
     void registerDevice(const Device& device);
 
+    void publishFirmwareVersions();
+
     std::vector<std::string> getDeviceKeys();
     bool deviceExists(const std::string& deviceKey);
     bool sensorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
