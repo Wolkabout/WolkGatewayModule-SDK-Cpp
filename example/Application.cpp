@@ -113,6 +113,9 @@ int main(int argc, char** argv)
       {configurationItem3},     {pressureSensor, accelerationSensor}, {highHumidityAlarm}, {sliderActuator}};
     wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceManifest2};
 
+    static int device1firmwareVersion = 1;
+    static int device2firmwareVersion = 1;
+
     class FirmwareInstallerImpl : public wolkabout::FirmwareInstaller
     {
     public:
@@ -123,6 +126,7 @@ int main(int argc, char** argv)
             LOG(INFO) << "Install firmware: " << firmwareFile << ", for device " << deviceKey;
             if (deviceKey == "DEVICE_KEY_1")
             {
+                ++device1firmwareVersion;
                 onSuccess(deviceKey);
             }
             else
@@ -135,7 +139,18 @@ int main(int argc, char** argv)
     class FirmwareVersionProviderImpl : public wolkabout::FirmwareVersionProvider
     {
     public:
-        std::string getFirmwareVersion(const std::string& deviceKey) { return "1.0.0"; }
+        std::string getFirmwareVersion(const std::string& deviceKey)
+        {
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                return std::to_string(device1firmwareVersion) + ".0.0";
+            }
+            else if (deviceKey == "DEVICE_KEY_2")
+            {
+                return std::to_string(device2firmwareVersion) + ".0.0";
+            }
+            return "";
+        }
     };
 
     auto installer = std::make_shared<FirmwareInstallerImpl>();
@@ -182,7 +197,7 @@ int main(int argc, char** argv)
             }
             else if (deviceKey == "DEVICE_KEY_2")
             {
-                return wolkabout::DeviceStatus::SLEEP;
+                return wolkabout::DeviceStatus::CONNECTED;
             }
 
             return wolkabout::DeviceStatus::OFFLINE;
