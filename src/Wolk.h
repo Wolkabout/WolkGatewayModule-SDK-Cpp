@@ -232,6 +232,7 @@ private:
     bool sensorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     std::string getSensorDelimiter(const std::string& deviceKey, const std::string& reference);
     std::map<std::string, std::string> getConfigurationDelimiters(const std::string& deviceKey);
+    std::vector<std::string> getActuatorReferences(const std::string& deviceKey);
     bool alarmDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     bool actuatorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     bool configurationItemDefinedForDevice(const std::string& deviceKey, const std::string& reference);
