@@ -190,6 +190,7 @@ void Wolk::connect()
             m_connected = true;
             registerDevices();
             publishFirmwareVersions();
+            publishDeviceStatuses();
 
             for (const auto& kvp : m_devices)
             {
@@ -479,6 +480,18 @@ void Wolk::registerDevices()
     });
 }
 
+void Wolk::publishFirmwareVersion(const std::string& deviceKey)
+{
+    addToCommandBuffer([=] {
+        if (!m_firmwareUpdateService)
+        {
+            return;
+        }
+
+        m_firmwareUpdateService->publishFirmwareVersion(deviceKey);
+    });
+}
+
 void Wolk::publishFirmwareVersions()
 {
     addToCommandBuffer([=] {
@@ -490,6 +503,16 @@ void Wolk::publishFirmwareVersions()
         for (const auto& kvp : m_devices)
         {
             m_firmwareUpdateService->publishFirmwareVersion(kvp.second.getKey());
+        }
+    });
+}
+
+void Wolk::publishDeviceStatuses()
+{
+    addToCommandBuffer([=] {
+        for (const auto& kvp : m_devices)
+        {
+            handleDeviceStatusRequest(kvp.second.getKey());
         }
     });
 }
@@ -642,6 +665,8 @@ void Wolk::handleRegistrationResponse(const std::string& deviceKey, DeviceRegist
                 publishActuatorStatus(deviceKey, ref);
             }
         }
+
+        publishFirmwareVersion(deviceKey);
     });
 }
 

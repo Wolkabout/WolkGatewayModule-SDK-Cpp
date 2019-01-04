@@ -225,7 +225,10 @@ private:
     void registerDevices();
     void registerDevice(const Device& device);
 
+    void publishFirmwareVersion(const std::string& deviceKey);
     void publishFirmwareVersions();
+
+    void publishDeviceStatuses();
 
     std::vector<std::string> getDeviceKeys();
     bool deviceExists(const std::string& deviceKey);
