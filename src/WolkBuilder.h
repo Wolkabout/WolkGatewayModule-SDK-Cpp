@@ -22,11 +22,14 @@
 #include "ConfigurationHandlerPerDevice.h"
 #include "ConfigurationProviderPerDevice.h"
 #include "DeviceStatusProvider.h"
+#include "FirmwareInstaller.h"
+#include "FirmwareVersionProvider.h"
 #include "connectivity/ConnectivityService.h"
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
 #include "model/DeviceStatus.h"
 #include "persistence/Persistence.h"
+#include "protocol/FirmwareUpdateProtocol.h"
 
 #include <cstdint>
 #include <functional>
@@ -166,6 +169,16 @@ public:
     WolkBuilder& withDataProtocol(std::unique_ptr<DataProtocol> protocol);
 
     /**
+     * @brief withFirmwareUpdate Enables firmware update for devices
+     * @param installer Instance of wolkabout::FirmwareInstaller used to install firmware
+     * @param provider Instance of wolkabout::FirmwareVersionProvider used to provide
+     * firmware version of the device
+     * @return
+     */
+    WolkBuilder& withFirmwareUpdate(std::shared_ptr<FirmwareInstaller> installer,
+                                    std::shared_ptr<FirmwareVersionProvider> provider);
+
+    /**
      * @brief Builds Wolk instance
      * @return Wolk instance as std::unique_ptr<Wolk>
      *
@@ -207,6 +220,10 @@ private:
     std::unique_ptr<DataProtocol> m_dataProtocol;
     std::unique_ptr<StatusProtocol> m_statusProtocol;
     std::unique_ptr<RegistrationProtocol> m_registrationProtocol;
+    std::unique_ptr<FirmwareUpdateProtocol> m_firmwareUpdateProtocol;
+
+    std::shared_ptr<FirmwareInstaller> m_firmwareInstaller;
+    std::shared_ptr<FirmwareVersionProvider> m_firmwareVersionProvider;
 
     static const constexpr char* MESSAGE_BUS_HOST = "tcp://localhost:1883";
 };

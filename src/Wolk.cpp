@@ -24,6 +24,7 @@
 #include "service/DataService.h"
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
+#include "service/FirmwareUpdateService.h"
 #include "utilities/Logger.h"
 #include "utilities/StringUtils.h"
 
@@ -188,6 +189,7 @@ void Wolk::connect()
         {
             m_connected = true;
             registerDevices();
+            publishFirmwareVersions();
 
             for (const auto& kvp : m_devices)
             {
@@ -473,6 +475,21 @@ void Wolk::registerDevices()
         for (const auto& kvp : m_devices)
         {
             m_deviceRegistrationService->publishRegistrationRequest(kvp.second);
+        }
+    });
+}
+
+void Wolk::publishFirmwareVersions()
+{
+    addToCommandBuffer([=] {
+        if (!m_firmwareUpdateService)
+        {
+            return;
+        }
+
+        for (const auto& kvp : m_devices)
+        {
+            m_firmwareUpdateService->publishFirmwareVersion(kvp.second.getKey());
         }
     });
 }

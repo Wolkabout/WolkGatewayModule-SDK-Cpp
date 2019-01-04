@@ -101,7 +101,7 @@ int main(int argc, char** argv)
     wolkabout::DeviceManifest deviceManifest1{"DEVICE_MANIFEST_NAME_1",
                                               "DEVICE_MANIFEST_DESCRIPTION_1",
                                               "JsonProtocol",
-                                              "",
+                                              "DFU",
                                               {configurationItem1, configurationItem2},
                                               {temperatureSensor, humiditySensor},
                                               {},
@@ -109,9 +109,52 @@ int main(int argc, char** argv)
     wolkabout::Device device1{"DEVICE_NAME_1", "DEVICE_KEY_1", deviceManifest1};
 
     wolkabout::DeviceManifest deviceManifest2{
-      "DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2",      "JsonProtocol",      "",
+      "DEVICE_MANIFEST_NAME_2", "DEVICE_MANIFEST_DESCRIPTION_2",      "JsonProtocol",      "DFU",
       {configurationItem3},     {pressureSensor, accelerationSensor}, {highHumidityAlarm}, {sliderActuator}};
     wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceManifest2};
+
+    static int device1firmwareVersion = 1;
+    static int device2firmwareVersion = 1;
+
+    class FirmwareInstallerImpl : public wolkabout::FirmwareInstaller
+    {
+    public:
+        void install(const std::string& deviceKey, const std::string& firmwareFile,
+                     std::function<void(const std::string& deviceKey)> onSuccess,
+                     std::function<void(const std::string& deviceKey)> onFail) override
+        {
+            LOG(INFO) << "Install firmware: " << firmwareFile << ", for device " << deviceKey;
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                ++device1firmwareVersion;
+                onSuccess(deviceKey);
+            }
+            else
+            {
+                onFail(deviceKey);
+            }
+        }
+    };
+
+    class FirmwareVersionProviderImpl : public wolkabout::FirmwareVersionProvider
+    {
+    public:
+        std::string getFirmwareVersion(const std::string& deviceKey)
+        {
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                return std::to_string(device1firmwareVersion) + ".0.0";
+            }
+            else if (deviceKey == "DEVICE_KEY_2")
+            {
+                return std::to_string(device2firmwareVersion) + ".0.0";
+            }
+            return "";
+        }
+    };
+
+    auto installer = std::make_shared<FirmwareInstallerImpl>();
+    auto provider = std::make_shared<FirmwareVersionProviderImpl>();
 
     std::unique_ptr<wolkabout::Wolk> wolk =
       wolkabout::Wolk::newBuilder()
@@ -154,7 +197,7 @@ int main(int argc, char** argv)
             }
             else if (deviceKey == "DEVICE_KEY_2")
             {
-                return wolkabout::DeviceStatus::SLEEP;
+                return wolkabout::DeviceStatus::CONNECTED;
             }
 
             return wolkabout::DeviceStatus::OFFLINE;
@@ -182,6 +225,7 @@ int main(int argc, char** argv)
 
             return {};
         })
+        .withFirmwareUpdate(installer, provider)
         .host(appConfiguration.getLocalMqttUri())
         .build();
 

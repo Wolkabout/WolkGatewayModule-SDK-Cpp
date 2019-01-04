@@ -33,7 +33,7 @@ InboundGatewayMessageHandler::~InboundGatewayMessageHandler()
 
 void InboundGatewayMessageHandler::messageReceived(const std::string& channel, const std::string& payload)
 {
-    LOG(TRACE) << "Message received on channel: '" << channel << "' : '" << payload << "'";
+    LOG(DEBUG) << "Message received on channel: '" << channel << "' : '" << payload << "'";
 
     std::lock_guard<std::mutex> lg{m_lock};
 
@@ -54,7 +54,7 @@ void InboundGatewayMessageHandler::messageReceived(const std::string& channel, c
     }
     else
     {
-        LOG(INFO) << "Handler for device channel not found: " << channel;
+        LOG(WARN) << "Handler for device channel not found: " << channel;
     }
 }
 

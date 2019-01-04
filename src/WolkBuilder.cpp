@@ -25,12 +25,14 @@
 #include "model/Device.h"
 #include "persistence/Persistence.h"
 #include "persistence/inmemory/InMemoryPersistence.h"
+#include "protocol/json/JsonDFUProtocol.h"
 #include "protocol/json/JsonProtocol.h"
 #include "protocol/json/JsonRegistrationProtocol.h"
 #include "protocol/json/JsonStatusProtocol.h"
 #include "service/DataService.h"
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
+#include "service/FirmwareUpdateService.h"
 
 #include <functional>
 #include <stdexcept>
@@ -133,6 +135,14 @@ WolkBuilder& WolkBuilder::withDataProtocol(std::unique_ptr<DataProtocol> protoco
     return *this;
 }
 
+WolkBuilder& WolkBuilder::withFirmwareUpdate(std::shared_ptr<FirmwareInstaller> installer,
+                                             std::shared_ptr<FirmwareVersionProvider> provider)
+{
+    m_firmwareInstaller = installer;
+    m_firmwareVersionProvider = provider;
+    return *this;
+}
+
 std::unique_ptr<Wolk> WolkBuilder::build()
 {
     if (!m_actuationHandlerLambda && !m_actuationHandler)
@@ -161,11 +171,17 @@ std::unique_ptr<Wolk> WolkBuilder::build()
         throw std::logic_error("Both ConfigurationProvider and ConfigurationHandler must be set.");
     }
 
+    if (!m_firmwareInstaller != !m_firmwareVersionProvider)
+    {
+        throw std::logic_error("Both FirmwareInstaller and FirmwareVersionProvider must be set.");
+    }
+
     auto wolk = std::unique_ptr<Wolk>(new Wolk());
 
     wolk->m_dataProtocol.reset(m_dataProtocol.release());
     wolk->m_statusProtocol.reset(m_statusProtocol.release());
     wolk->m_registrationProtocol.reset(m_registrationProtocol.release());
+    wolk->m_firmwareUpdateProtocol.reset(m_firmwareUpdateProtocol.release());
 
     wolk->m_persistence.reset(m_persistence.release());
 
@@ -216,6 +232,16 @@ std::unique_ptr<Wolk> WolkBuilder::build()
           wolk->handleRegistrationResponse(key, result);
       });
 
+    // Firmware update service
+    if (m_firmwareInstaller != nullptr)
+    {
+        wolk->m_firmwareUpdateService =
+          std::make_shared<FirmwareUpdateService>(*wolk->m_firmwareUpdateProtocol, m_firmwareInstaller,
+                                                  m_firmwareVersionProvider, *wolk->m_connectivityService);
+
+        wolk->m_inboundMessageHandler->addListener(wolk->m_firmwareUpdateService);
+    }
+
     wolk->m_inboundMessageHandler->addListener(wolk->m_dataService);
     wolk->m_inboundMessageHandler->addListener(wolk->m_deviceStatusService);
     wolk->m_inboundMessageHandler->addListener(wolk->m_deviceRegistrationService);
@@ -232,10 +258,23 @@ wolkabout::WolkBuilder::operator std::unique_ptr<Wolk>()
 
 WolkBuilder::WolkBuilder()
 : m_host{MESSAGE_BUS_HOST}
+, m_actuationHandlerLambda{nullptr}
+, m_actuationHandler{nullptr}
+, m_actuatorStatusProviderLambda{nullptr}
+, m_actuatorStatusProvider{nullptr}
+, m_configurationHandlerLambda{nullptr}
+, m_configurationHandler{nullptr}
+, m_configurationProviderLambda{nullptr}
+, m_configurationProvider{nullptr}
+, m_deviceStatusProviderLambda{nullptr}
+, m_deviceStatusProvider{nullptr}
 , m_persistence{new InMemoryPersistence()}
 , m_dataProtocol{new JsonProtocol()}
 , m_statusProtocol{new JsonStatusProtocol()}
 , m_registrationProtocol{new JsonRegistrationProtocol()}
+, m_firmwareUpdateProtocol{new JsonDFUProtocol()}
+, m_firmwareInstaller{nullptr}
+, m_firmwareVersionProvider{nullptr}
 {
 }
 }    // namespace wolkabout
