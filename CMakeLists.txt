@@ -50,8 +50,6 @@ add_subdirectory(WolkSDK-Cpp)
 
 # WolkAbout c++ Connector
 include_directories("src")
-include_directories("WolkSDK-Cpp/mqtt")
-include_directories("WolkSDK-Cpp/core")
 
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "src/*.hpp")
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
@@ -59,6 +57,8 @@ file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} WolkAboutCore)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-rpath,./")
+
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/src")
 
 # Tests
 include_directories("tests")
