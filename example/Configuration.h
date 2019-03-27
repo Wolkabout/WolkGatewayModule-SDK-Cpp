@@ -21,23 +21,13 @@ namespace wolkabout
 class DeviceConfiguration
 {
 public:
-    DeviceConfiguration() = default;
-
-    DeviceConfiguration(std::string name, std::string protocol, std::string localMqttUri);
-
-    const std::string& getName() const;
-
-    const std::string& getProtocol() const;
+    explicit DeviceConfiguration(std::string localMqttUri);
 
     const std::string& getLocalMqttUri() const;
 
     static wolkabout::DeviceConfiguration fromJson(const std::string& deviceConfigurationFile);
 
 private:
-    std::string m_name;
-
-    std::string m_protocol;
-
     std::string m_localMqttUri;
 };
 }    // namespace wolkabout
