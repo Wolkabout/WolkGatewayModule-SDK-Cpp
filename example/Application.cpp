@@ -186,17 +186,17 @@ int main(int argc, char** argv)
 
             return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
         })
-        .deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus {
+        .deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus::Status {
             if (deviceKey == "DEVICE_KEY_1")
             {
-                return wolkabout::DeviceStatus::CONNECTED;
+                return wolkabout::DeviceStatus::Status::CONNECTED;
             }
             else if (deviceKey == "DEVICE_KEY_2")
             {
-                return wolkabout::DeviceStatus::CONNECTED;
+                return wolkabout::DeviceStatus::Status::CONNECTED;
             }
 
-            return wolkabout::DeviceStatus::OFFLINE;
+            return wolkabout::DeviceStatus::Status::OFFLINE;
         })
         .configurationHandler(
           [&](const std::string& deviceKey, const std::vector<wolkabout::ConfigurationItem>& configuration) {
@@ -238,8 +238,8 @@ int main(int argc, char** argv)
 
     wolk->addSensorReading("DEVICE_KEY_2", "ACCELEROMETER_REF", {0, -5, 10});
 
-    wolk->addDeviceStatus("DEVICE_KEY_1", wolkabout::DeviceStatus::CONNECTED);
-    wolk->addDeviceStatus("DEVICE_KEY_2", wolkabout::DeviceStatus::CONNECTED);
+    wolk->addDeviceStatus("DEVICE_KEY_1", wolkabout::DeviceStatus::Status::CONNECTED);
+    wolk->addDeviceStatus("DEVICE_KEY_2", wolkabout::DeviceStatus::Status::CONNECTED);
 
     while (true)
     {
