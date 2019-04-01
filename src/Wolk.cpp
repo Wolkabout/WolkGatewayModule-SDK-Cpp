@@ -346,53 +346,92 @@ void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& r
 void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& reference)
 {
     addToCommandBuffer([=] {
-        if (!deviceExists(key))
+        if (key.empty() && reference.empty())
         {
-            LOG(ERROR) << "Device does not exist: " << key;
-            return;
-        }
+            for (const auto& kvp : m_devices)
+            {
+                for (const std::string& actuatorReference : kvp.second.getActuatorReferences())
+                {
+                    const ActuatorStatus actuatorStatus = [&] {
+                        if (m_actuatorStatusProvider)
+                        {
+                            return m_actuatorStatusProvider->getActuatorStatus(kvp.second.getKey(), actuatorReference);
+                        }
+                        else if (m_actuatorStatusProviderLambda)
+                        {
+                            return m_actuatorStatusProviderLambda(kvp.second.getKey(), actuatorReference);
+                        }
 
-        if (!actuatorDefinedForDevice(key, reference))
+                        return ActuatorStatus("", ActuatorStatus::State::ERROR);
+                    }();
+
+                    m_dataService->addActuatorStatus(kvp.second.getKey(), actuatorReference, actuatorStatus.getValue(),
+                                                     actuatorStatus.getState());
+                }
+                m_dataService->publishActuatorStatuses();
+            }
+        }
+        else
         {
-            LOG(ERROR) << "Actuator does not exist for device: " << key << ", " << reference;
-            return;
+            if (!deviceExists(key))
+            {
+                return;
+            }
+
+            if (!actuatorDefinedForDevice(key, reference))
+            {
+                LOG(ERROR) << "Actuator does not exist for device: " << key << ", " << reference;
+                return;
+            }
+
+            const ActuatorStatus actuatorStatus = [&] {
+                if (m_actuatorStatusProvider)
+                {
+                    return m_actuatorStatusProvider->getActuatorStatus(key, reference);
+                }
+                else if (m_actuatorStatusProviderLambda)
+                {
+                    return m_actuatorStatusProviderLambda(key, reference);
+                }
+
+                return ActuatorStatus("", ActuatorStatus::State::ERROR);
+            }();
+
+            m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
+            m_dataService->publishActuatorStatuses();
         }
-
-        const ActuatorStatus actuatorStatus = [&] {
-            if (m_actuatorStatusProvider)
-            {
-                return m_actuatorStatusProvider->getActuatorStatus(key, reference);
-            }
-            else if (m_actuatorStatusProviderLambda)
-            {
-                return m_actuatorStatusProviderLambda(key, reference);
-            }
-
-            return ActuatorStatus("", ActuatorStatus::State::ERROR);
-        }();
-
-        m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
-        m_dataService->publishActuatorStatuses();
     });
 }
 
 void Wolk::handleDeviceStatusRequest(const std::string& key)
 {
     addToCommandBuffer([=] {
-        const DeviceStatus::Status status = [&] {
-            if (m_deviceStatusProvider)
+        if (key.empty())
+        {
+            publishDeviceStatuses();
+        }
+        else
+        {
+            if (!deviceExists(key))
             {
-                return m_deviceStatusProvider->getDeviceStatus(key);
-            }
-            else if (m_deviceStatusProviderLambda)
-            {
-                return m_deviceStatusProviderLambda(key);
+                return;
             }
 
-            return DeviceStatus::Status::OFFLINE;
-        }();
+            const DeviceStatus::Status status = [&] {
+                if (m_deviceStatusProvider)
+                {
+                    return m_deviceStatusProvider->getDeviceStatus(key);
+                }
+                else if (m_deviceStatusProviderLambda)
+                {
+                    return m_deviceStatusProviderLambda(key);
+                }
 
-        m_deviceStatusService->publishDeviceStatusResponse(key, status);
+                return DeviceStatus::Status::OFFLINE;
+            }();
+
+            m_deviceStatusService->publishDeviceStatusResponse(key, status);
+        }
     });
 }
 
