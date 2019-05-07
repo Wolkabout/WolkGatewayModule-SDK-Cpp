@@ -9,7 +9,7 @@ Installing from source
 
 This repository must be cloned from the command line using:
 ```sh
-git clone --recurse-submodules https://github.com/Wolkabout/WolkGatewayModule-Cpp.git
+git clone --recurse-submodules https://github.com/Wolkabout/WolkGatewayModule-SDK-Cpp.git
 ```
 
 Prerequisite
