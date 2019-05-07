@@ -17,10 +17,15 @@
 #include "Wolk.h"
 #include "ActuationHandlerPerDevice.h"
 #include "ActuatorStatusProviderPerDevice.h"
+#include "InboundGatewayMessageHandler.h"
 #include "WolkBuilder.h"
 #include "connectivity/ConnectivityService.h"
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
+#include "protocol/DataProtocol.h"
+#include "protocol/RegistrationProtocol.h"
+#include "protocol/StatusProtocol.h"
+#include "protocol/json/JsonDFUProtocol.h"
 #include "service/DataService.h"
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
@@ -168,7 +173,7 @@ void Wolk::publishConfiguration(const std::string& deviceKey)
     handleConfigurationGetCommand(deviceKey);
 }
 
-void Wolk::addDeviceStatus(const std::string& deviceKey, DeviceStatus status)
+void Wolk::addDeviceStatus(const std::string& deviceKey, DeviceStatus::Status status)
 {
     addToCommandBuffer([=] {
         if (!deviceExists(deviceKey))
@@ -177,7 +182,7 @@ void Wolk::addDeviceStatus(const std::string& deviceKey, DeviceStatus status)
             return;
         }
 
-        m_deviceStatusService->publishDeviceStatus(deviceKey, status);
+        m_deviceStatusService->publishDeviceStatusUpdate(deviceKey, status);
     });
 }
 
@@ -292,8 +297,8 @@ void Wolk::addToCommandBuffer(std::function<void()> command)
 
 unsigned long long Wolk::currentRtc()
 {
-    auto duration = std::chrono::system_clock::now().time_since_epoch();
-    return static_cast<unsigned long long>(std::chrono::duration_cast<std::chrono::seconds>(duration).count());
+    auto duration = std::chrono::high_resolution_clock::now().time_since_epoch();
+    return static_cast<unsigned long long>(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
 }
 
 void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& reference, const std::string& value)
@@ -341,53 +346,92 @@ void Wolk::handleActuatorSetCommand(const std::string& key, const std::string& r
 void Wolk::handleActuatorGetCommand(const std::string& key, const std::string& reference)
 {
     addToCommandBuffer([=] {
-        if (!deviceExists(key))
+        if (key.empty() && reference.empty())
         {
-            LOG(ERROR) << "Device does not exist: " << key;
-            return;
-        }
+            for (const auto& kvp : m_devices)
+            {
+                for (const std::string& actuatorReference : kvp.second.getActuatorReferences())
+                {
+                    const ActuatorStatus actuatorStatus = [&] {
+                        if (m_actuatorStatusProvider)
+                        {
+                            return m_actuatorStatusProvider->getActuatorStatus(kvp.second.getKey(), actuatorReference);
+                        }
+                        else if (m_actuatorStatusProviderLambda)
+                        {
+                            return m_actuatorStatusProviderLambda(kvp.second.getKey(), actuatorReference);
+                        }
 
-        if (!actuatorDefinedForDevice(key, reference))
+                        return ActuatorStatus("", ActuatorStatus::State::ERROR);
+                    }();
+
+                    m_dataService->addActuatorStatus(kvp.second.getKey(), actuatorReference, actuatorStatus.getValue(),
+                                                     actuatorStatus.getState());
+                }
+                m_dataService->publishActuatorStatuses();
+            }
+        }
+        else
         {
-            LOG(ERROR) << "Actuator does not exist for device: " << key << ", " << reference;
-            return;
+            if (!deviceExists(key))
+            {
+                return;
+            }
+
+            if (!actuatorDefinedForDevice(key, reference))
+            {
+                LOG(ERROR) << "Actuator does not exist for device: " << key << ", " << reference;
+                return;
+            }
+
+            const ActuatorStatus actuatorStatus = [&] {
+                if (m_actuatorStatusProvider)
+                {
+                    return m_actuatorStatusProvider->getActuatorStatus(key, reference);
+                }
+                else if (m_actuatorStatusProviderLambda)
+                {
+                    return m_actuatorStatusProviderLambda(key, reference);
+                }
+
+                return ActuatorStatus("", ActuatorStatus::State::ERROR);
+            }();
+
+            m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
+            m_dataService->publishActuatorStatuses();
         }
-
-        const ActuatorStatus actuatorStatus = [&] {
-            if (m_actuatorStatusProvider)
-            {
-                return m_actuatorStatusProvider->getActuatorStatus(key, reference);
-            }
-            else if (m_actuatorStatusProviderLambda)
-            {
-                return m_actuatorStatusProviderLambda(key, reference);
-            }
-
-            return ActuatorStatus("", ActuatorStatus::State::ERROR);
-        }();
-
-        m_dataService->addActuatorStatus(key, reference, actuatorStatus.getValue(), actuatorStatus.getState());
-        m_dataService->publishActuatorStatuses();
     });
 }
 
 void Wolk::handleDeviceStatusRequest(const std::string& key)
 {
     addToCommandBuffer([=] {
-        const DeviceStatus status = [&] {
-            if (m_deviceStatusProvider)
+        if (key.empty())
+        {
+            publishDeviceStatuses();
+        }
+        else
+        {
+            if (!deviceExists(key))
             {
-                return m_deviceStatusProvider->getDeviceStatus(key);
-            }
-            else if (m_deviceStatusProviderLambda)
-            {
-                return m_deviceStatusProviderLambda(key);
+                return;
             }
 
-            return DeviceStatus::OFFLINE;
-        }();
+            const DeviceStatus::Status status = [&] {
+                if (m_deviceStatusProvider)
+                {
+                    return m_deviceStatusProvider->getDeviceStatus(key);
+                }
+                else if (m_deviceStatusProviderLambda)
+                {
+                    return m_deviceStatusProviderLambda(key);
+                }
 
-        m_deviceStatusService->publishDeviceStatus(key, status);
+                return DeviceStatus::Status::OFFLINE;
+            }();
+
+            m_deviceStatusService->publishDeviceStatusResponse(key, status);
+        }
     });
 }
 
@@ -511,7 +555,22 @@ void Wolk::publishDeviceStatuses()
     addToCommandBuffer([=] {
         for (const auto& kvp : m_devices)
         {
-            handleDeviceStatusRequest(kvp.second.getKey());
+            addToCommandBuffer([=] {
+                const DeviceStatus::Status status = [&] {
+                    if (m_deviceStatusProvider)
+                    {
+                        return m_deviceStatusProvider->getDeviceStatus(kvp.second.getKey());
+                    }
+                    else if (m_deviceStatusProviderLambda)
+                    {
+                        return m_deviceStatusProviderLambda(kvp.second.getKey());
+                    }
+
+                    return DeviceStatus::Status::OFFLINE;
+                }();
+
+                m_deviceStatusService->publishDeviceStatusUpdate(kvp.second.getKey(), status);
+            });
         }
     });
 }
