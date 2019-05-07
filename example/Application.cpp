@@ -130,6 +130,12 @@ int main(int argc, char** argv)
                 onFail(deviceKey);
             }
         }
+
+        bool abort(const std::string& deviceKey) override
+        {
+            LOG(INFO) << "Abort firmware installation for device " << deviceKey;
+            return false;
+        }
     };
 
     class FirmwareVersionProviderImpl : public wolkabout::FirmwareVersionProvider
