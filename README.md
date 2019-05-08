@@ -1,4 +1,4 @@
-# WolkGatewayModule C++
+# WolkGatewayModule SDK C++
 WolkAbout C++11 Connector library for connecting devices to WolkAbout Gateway.
 
 Supported protocol(s):
