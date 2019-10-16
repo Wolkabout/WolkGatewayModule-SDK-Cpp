@@ -195,6 +195,13 @@ public:
     void publish(const std::string& deviceKey);
 
     /**
+     * @brief explicitly publishes device's status
+     * @param deviceKey
+     * @param status
+     */
+    void publishDeviceStatus(const std::string& deviceKey, DeviceStatus::Status status);
+
+    /**
      * @brief addDevice
      * @param device
      */
