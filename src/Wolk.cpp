@@ -575,10 +575,9 @@ void Wolk::publishDeviceStatuses()
     });
 }
 
-void Wolk::publishDeviceStatus(const std::string &deviceKey, DeviceStatus::Status status) {
-    addToCommandBuffer([=] {
-        m_deviceStatusService->publishDeviceStatusUpdate(deviceKey, status);
-    });
+void Wolk::publishDeviceStatus(const std::string& deviceKey, DeviceStatus::Status status)
+{
+    addToCommandBuffer([=] { m_deviceStatusService->publishDeviceStatusUpdate(deviceKey, status); });
 }
 
 std::vector<std::string> Wolk::getDeviceKeys()
@@ -694,7 +693,7 @@ void Wolk::handleRegistrationResponse(const std::string& deviceKey, SubdeviceReg
     });
 }
 
-    Wolk::ConnectivityFacade::ConnectivityFacade(InboundMessageHandler& handler,
+Wolk::ConnectivityFacade::ConnectivityFacade(InboundMessageHandler& handler,
                                              std::function<void()> connectionLostHandler)
 : m_messageHandler{handler}, m_connectionLostHandler{connectionLostHandler}
 {
