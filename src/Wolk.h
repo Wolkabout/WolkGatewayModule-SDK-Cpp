@@ -162,6 +162,14 @@ public:
     void publishActuatorStatus(const std::string& deviceKey, const std::string& reference);
 
     /**
+     * @brief Accepts actuator value directly from the provider for device and reference.
+     * @param deviceKey key of the device that holds the actuator
+     * @param Actuator reference
+     * @param value value
+     */
+    void publishActuatorStatus(const std::string& deviceKey, const std::string& reference, const std::string& value);
+
+    /**
      * @brief addDeviceStatus
      * @param status
      */
