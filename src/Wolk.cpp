@@ -168,7 +168,7 @@ void Wolk::publishActuatorStatus(const std::string& deviceKey, const std::string
     handleActuatorGetCommand(deviceKey, reference);
 }
 
-void Wolk::publishActuatorStatus(const std::string &deviceKey, const std::string &reference, const std::string& value)
+void Wolk::publishActuatorStatus(const std::string& deviceKey, const std::string& reference, const std::string& value)
 {
     addToCommandBuffer([=] {
         m_dataService->addActuatorStatus(deviceKey, reference, value, ActuatorStatus::State::READY);
