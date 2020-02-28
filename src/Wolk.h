@@ -183,6 +183,14 @@ public:
     void publishConfiguration(const std::string& deviceKey);
 
     /**
+     * @brief Invokes ConfigurationProvider to obtain device configuration, and the publishes it.<br>
+     *        This method is thread safe, and can be called from multiple thread simultaneously
+     * * @param deviceKey key of the device that holds the configuration
+     * * @param configurations values for each configuration reference of said device
+     */
+    void publishConfiguration(const std::string& deviceKey, std::vector<ConfigurationItem> configurations);
+
+    /**
      * @brief connect Establishes connection with WolkAbout IoT platform
      */
     void connect();
