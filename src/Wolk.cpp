@@ -181,7 +181,7 @@ void Wolk::publishConfiguration(const std::string& deviceKey)
     handleConfigurationGetCommand(deviceKey);
 }
 
-void Wolk::publishConfiguration(const std::string &deviceKey, std::vector<ConfigurationItem> configurations)
+void Wolk::publishConfiguration(const std::string& deviceKey, std::vector<ConfigurationItem> configurations)
 {
     addToCommandBuffer([=] {
         m_dataService->addConfiguration(deviceKey, configurations);
