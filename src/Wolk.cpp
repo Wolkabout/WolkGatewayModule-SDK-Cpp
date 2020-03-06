@@ -168,9 +168,25 @@ void Wolk::publishActuatorStatus(const std::string& deviceKey, const std::string
     handleActuatorGetCommand(deviceKey, reference);
 }
 
+void Wolk::publishActuatorStatus(const std::string& deviceKey, const std::string& reference, const std::string& value)
+{
+    addToCommandBuffer([=] {
+        m_dataService->addActuatorStatus(deviceKey, reference, value, ActuatorStatus::State::READY);
+        m_dataService->publishActuatorStatuses(deviceKey);
+    });
+}
+
 void Wolk::publishConfiguration(const std::string& deviceKey)
 {
     handleConfigurationGetCommand(deviceKey);
+}
+
+void Wolk::publishConfiguration(const std::string& deviceKey, std::vector<ConfigurationItem> configurations)
+{
+    addToCommandBuffer([=] {
+        m_dataService->addConfiguration(deviceKey, configurations);
+        m_dataService->publishConfiguration();
+    });
 }
 
 void Wolk::addDeviceStatus(const std::string& deviceKey, DeviceStatus::Status status)

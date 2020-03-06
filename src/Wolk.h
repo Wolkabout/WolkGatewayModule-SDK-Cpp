@@ -162,6 +162,14 @@ public:
     void publishActuatorStatus(const std::string& deviceKey, const std::string& reference);
 
     /**
+     * @brief Accepts actuator value directly from the provider for device and reference.
+     * @param deviceKey key of the device that holds the actuator
+     * @param Actuator reference
+     * @param value value
+     */
+    void publishActuatorStatus(const std::string& deviceKey, const std::string& reference, const std::string& value);
+
+    /**
      * @brief addDeviceStatus
      * @param status
      */
@@ -173,6 +181,14 @@ public:
      * * @param deviceKey key of the device that holds the configuration
      */
     void publishConfiguration(const std::string& deviceKey);
+
+    /**
+     * @brief Invokes ConfigurationProvider to obtain device configuration, and the publishes it.<br>
+     *        This method is thread safe, and can be called from multiple thread simultaneously
+     * * @param deviceKey key of the device that holds the configuration
+     * * @param configurations values for each configuration reference of said device
+     */
+    void publishConfiguration(const std::string& deviceKey, std::vector<ConfigurationItem> configurations);
 
     /**
      * @brief connect Establishes connection with WolkAbout IoT platform
