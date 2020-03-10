@@ -16,9 +16,7 @@ cmake_minimum_required(VERSION 3.5)
 project(WolkGatewayModule C CXX)
 
 set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
-
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(NO_OUTPUT_DIRS KEEP_RPATHS)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -38,10 +36,8 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}    -Wall -Wextra -pedantic             
                                             -Wvariadic-macros                                                          \
                                             -Wwrite-strings -Werror=non-virtual-dtor")
 
-set(SSL_INCLUDE_DIR "${CONAN_INCLUDE_DIRS_OPENSSL}")
-set(SSL_LIBS "${CONAN_LIBS}")
-
 # library output
+set(CMAKE_LIBRARY_INCLUDE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 link_directories(${CMAKE_BINARY_DIR}/lib)
 
@@ -56,20 +52,20 @@ file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} WolkAboutCore)
-set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-rpath,./")
+set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/src")
 
 # Tests
 include_directories("tests")
-include_directories(SYSTEM "${CONAN_INCLUDE_DIRS_GTEST}")
 
 file(GLOB_RECURSE TESTS_HEADER_FILES "tests/*.h" "tests/*.hpp")
 file(GLOB_RECURSE TESTS_SOURCE_FILES "tests/*.cpp")
 
 add_executable(tests ${TESTS_SOURCE_FILES})
-target_link_libraries(tests gmock_main gmock gtest ${PROJECT_NAME})
-set_target_properties(tests PROPERTIES LINK_FLAGS "-Wl,-rpath,./lib")
+target_include_directories(tests PUBLIC ${CMAKE_LIBRARY_INCLUDE_DIRECTORY})
+target_link_libraries(tests ${PROJECT_NAME} gtest_main gmock_main gmock gtest)
+set_target_properties(tests PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
 
 # Example
 include_directories("example")
@@ -79,6 +75,6 @@ file(GLOB_RECURSE EXAMPLE_SOURCE_FILES "example/*.cpp")
 
 add_executable(example ${EXAMPLE_SOURCE_FILES})
 target_link_libraries(example ${PROJECT_NAME})
-set_target_properties(example PROPERTIES LINK_FLAGS "-Wl,-rpath,./lib")
+set_target_properties(example PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
 
 add_subdirectory(cmake)
