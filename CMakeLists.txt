@@ -57,15 +57,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/src")
 
 # Tests
-include_directories("tests")
+#include_directories("tests")
 
-file(GLOB_RECURSE TESTS_HEADER_FILES "tests/*.h" "tests/*.hpp")
-file(GLOB_RECURSE TESTS_SOURCE_FILES "tests/*.cpp")
+#file(GLOB_RECURSE TESTS_HEADER_FILES "tests/*.h" "tests/*.hpp")
+#file(GLOB_RECURSE TESTS_SOURCE_FILES "tests/*.cpp")
 
-add_executable(tests ${TESTS_SOURCE_FILES})
-target_include_directories(tests PUBLIC ${CMAKE_LIBRARY_INCLUDE_DIRECTORY})
-target_link_libraries(tests ${PROJECT_NAME} gtest_main gmock_main gmock gtest)
-set_target_properties(tests PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
+#add_executable(tests ${TESTS_SOURCE_FILES})
+#target_include_directories(tests PUBLIC ${CMAKE_LIBRARY_INCLUDE_DIRECTORY})
+#target_link_libraries(tests ${PROJECT_NAME} gtest_main gmock_main gmock gtest)
+#set_target_properties(tests PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
 
 # Example
 include_directories("example")
