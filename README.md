@@ -37,7 +37,7 @@ Generated build system is located inside 'out' directory
 
 
 WolkAbout C++ Connector library, and example are built from 'out' directory by invoking
-`make` in terminal
+`make` in terminal. To make tests, you need to invoke `make tests`.
 
 Example Usage
 -------------
