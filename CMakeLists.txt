@@ -76,8 +76,8 @@ include_directories("example")
 file(GLOB_RECURSE EXAMPLE_HEADER_FILES "example/*.h")
 file(GLOB_RECURSE EXAMPLE_SOURCE_FILES "example/*.cpp")
 
-add_executable(example ${EXAMPLE_SOURCE_FILES})
-target_link_libraries(example ${PROJECT_NAME})
-set_target_properties(example PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
+add_executable(${PROJECT_NAME}Example ${EXAMPLE_SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME}Example ${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}Example PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
 
 add_subdirectory(cmake)
