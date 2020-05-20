@@ -62,13 +62,13 @@ include_directories("tests")
 file(GLOB_RECURSE TESTS_HEADER_FILES "tests/*.h" "tests/*.hpp")
 file(GLOB_RECURSE TESTS_SOURCE_FILES "tests/*.cpp")
 
-add_executable(${PROJECT_NAME}tests ${TESTS_SOURCE_FILES})
-target_include_directories(${PROJECT_NAME}tests PUBLIC ${CMAKE_LIBRARY_INCLUDE_DIRECTORY})
-target_link_libraries(${PROJECT_NAME}tests ${PROJECT_NAME} gtest_main gmock_main gmock gtest)
-set_target_properties(${PROJECT_NAME}tests PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
-set_target_properties(${PROJECT_NAME}tests PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_executable(${PROJECT_NAME}Tests ${TESTS_SOURCE_FILES})
+target_include_directories(${PROJECT_NAME}Tests PUBLIC ${CMAKE_LIBRARY_INCLUDE_DIRECTORY})
+target_link_libraries(${PROJECT_NAME}Tests ${PROJECT_NAME} gtest_main gmock_main gmock gtest)
+set_target_properties(${PROJECT_NAME}Tests PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
+set_target_properties(${PROJECT_NAME}Tests PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
-add_custom_target(tests ${PROJECT_NAME}tests deviceConfiguration.json)
+add_custom_target(tests ${PROJECT_NAME}Tests deviceConfiguration.json)
 
 # Example
 include_directories("example")
