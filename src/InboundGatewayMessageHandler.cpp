@@ -15,6 +15,7 @@
  */
 
 #include "InboundGatewayMessageHandler.h"
+
 #include "model/Message.h"
 #include "protocol/Protocol.h"
 #include "utilities/Logger.h"

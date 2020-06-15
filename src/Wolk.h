@@ -26,7 +26,6 @@
 #include "model/Device.h"
 #include "model/DeviceStatus.h"
 #include "model/SubdeviceRegistrationResponse.h"
-
 #include "utilities/CommandBuffer.h"
 
 #include <functional>

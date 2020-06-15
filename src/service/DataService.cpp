@@ -15,6 +15,7 @@
  */
 
 #include "service/DataService.h"
+
 #include "connectivity/ConnectivityService.h"
 #include "model/ActuatorGetCommand.h"
 #include "model/ActuatorSetCommand.h"
