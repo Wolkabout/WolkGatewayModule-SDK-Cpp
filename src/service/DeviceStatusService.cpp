@@ -15,11 +15,11 @@
  */
 
 #include "service/DeviceStatusService.h"
+
 #include "connectivity/ConnectivityService.h"
 #include "model/DeviceStatus.h"
 #include "model/Message.h"
 #include "protocol/StatusProtocol.h"
-
 #include "utilities/Logger.h"
 
 namespace wolkabout

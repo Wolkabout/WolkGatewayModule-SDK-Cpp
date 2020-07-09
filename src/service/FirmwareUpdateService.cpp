@@ -15,6 +15,7 @@
  */
 
 #include "service/FirmwareUpdateService.h"
+
 #include "FirmwareInstaller.h"
 #include "FirmwareVersionProvider.h"
 #include "connectivity/ConnectivityService.h"

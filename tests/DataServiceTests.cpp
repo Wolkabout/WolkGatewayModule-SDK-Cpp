@@ -26,6 +26,7 @@
 #undef protected
 
 #include <gtest/gtest.h>
+
 #include <cstdio>
 #include <memory>
 #include <tuple>

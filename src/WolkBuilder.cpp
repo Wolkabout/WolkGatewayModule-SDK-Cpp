@@ -15,6 +15,7 @@
  */
 
 #include "WolkBuilder.h"
+
 #include "ActuationHandlerPerDevice.h"
 #include "ActuatorStatusProviderPerDevice.h"
 #include "InboundMessageHandler.h"

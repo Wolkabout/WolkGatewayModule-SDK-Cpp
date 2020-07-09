@@ -6,11 +6,11 @@
 #include "model/SensorReading.h"
 #include "persistence/Persistence.h"
 
+#include <gmock/gmock.h>
+
 #include <map>
 #include <string>
 #include <vector>
-
-#include <gmock/gmock.h>
 
 class MockPersistence : public wolkabout::Persistence
 {

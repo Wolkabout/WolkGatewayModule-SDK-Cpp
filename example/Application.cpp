@@ -17,9 +17,8 @@
 #include "Configuration.h"
 #include "Wolk.h"
 #include "model/DeviceTemplate.h"
-#include "utilities/ConsoleLogger.h"
-
 #include "model/SensorTemplate.h"
+#include "utilities/ConsoleLogger.h"
 
 #include <chrono>
 #include <iostream>
