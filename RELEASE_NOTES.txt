@@ -5,5 +5,10 @@
 
 WolkAbout C++11 Connector library for connecting devices to WolkAbout Gateway
 
+**Version 4.0.1**
+- [BUGFIX] Separated tests to be built only when `make tests` is invoked.
+- [BUGFIX] Actuator type naming, changed with submodule update
+- [IMPROVEMENT] Various code style fixes
+
 **Version 4.0.0**
 - [IMPROVEMENT] Updated JSON communication protocol to be in-line with WolkGateway version 4.0.0
