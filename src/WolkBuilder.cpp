@@ -205,25 +205,29 @@ std::unique_ptr<Wolk> WolkBuilder::build()
     wolk->m_deviceStatusProvider = m_deviceStatusProvider;
     wolk->m_deviceStatusProviderLambda = m_deviceStatusProviderLambda;
 
+    const auto rawPointer = wolk.get();
+
     wolk->m_dataService = std::make_shared<DataService>(
       *wolk->m_dataProtocol, *wolk->m_persistence, *wolk->m_connectivityService,
-      [&](const std::string& key, const std::string& reference, const std::string& value) {
-          wolk->handleActuatorSetCommand(key, reference, value);
+      [rawPointer](const std::string& key, const std::string& reference, const std::string& value) {
+          rawPointer->handleActuatorSetCommand(key, reference, value);
       },
-      [&](const std::string& key, const std::string& reference) { wolk->handleActuatorGetCommand(key, reference); },
-      [&](const std::string& key, const std::vector<ConfigurationItem>& configuration) {
-          wolk->handleConfigurationSetCommand(key, configuration);
+      [rawPointer](const std::string& key, const std::string& reference) {
+          rawPointer->handleActuatorGetCommand(key, reference);
       },
-      [&](const std::string& key) { wolk->handleConfigurationGetCommand(key); });
+      [rawPointer](const std::string& key, const std::vector<ConfigurationItem>& configuration) {
+          rawPointer->handleConfigurationSetCommand(key, configuration);
+      },
+      [rawPointer](const std::string& key) { rawPointer->handleConfigurationGetCommand(key); });
 
-    wolk->m_deviceStatusService =
-      std::make_shared<DeviceStatusService>(*wolk->m_statusProtocol, *wolk->m_connectivityService,
-                                            [&](const std::string& key) { wolk->handleDeviceStatusRequest(key); });
+    wolk->m_deviceStatusService = std::make_shared<DeviceStatusService>(
+      *wolk->m_statusProtocol, *wolk->m_connectivityService,
+      [rawPointer](const std::string& key) { rawPointer->handleDeviceStatusRequest(key); });
 
     wolk->m_deviceRegistrationService = std::make_shared<DeviceRegistrationService>(
       *wolk->m_registrationProtocol, *wolk->m_connectivityService,
-      [&](const std::string& key, SubdeviceRegistrationResponse::Result result) {
-          wolk->handleRegistrationResponse(key, result);
+      [rawPointer](const std::string& key, SubdeviceRegistrationResponse::Result result) {
+          rawPointer->handleRegistrationResponse(key, result);
       });
 
     // Firmware update service
