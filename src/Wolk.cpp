@@ -685,7 +685,7 @@ bool Wolk::configurationItemDefinedForDevice(const std::string& deviceKey, const
     return configurationIt != configurations.end();
 }
 
-void Wolk::handleRegistrationResponse(const std::string& deviceKey, SubdeviceRegistrationResponse::Result result)
+void Wolk::handleRegistrationResponse(const std::string& deviceKey, PlatformResult::Code result)
 {
     LOG(INFO) << "Registration response for device '" << deviceKey << "' received: " << static_cast<int>(result);
 
@@ -696,7 +696,7 @@ void Wolk::handleRegistrationResponse(const std::string& deviceKey, SubdeviceReg
             return;
         }
 
-        if (result == SubdeviceRegistrationResponse::Result::OK)
+        if (result == PlatformResult::Code::OK)
         {
             for (const auto& ref : getActuatorReferences(deviceKey))
             {

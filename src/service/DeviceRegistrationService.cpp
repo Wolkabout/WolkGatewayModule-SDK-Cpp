@@ -52,7 +52,7 @@ void DeviceRegistrationService::messageReceived(std::shared_ptr<Message> message
               << message->getChannel() << "' Payload: '" << message->getContent() << "'";
             return;
         }
-        m_registrationResponseHandler(deviceKey, response->getResult());
+        m_registrationResponseHandler(deviceKey, response->getResult().getCode());
     }
     else
     {

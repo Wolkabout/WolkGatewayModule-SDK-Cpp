@@ -25,7 +25,7 @@
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
 #include "model/DeviceStatus.h"
-#include "model/SubdeviceRegistrationResponse.h"
+#include "model/PlatformResult.h"
 #include "utilities/CommandBuffer.h"
 
 #include <functional>
@@ -259,7 +259,7 @@ private:
     bool actuatorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     bool configurationItemDefinedForDevice(const std::string& deviceKey, const std::string& reference);
 
-    void handleRegistrationResponse(const std::string& deviceKey, SubdeviceRegistrationResponse::Result result);
+    void handleRegistrationResponse(const std::string& deviceKey, PlatformResult::Code result);
 
     std::unique_ptr<ConnectivityService> m_connectivityService;
 

@@ -28,7 +28,7 @@ class ConnectivityService;
 class RegistrationProtocol;
 class DetailedDevice;
 
-typedef std::function<void(const std::string&, SubdeviceRegistrationResponse::Result)> RegistrationResponseHandler;
+typedef std::function<void(const std::string&, PlatformResult::Code)> RegistrationResponseHandler;
 
 class DeviceRegistrationService : public MessageListener
 {

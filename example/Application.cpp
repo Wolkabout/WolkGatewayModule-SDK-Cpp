@@ -58,42 +58,27 @@ int main(int argc, char** argv)
                                                                              {{"50", "32", "-2"}, "KEY_2"}};
     static std::vector<wolkabout::ConfigurationItem> device2configuration = {{{"value3"}, "KEY_3"}};
 
-    wolkabout::SensorTemplate temperatureSensor{"Temperature",
-                                                "T",
-                                                wolkabout::ReadingType::Name::TEMPERATURE,
-                                                wolkabout::ReadingType::MeasurmentUnit::CELSIUS,
-                                                "",
-                                                -273.15,
-                                                100000000};
-    wolkabout::SensorTemplate pressureSensor{
-      "Pressure", "P", wolkabout::ReadingType::Name::PRESSURE, wolkabout::ReadingType::MeasurmentUnit::MILLIBAR, "",
-      0,          1100};
-    wolkabout::SensorTemplate humiditySensor{"Humidity",
-                                             "H",
-                                             wolkabout::ReadingType::Name::HUMIDITY,
-                                             wolkabout::ReadingType::MeasurmentUnit::HUMIDITY_PERCENT,
-                                             "",
-                                             0,
-                                             100};
+    wolkabout::SensorTemplate temperatureSensor{"Temperature", "T", wolkabout::ReadingType::Name::TEMPERATURE,
+                                                wolkabout::ReadingType::MeasurmentUnit::CELSIUS, ""};
+    wolkabout::SensorTemplate pressureSensor{"Pressure", "P", wolkabout::ReadingType::Name::PRESSURE,
+                                             wolkabout::ReadingType::MeasurmentUnit::MILLIBAR, ""};
+    wolkabout::SensorTemplate humiditySensor{"Humidity", "H", wolkabout::ReadingType::Name::HUMIDITY,
+                                             wolkabout::ReadingType::MeasurmentUnit::HUMIDITY_PERCENT, ""};
 
-    wolkabout::SensorTemplate accelerationSensor{"Acceleration",
-                                                 "ACCELEROMETER_REF",
+    wolkabout::SensorTemplate accelerationSensor{"Acceleration", "ACCELEROMETER_REF",
                                                  wolkabout::ReadingType::Name::ACCELEROMETER,
-                                                 wolkabout::ReadingType::MeasurmentUnit::METRES_PER_SQUARE_SECOND,
-                                                 "",
-                                                 0,
-                                                 20000};
+                                                 wolkabout::ReadingType::MeasurmentUnit::METRES_PER_SQUARE_SECOND, ""};
 
     wolkabout::ActuatorTemplate switchActuator{"Switch", "SW", wolkabout::DataType::BOOLEAN, "Light switch"};
-    wolkabout::ActuatorTemplate sliderActuator{"Slider", "SL", wolkabout::DataType::NUMERIC, "Light dimmer", 0, 115};
+    wolkabout::ActuatorTemplate sliderActuator{"Slider", "SL", wolkabout::DataType::NUMERIC, "Light dimmer"};
     wolkabout::ActuatorTemplate textActuator{"Message", "MSG", wolkabout::DataType::STRING, "Text"};
 
     wolkabout::AlarmTemplate highHumidityAlarm{"High Humidity", "HH", ""};
 
     wolkabout::ConfigurationTemplate configurationItem1{"Item1", "KEY_1", wolkabout::DataType::STRING, "", "value1"};
 
-    wolkabout::ConfigurationTemplate configurationItem2{
-      "Item2", "KEY_2", wolkabout::DataType::NUMERIC, "", "5", {"x", "y", "z"}, 0, 100};
+    wolkabout::ConfigurationTemplate configurationItem2{"Item2", "KEY_2", wolkabout::DataType::NUMERIC,
+                                                        "",      "5",     {"x", "y", "z"}};
 
     wolkabout::ConfigurationTemplate configurationItem3{"Item3", "KEY_3", wolkabout::DataType::BOOLEAN, "", "false"};
 
@@ -239,7 +224,7 @@ int main(int argc, char** argv)
     wolk->addSensorReading("DEVICE_KEY_1", "T", 25.6);
 
     wolk->addSensorReading("DEVICE_KEY_2", "H", 52);
-    wolk->addAlarm("DEVICE_KEY_2", "HH", "High Humidity");
+    wolk->addAlarm("DEVICE_KEY_2", "HH", true);
 
     wolk->addSensorReading("DEVICE_KEY_2", "ACCELEROMETER_REF", {0, -5, 10});
 
