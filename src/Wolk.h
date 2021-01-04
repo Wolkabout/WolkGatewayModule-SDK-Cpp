@@ -217,10 +217,19 @@ public:
     void publishDeviceStatus(const std::string& deviceKey, DeviceStatus::Status status);
 
     /**
-     * @brief addDevice
+     * @brief addDevice Registers device on WolkAbout IoT platform
      * @param device
      */
     void addDevice(const Device& device);
+
+    /**
+     * @brief addAssetsToDevice Updates device with assets on WolkAbout IoT platform
+     *
+     */
+    void addAssetsToDevice(std::string deviceKey, bool updateDefaultSemantics,
+                           std::vector<ConfigurationTemplate> configurations = {},
+                           std::vector<SensorTemplate> sensors = {}, std::vector<AlarmTemplate> alarms = {},
+                           std::vector<ActuatorTemplate> actuators = {});
 
     /**
      * @brief removeDevice
@@ -245,6 +254,9 @@ private:
 
     void registerDevices();
     void registerDevice(const Device& device);
+    void updateDevice(std::string deviceKey, bool updateDefaultSemantics,
+                      std::vector<ConfigurationTemplate> configurations = {}, std::vector<SensorTemplate> sensors = {},
+                      std::vector<AlarmTemplate> alarms = {}, std::vector<ActuatorTemplate> actuators = {});
 
     void publishFirmwareVersion(const std::string& deviceKey);
     void publishFirmwareVersions();
@@ -259,7 +271,15 @@ private:
     bool actuatorDefinedForDevice(const std::string& deviceKey, const std::string& reference);
     bool configurationItemDefinedForDevice(const std::string& deviceKey, const std::string& reference);
 
+    bool validateAssetsToUpdate(const Device& device, const std::vector<ConfigurationTemplate>& configurations,
+                                const std::vector<SensorTemplate>& sensors, const std::vector<AlarmTemplate>& alarms,
+                                const std::vector<ActuatorTemplate>& actuators) const;
+    void storeAssetsToDevice(Device& device, const std::vector<ConfigurationTemplate>& configurations,
+                             const std::vector<SensorTemplate>& sensors, const std::vector<AlarmTemplate>& alarms,
+                             const std::vector<ActuatorTemplate>& actuators);
+
     void handleRegistrationResponse(const std::string& deviceKey, PlatformResult::Code result);
+    void handleUpdateResponse(const std::string& deviceKey, PlatformResult::Code result);
 
     std::unique_ptr<ConnectivityService> m_connectivityService;
 

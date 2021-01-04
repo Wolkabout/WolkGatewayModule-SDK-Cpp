@@ -228,6 +228,9 @@ std::unique_ptr<Wolk> WolkBuilder::build()
       std::make_shared<DeviceRegistrationService>(*wolk->m_registrationProtocol, *wolk->m_connectivityService,
                                                   [rawPointer](const std::string& key, PlatformResult::Code result) {
                                                       rawPointer->handleRegistrationResponse(key, result);
+                                                  },
+                                                  [rawPointer](const std::string& key, PlatformResult::Code result) {
+                                                      rawPointer->handleUpdateResponse(key, result);
                                                   });
 
     // Firmware update service

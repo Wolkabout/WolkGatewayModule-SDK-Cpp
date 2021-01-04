@@ -23,6 +23,7 @@
 #include "connectivity/ConnectivityService.h"
 #include "model/ActuatorStatus.h"
 #include "model/Device.h"
+#include "model/SubdeviceUpdateRequest.h"
 #include "protocol/DataProtocol.h"
 #include "protocol/RegistrationProtocol.h"
 #include "protocol/StatusProtocol.h"
@@ -289,6 +290,32 @@ void Wolk::addDevice(const Device& device)
     });
 }
 
+void Wolk::addAssetsToDevice(std::string deviceKey, bool updateDefaultSemantics,
+                             std::vector<ConfigurationTemplate> configurations, std::vector<SensorTemplate> sensors,
+                             std::vector<AlarmTemplate> alarms, std::vector<ActuatorTemplate> actuators)
+{
+    addToCommandBuffer([=] {
+        if (!deviceExists(deviceKey))
+        {
+            LOG(ERROR) << "Can't update device with key '" << deviceKey << "': device is not registered";
+            return;
+        }
+
+        auto& device = m_devices[deviceKey];
+
+        if (!validateAssetsToUpdate(device, configurations, sensors, alarms, actuators))
+        {
+            return;
+        }
+
+        if (m_connected)
+        {
+            updateDevice(deviceKey, updateDefaultSemantics, configurations, sensors, alarms, actuators);
+            storeAssetsToDevice(device, configurations, sensors, alarms, actuators);
+        }
+    });
+}
+
 void Wolk::removeDevice(const std::string& deviceKey)
 {
     addToCommandBuffer([=] {
@@ -530,6 +557,17 @@ void Wolk::registerDevice(const Device& device)
     addToCommandBuffer([=] { m_deviceRegistrationService->publishRegistrationRequest(device); });
 }
 
+void Wolk::updateDevice(std::string deviceKey, bool updateDefaultSemantics,
+                        std::vector<ConfigurationTemplate> configurations, std::vector<SensorTemplate> sensors,
+                        std::vector<AlarmTemplate> alarms, std::vector<ActuatorTemplate> actuators)
+{
+    addToCommandBuffer([=] {
+        SubdeviceUpdateRequest request{deviceKey, updateDefaultSemantics, configurations, sensors, alarms, actuators};
+
+        m_deviceRegistrationService->publishUpdateRequest(request);
+    });
+}
+
 void Wolk::registerDevices()
 {
     addToCommandBuffer([=] {
@@ -685,9 +723,119 @@ bool Wolk::configurationItemDefinedForDevice(const std::string& deviceKey, const
     return configurationIt != configurations.end();
 }
 
+bool Wolk::validateAssetsToUpdate(const Device& device, const std::vector<ConfigurationTemplate>& configurations,
+                                  const std::vector<SensorTemplate>& sensors, const std::vector<AlarmTemplate>& alarms,
+                                  const std::vector<ActuatorTemplate>& actuators) const
+{
+    for (const auto& conf : configurations)
+    {
+        const auto existingConf = device.getTemplate().getConfigurationTemplate(conf.getReference());
+        if (existingConf && *existingConf != conf)
+        {
+            LOG(ERROR) << "Can't update device with key '" << device.getKey()
+                       << "': conflicting configuration template";
+            return false;
+        }
+    }
+
+    for (const auto& sensor : sensors)
+    {
+        const auto existingSensor = device.getTemplate().getSensorTemplate(sensor.getReference());
+        if (existingSensor && *existingSensor != sensor)
+        {
+            LOG(ERROR) << "Can't update device with key '" << device.getKey() << "': conflicting sensor template";
+            return false;
+        }
+    }
+
+    for (const auto& alarm : alarms)
+    {
+        const auto existingAlarm = device.getTemplate().getAlarmTemplate(alarm.getReference());
+        if (existingAlarm && *existingAlarm != alarm)
+        {
+            LOG(ERROR) << "Can't update device with key '" << device.getKey() << "': conflicting alarm template";
+            return false;
+        }
+    }
+
+    for (const auto& actuator : actuators)
+    {
+        const auto existingActuator = device.getTemplate().getActuatorTemplate(actuator.getReference());
+        if (existingActuator && *existingActuator != actuator)
+        {
+            LOG(ERROR) << "Can't update device with key '" << device.getKey() << "': conflicting actuator template";
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void Wolk::storeAssetsToDevice(Device& device, const std::vector<ConfigurationTemplate>& configurations,
+                               const std::vector<SensorTemplate>& sensors, const std::vector<AlarmTemplate>& alarms,
+                               const std::vector<ActuatorTemplate>& actuators)
+{
+    for (const auto& conf : configurations)
+    {
+        if (!device.getTemplate().hasConfigurationTemplateWithReference(conf.getReference()))
+        {
+            device.getTemplate().addConfiguration(conf);
+        }
+    }
+
+    for (const auto& sensor : sensors)
+    {
+        if (!device.getTemplate().hasSensorTemplateWithReference(sensor.getReference()))
+        {
+            device.getTemplate().addSensor(sensor);
+        }
+    }
+
+    for (const auto& alarm : alarms)
+    {
+        if (!device.getTemplate().hasAlarmTemplateWithReference(alarm.getReference()))
+        {
+            device.getTemplate().addAlarm(alarm);
+        }
+    }
+
+    for (const auto& actuator : actuators)
+    {
+        if (!device.getTemplate().hasActuatorTemplateWithReference(actuator.getReference()))
+        {
+            device.getTemplate().addActuator(actuator);
+        }
+    }
+}
+
 void Wolk::handleRegistrationResponse(const std::string& deviceKey, PlatformResult::Code result)
 {
     LOG(INFO) << "Registration response for device '" << deviceKey << "' received: " << static_cast<int>(result);
+
+    addToCommandBuffer([=] {
+        if (!deviceExists(deviceKey))
+        {
+            LOG(ERROR) << "Device does not exist: " << deviceKey;
+            return;
+        }
+
+        if (result == PlatformResult::Code::OK)
+        {
+            for (const auto& ref : getActuatorReferences(deviceKey))
+            {
+                publishActuatorStatus(deviceKey, ref);
+            }
+
+            publishConfiguration(deviceKey);
+
+            publishFirmwareVersion(deviceKey);
+        }
+    });
+}
+
+void Wolk::handleUpdateResponse(const std::string& deviceKey, PlatformResult::Code result)
+{
+    LOG(INFO) << "Update response for device '" << deviceKey << "' received: " << static_cast<int>(result);
 
     addToCommandBuffer([=] {
         if (!deviceExists(deviceKey))
