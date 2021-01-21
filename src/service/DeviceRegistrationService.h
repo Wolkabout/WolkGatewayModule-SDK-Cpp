@@ -21,30 +21,36 @@
 #include "model/SubdeviceRegistrationResponse.h"
 
 #include <functional>
+#include <vector>
 
 namespace wolkabout
 {
 class ConnectivityService;
-class RegistrationProtocol;
 class DetailedDevice;
+class RegistrationProtocol;
+class SubdeviceUpdateRequest;
 
-typedef std::function<void(const std::string&, SubdeviceRegistrationResponse::Result)> RegistrationResponseHandler;
+typedef std::function<void(const std::string&, PlatformResult::Code)> RegistrationResponseHandler;
+typedef std::function<void(const std::string&, PlatformResult::Code)> UpdateResponseHandler;
 
 class DeviceRegistrationService : public MessageListener
 {
 public:
     DeviceRegistrationService(RegistrationProtocol& protocol, ConnectivityService& connectivityService,
-                              const RegistrationResponseHandler& registrationResponseHandler);
+                              const RegistrationResponseHandler& registrationResponseHandler,
+                              const UpdateResponseHandler& updateResponseHandler);
 
     void messageReceived(std::shared_ptr<Message> message) override;
     const Protocol& getProtocol() override;
 
     void publishRegistrationRequest(const DetailedDevice& device);
+    void publishUpdateRequest(const SubdeviceUpdateRequest& request);
 
 private:
     RegistrationProtocol& m_protocol;
     ConnectivityService& m_connectivityService;
     RegistrationResponseHandler m_registrationResponseHandler;
+    UpdateResponseHandler m_updateResponseHandler;
 };
 }    // namespace wolkabout
 

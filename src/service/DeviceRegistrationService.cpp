@@ -19,6 +19,7 @@
 #include "connectivity/ConnectivityService.h"
 #include "model/Message.h"
 #include "model/SubdeviceRegistrationRequest.h"
+#include "model/SubdeviceUpdateRequest.h"
 #include "protocol/RegistrationProtocol.h"
 #include "utilities/Logger.h"
 
@@ -26,10 +27,12 @@ namespace wolkabout
 {
 DeviceRegistrationService::DeviceRegistrationService(RegistrationProtocol& protocol,
                                                      ConnectivityService& connectivityService,
-                                                     const RegistrationResponseHandler& registrationResponseHandler)
+                                                     const RegistrationResponseHandler& registrationResponseHandler,
+                                                     const UpdateResponseHandler& updateResponseHandler)
 : m_protocol{protocol}
 , m_connectivityService{connectivityService}
 , m_registrationResponseHandler{registrationResponseHandler}
+, m_updateResponseHandler{updateResponseHandler}
 {
 }
 
@@ -52,7 +55,7 @@ void DeviceRegistrationService::messageReceived(std::shared_ptr<Message> message
               << message->getChannel() << "' Payload: '" << message->getContent() << "'";
             return;
         }
-        m_registrationResponseHandler(deviceKey, response->getResult());
+        m_registrationResponseHandler(deviceKey, response->getResult().getCode());
     }
     else
     {
@@ -74,6 +77,16 @@ void DeviceRegistrationService::publishRegistrationRequest(const DetailedDevice&
     if (!outboundMessage || !m_connectivityService.publish(outboundMessage))
     {
         LOG(INFO) << "Registration request not published for device: " << device.getKey();
+    }
+}
+
+void DeviceRegistrationService::publishUpdateRequest(const SubdeviceUpdateRequest& request)
+{
+    const std::shared_ptr<Message> outboundMessage = m_protocol.makeMessage(request.getSubdeviceKey(), request);
+
+    if (!outboundMessage || !m_connectivityService.publish(outboundMessage))
+    {
+        LOG(INFO) << "Registration request not published for device: " << request.getSubdeviceKey();
     }
 }
 }    // namespace wolkabout
