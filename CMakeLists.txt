@@ -51,6 +51,8 @@ endif()
 
 link_directories(${CMAKE_BINARY_DIR}/lib)
 
+find_package(Threads REQUIRED)
+
 # WolkAbout c++ SDK
 add_subdirectory(WolkSDK-Cpp)
 
@@ -61,7 +63,7 @@ file(GLOB_RECURSE HEADER_FILES "src/*.h" "src/*.hpp")
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} WolkAboutCore)
+target_link_libraries(${PROJECT_NAME} WolkAboutCore Threads::Threads)
 set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN")
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/src")
