@@ -18,18 +18,18 @@
 
 #include "ActuationHandlerPerDevice.h"
 #include "ActuatorStatusProviderPerDevice.h"
-#include "InboundMessageHandler.h"
 #include "Wolk.h"
-#include "connectivity/ConnectivityService.h"
-#include "connectivity/mqtt/MqttConnectivityService.h"
-#include "connectivity/mqtt/PahoMqttClient.h"
+#include "core/InboundMessageHandler.h"
+#include "core/connectivity/ConnectivityService.h"
+#include "core/connectivity/mqtt/MqttConnectivityService.h"
+#include "core/connectivity/mqtt/PahoMqttClient.h"
+#include "core/persistence/InMemoryPersistence.h"
+#include "core/persistence/Persistence.h"
+#include "core/protocol/json/JsonDFUProtocol.h"
+#include "core/protocol/json/JsonProtocol.h"
+#include "core/protocol/json/JsonRegistrationProtocol.h"
+#include "core/protocol/json/JsonStatusProtocol.h"
 #include "model/Device.h"
-#include "persistence/Persistence.h"
-#include "persistence/inmemory/InMemoryPersistence.h"
-#include "protocol/json/JsonDFUProtocol.h"
-#include "protocol/json/JsonProtocol.h"
-#include "protocol/json/JsonRegistrationProtocol.h"
-#include "protocol/json/JsonStatusProtocol.h"
 #include "service/DataService.h"
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
@@ -224,14 +224,14 @@ std::unique_ptr<Wolk> WolkBuilder::build()
       *wolk->m_statusProtocol, *wolk->m_connectivityService,
       [rawPointer](const std::string& key) { rawPointer->handleDeviceStatusRequest(key); });
 
-    wolk->m_deviceRegistrationService =
-      std::make_shared<DeviceRegistrationService>(*wolk->m_registrationProtocol, *wolk->m_connectivityService,
-                                                  [rawPointer](const std::string& key, PlatformResult::Code result) {
-                                                      rawPointer->handleRegistrationResponse(key, result);
-                                                  },
-                                                  [rawPointer](const std::string& key, PlatformResult::Code result) {
-                                                      rawPointer->handleUpdateResponse(key, result);
-                                                  });
+    wolk->m_deviceRegistrationService = std::make_shared<DeviceRegistrationService>(
+      *wolk->m_registrationProtocol, *wolk->m_connectivityService,
+      [rawPointer](const std::string& key, PlatformResult::Code result) {
+          rawPointer->handleRegistrationResponse(key, result);
+      },
+      [rawPointer](const std::string& key, PlatformResult::Code result) {
+          rawPointer->handleUpdateResponse(key, result);
+      });
 
     // Firmware update service
     if (m_firmwareInstaller != nullptr)

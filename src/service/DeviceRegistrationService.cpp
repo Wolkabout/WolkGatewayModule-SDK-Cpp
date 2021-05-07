@@ -16,12 +16,12 @@
 
 #include "service/DeviceRegistrationService.h"
 
-#include "connectivity/ConnectivityService.h"
-#include "model/Message.h"
-#include "model/SubdeviceRegistrationRequest.h"
-#include "model/SubdeviceUpdateRequest.h"
-#include "protocol/RegistrationProtocol.h"
-#include "utilities/Logger.h"
+#include "core/connectivity/ConnectivityService.h"
+#include "core/model/Message.h"
+#include "core/model/SubdeviceRegistrationRequest.h"
+#include "core/model/SubdeviceUpdateRequest.h"
+#include "core/protocol/RegistrationProtocol.h"
+#include "core/utilities/Logger.h"
 
 namespace wolkabout
 {

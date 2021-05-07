@@ -17,8 +17,8 @@
 #ifndef DEVICEREGISTRATIONSERVICE_H
 #define DEVICEREGISTRATIONSERVICE_H
 
-#include "InboundMessageHandler.h"
-#include "model/SubdeviceRegistrationResponse.h"
+#include "core/InboundMessageHandler.h"
+#include "core/model/SubdeviceRegistrationResponse.h"
 
 #include <functional>
 #include <vector>

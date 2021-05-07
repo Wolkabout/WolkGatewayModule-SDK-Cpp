@@ -20,7 +20,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}    -Wall -Wextra -pedantic                                                    \
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    -Wall -Wextra -pedantic                                                    \
                                             -pedantic-errors -Wcast-align                                              \
                                             -Wcast-qual -Wconversion                                                   \
                                             -Wdisabled-optimization                                                    \
@@ -37,17 +37,17 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}    -Wall -Wextra -pedantic             
                                             -Wwrite-strings -Werror=non-virtual-dtor")
 
 # library output
-if(NOT DEFINED CMAKE_LIBRARY_INCLUDE_DIRECTORY)
+if (NOT DEFINED CMAKE_LIBRARY_INCLUDE_DIRECTORY)
     set(CMAKE_LIBRARY_INCLUDE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
-endif()
+endif ()
 
-if(NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+if (NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-endif()
+endif ()
 
-if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+if (NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-endif()
+endif ()
 
 link_directories(${CMAKE_BINARY_DIR}/lib)
 
@@ -79,6 +79,7 @@ target_include_directories(${PROJECT_NAME}Tests PUBLIC ${CMAKE_LIBRARY_INCLUDE_D
 target_link_libraries(${PROJECT_NAME}Tests ${PROJECT_NAME} gtest_main gmock_main gmock gtest)
 set_target_properties(${PROJECT_NAME}Tests PROPERTIES INSTALL_RPATH "$ORIGIN/lib")
 set_target_properties(${PROJECT_NAME}Tests PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_dependencies(${PROJECT_NAME}Tests libgtest)
 
 add_custom_target(tests ${PROJECT_NAME}Tests deviceConfiguration.json)
 

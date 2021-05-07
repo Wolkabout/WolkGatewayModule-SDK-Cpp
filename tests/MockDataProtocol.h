@@ -1,10 +1,10 @@
 #ifndef MOCKDATAPROTOCOL_H
 #define MOCKDATAPROTOCOL_H
 
-#include "model/ActuatorGetCommand.h"
-#include "model/ActuatorSetCommand.h"
-#include "model/ConfigurationSetCommand.h"
-#include "protocol/DataProtocol.h"
+#include "core/model/ActuatorGetCommand.h"
+#include "core/model/ActuatorSetCommand.h"
+#include "core/model/ConfigurationSetCommand.h"
+#include "core/protocol/DataProtocol.h"
 
 #include <gmock/gmock.h>
 

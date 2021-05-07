@@ -1,10 +1,10 @@
 #ifndef MOCKPERSISTANCE_H
 #define MOCKPERSISTANCE_H
 
-#include "model/ActuatorStatus.h"
-#include "model/Alarm.h"
-#include "model/SensorReading.h"
-#include "persistence/Persistence.h"
+#include "core/model/ActuatorStatus.h"
+#include "core/model/Alarm.h"
+#include "core/model/SensorReading.h"
+#include "core/persistence/Persistence.h"
 
 #include <gmock/gmock.h>
 

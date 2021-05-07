@@ -16,8 +16,8 @@
 
 #include "MockDataProtocol.h"
 #include "MockPersistance.h"
-#include "connectivity/ConnectivityService.h"
-#include "model/Message.h"
+#include "core/connectivity/ConnectivityService.h"
+#include "core/model/Message.h"
 
 #define private public
 #define protected public

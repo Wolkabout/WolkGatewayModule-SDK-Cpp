@@ -16,9 +16,9 @@
 
 #include "Configuration.h"
 #include "Wolk.h"
-#include "model/DeviceTemplate.h"
-#include "model/SensorTemplate.h"
-#include "utilities/ConsoleLogger.h"
+#include "core/model/DeviceTemplate.h"
+#include "core/model/SensorTemplate.h"
+#include "core/utilities/Logger.h"
 
 #include <chrono>
 #include <iostream>
@@ -30,9 +30,7 @@
 
 int main(int argc, char** argv)
 {
-    auto logger = std::unique_ptr<wolkabout::ConsoleLogger>(new wolkabout::ConsoleLogger());
-    logger->setLogLevel(wolkabout::LogLevel::DEBUG);
-    wolkabout::Logger::setInstance(std::move(logger));
+    wolkabout::Logger::init(wolkabout::LogLevel::DEBUG, wolkabout::Logger::Type::CONSOLE);
 
     if (argc < 2)
     {

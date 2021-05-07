@@ -16,7 +16,7 @@
 #ifndef ACTUATORSTATUSPROVIDERPERDEVICE_H
 #define ACTUATORSTATUSPROVIDERPERDEVICE_H
 
-#include "model/ActuatorStatus.h"
+#include "core/model/ActuatorStatus.h"
 
 #include <string>
 

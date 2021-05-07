@@ -18,16 +18,16 @@
 
 #include "FirmwareInstaller.h"
 #include "FirmwareVersionProvider.h"
-#include "connectivity/ConnectivityService.h"
-#include "model/FirmwareUpdateAbort.h"
-#include "model/FirmwareUpdateInstall.h"
-#include "model/FirmwareUpdateStatus.h"
-#include "model/FirmwareVersion.h"
-#include "model/Message.h"
-#include "protocol/json/JsonDFUProtocol.h"
-#include "utilities/FileSystemUtils.h"
-#include "utilities/Logger.h"
-#include "utilities/StringUtils.h"
+#include "core/connectivity/ConnectivityService.h"
+#include "core/model/FirmwareUpdateAbort.h"
+#include "core/model/FirmwareUpdateInstall.h"
+#include "core/model/FirmwareUpdateStatus.h"
+#include "core/model/FirmwareVersion.h"
+#include "core/model/Message.h"
+#include "core/protocol/json/JsonDFUProtocol.h"
+#include "core/utilities/FileSystemUtils.h"
+#include "core/utilities/Logger.h"
+#include "core/utilities/StringUtils.h"
 
 namespace wolkabout
 {
@@ -147,8 +147,9 @@ void FirmwareUpdateService::install(const std::string& deviceKey, const std::str
 {
     sendStatus(FirmwareUpdateStatus{{deviceKey}, FirmwareUpdateStatus::Status::INSTALLATION});
 
-    m_firmwareInstaller->install(deviceKey, firmwareFilePath, [=](const std::string& key) { installSucceeded(key); },
-                                 [=](const std::string& key) { installFailed(key); });
+    m_firmwareInstaller->install(
+      deviceKey, firmwareFilePath, [=](const std::string& key) { installSucceeded(key); },
+      [=](const std::string& key) { installFailed(key); });
 }
 
 void FirmwareUpdateService::installSucceeded(const std::string& deviceKey)
