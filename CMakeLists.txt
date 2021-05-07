@@ -54,6 +54,10 @@ link_directories(${CMAKE_BINARY_DIR}/lib)
 find_package(Threads REQUIRED)
 
 # WolkAbout c++ SDK
+set(BUILD_CONNECTIVITY ON CACHE BOOL "Build the library with Paho MQTT and allow MQTT connection to the platform.")
+set(BUILD_POCO OFF CACHE BOOL "Build the library with Poco.")
+set(BUILD_GTEST ON CACHE BOOL "Build the library with GTest.")
+set(BUILD_AWS_LOG_UPLOADER OFF CACHE BOOL "Build the library with AwsLogUploader.")
 add_subdirectory(WolkSDK-Cpp)
 
 # WolkAbout c++ Connector
