@@ -5,6 +5,9 @@
 
 WolkAbout C++11 Connector library for connecting devices to WolkAbout Gateway
 
+**Version 4.1.0**
+- [IMPROVEMENT] - Switched to the newest version of WolkSDK-Cpp.
+
 **Version 4.0.2**
 - [IMPROVEMENT] Protocol improvements in SDK.
 
