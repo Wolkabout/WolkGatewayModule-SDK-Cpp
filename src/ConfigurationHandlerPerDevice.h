@@ -16,7 +16,7 @@
 #ifndef CONFIGURATIONHANDLERPERDEVICE_H
 #define CONFIGURATIONHANDLERPERDEVICE_H
 
-#include "model/ConfigurationItem.h"
+#include "core/model/ConfigurationItem.h"
 
 #include <string>
 #include <vector>

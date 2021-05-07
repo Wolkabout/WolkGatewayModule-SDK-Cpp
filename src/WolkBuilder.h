@@ -24,12 +24,12 @@
 #include "DeviceStatusProvider.h"
 #include "FirmwareInstaller.h"
 #include "FirmwareVersionProvider.h"
-#include "connectivity/ConnectivityService.h"
-#include "model/ActuatorStatus.h"
+#include "core/connectivity/ConnectivityService.h"
+#include "core/model/ActuatorStatus.h"
+#include "core/model/DeviceStatus.h"
+#include "core/persistence/Persistence.h"
+#include "core/protocol/FirmwareUpdateProtocol.h"
 #include "model/Device.h"
-#include "model/DeviceStatus.h"
-#include "persistence/Persistence.h"
-#include "protocol/FirmwareUpdateProtocol.h"
 
 #include <cstdint>
 #include <functional>

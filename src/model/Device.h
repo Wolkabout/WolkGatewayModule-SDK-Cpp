@@ -17,7 +17,7 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
-#include "model/DetailedDevice.h"
+#include "core/model/DetailedDevice.h"
 
 namespace wolkabout
 {

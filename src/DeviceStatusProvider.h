@@ -16,7 +16,7 @@
 #ifndef DEVICESTATUSPROVIDER_H
 #define DEVICESTATUSPROVIDER_H
 
-#include "model/DeviceStatus.h"
+#include "core/model/DeviceStatus.h"
 
 #include <string>
 

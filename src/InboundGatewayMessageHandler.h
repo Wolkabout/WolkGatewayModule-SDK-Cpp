@@ -17,8 +17,8 @@
 #ifndef INBOUNDGATEWAYMESSAGEHANDLER_H
 #define INBOUNDGATEWAYMESSAGEHANDLER_H
 
-#include "InboundMessageHandler.h"
-#include "utilities/CommandBuffer.h"
+#include "core/InboundMessageHandler.h"
+#include "core/utilities/CommandBuffer.h"
 
 #include <map>
 #include <memory>

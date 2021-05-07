@@ -17,8 +17,8 @@
 #ifndef DEVICESTATUSSERVICE_H
 #define DEVICESTATUSSERVICE_H
 
-#include "InboundMessageHandler.h"
-#include "model/DeviceStatus.h"
+#include "core/InboundMessageHandler.h"
+#include "core/model/DeviceStatus.h"
 
 #include <functional>
 #include <string>
