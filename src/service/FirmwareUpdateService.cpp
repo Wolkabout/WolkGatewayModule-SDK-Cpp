@@ -147,8 +147,9 @@ void FirmwareUpdateService::install(const std::string& deviceKey, const std::str
 {
     sendStatus(FirmwareUpdateStatus{{deviceKey}, FirmwareUpdateStatus::Status::INSTALLATION});
 
-    m_firmwareInstaller->install(deviceKey, firmwareFilePath, [=](const std::string& key) { installSucceeded(key); },
-                                 [=](const std::string& key) { installFailed(key); });
+    m_firmwareInstaller->install(
+      deviceKey, firmwareFilePath, [=](const std::string& key) { installSucceeded(key); },
+      [=](const std::string& key) { installFailed(key); });
 }
 
 void FirmwareUpdateService::installSucceeded(const std::string& deviceKey)

@@ -18,18 +18,18 @@
 
 #include "ActuationHandlerPerDevice.h"
 #include "ActuatorStatusProviderPerDevice.h"
-#include "core/InboundMessageHandler.h"
 #include "Wolk.h"
+#include "core/InboundMessageHandler.h"
 #include "core/connectivity/ConnectivityService.h"
 #include "core/connectivity/mqtt/MqttConnectivityService.h"
 #include "core/connectivity/mqtt/PahoMqttClient.h"
-#include "model/Device.h"
-#include "core/persistence/Persistence.h"
 #include "core/persistence/InMemoryPersistence.h"
+#include "core/persistence/Persistence.h"
 #include "core/protocol/json/JsonDFUProtocol.h"
 #include "core/protocol/json/JsonProtocol.h"
 #include "core/protocol/json/JsonRegistrationProtocol.h"
 #include "core/protocol/json/JsonStatusProtocol.h"
+#include "model/Device.h"
 #include "service/DataService.h"
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
@@ -183,12 +183,10 @@ std::unique_ptr<Wolk> WolkBuilder::build()
 
     wolk->m_inboundMessageHandler.reset(new InboundGatewayMessageHandler());
 
-    wolk->m_connectivityManager = std::make_shared<Wolk::ConnectivityFacade>(*wolk->m_inboundMessageHandler,
-                                                                             [&]
-                                                                             {
-                                                                                 wolk->m_connected = false;
-                                                                                 wolk->connect();
-                                                                             });
+    wolk->m_connectivityManager = std::make_shared<Wolk::ConnectivityFacade>(*wolk->m_inboundMessageHandler, [&] {
+        wolk->m_connected = false;
+        wolk->connect();
+    });
 
     wolk->m_connectivityService->setListener(wolk->m_connectivityManager);
 
@@ -211,12 +209,15 @@ std::unique_ptr<Wolk> WolkBuilder::build()
 
     wolk->m_dataService = std::make_shared<DataService>(
       *wolk->m_dataProtocol, *wolk->m_persistence, *wolk->m_connectivityService,
-      [rawPointer](const std::string& key, const std::string& reference, const std::string& value)
-      { rawPointer->handleActuatorSetCommand(key, reference, value); },
-      [rawPointer](const std::string& key, const std::string& reference)
-      { rawPointer->handleActuatorGetCommand(key, reference); },
-      [rawPointer](const std::string& key, const std::vector<ConfigurationItem>& configuration)
-      { rawPointer->handleConfigurationSetCommand(key, configuration); },
+      [rawPointer](const std::string& key, const std::string& reference, const std::string& value) {
+          rawPointer->handleActuatorSetCommand(key, reference, value);
+      },
+      [rawPointer](const std::string& key, const std::string& reference) {
+          rawPointer->handleActuatorGetCommand(key, reference);
+      },
+      [rawPointer](const std::string& key, const std::vector<ConfigurationItem>& configuration) {
+          rawPointer->handleConfigurationSetCommand(key, configuration);
+      },
       [rawPointer](const std::string& key) { rawPointer->handleConfigurationGetCommand(key); });
 
     wolk->m_deviceStatusService = std::make_shared<DeviceStatusService>(
@@ -225,10 +226,12 @@ std::unique_ptr<Wolk> WolkBuilder::build()
 
     wolk->m_deviceRegistrationService = std::make_shared<DeviceRegistrationService>(
       *wolk->m_registrationProtocol, *wolk->m_connectivityService,
-      [rawPointer](const std::string& key, PlatformResult::Code result)
-      { rawPointer->handleRegistrationResponse(key, result); },
-      [rawPointer](const std::string& key, PlatformResult::Code result)
-      { rawPointer->handleUpdateResponse(key, result); });
+      [rawPointer](const std::string& key, PlatformResult::Code result) {
+          rawPointer->handleRegistrationResponse(key, result);
+      },
+      [rawPointer](const std::string& key, PlatformResult::Code result) {
+          rawPointer->handleUpdateResponse(key, result);
+      });
 
     // Firmware update service
     if (m_firmwareInstaller != nullptr)

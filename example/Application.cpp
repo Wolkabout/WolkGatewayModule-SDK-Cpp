@@ -38,8 +38,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    wolkabout::DeviceConfiguration appConfiguration = [&]
-    {
+    wolkabout::DeviceConfiguration appConfiguration = [&] {
         try
         {
             return wolkabout::DeviceConfiguration::fromJson(argv[1]);
@@ -144,8 +143,7 @@ int main(int argc, char** argv)
     std::unique_ptr<wolkabout::Wolk> wolk =
       wolkabout::Wolk::newBuilder()
         .actuationHandler(
-          [&](const std::string& deviceKey, const std::string& reference, const std::string& value) -> void
-          {
+          [&](const std::string& deviceKey, const std::string& reference, const std::string& value) -> void {
               std::cout << "Actuation request received - Reference: " << reference << " value: " << value << std::endl;
               if (deviceKey == "DEVICE_KEY_1" && reference == "SW")
               {
@@ -162,39 +160,34 @@ int main(int argc, char** argv)
                   }
               }
           })
-        .actuatorStatusProvider(
-          [&](const std::string& deviceKey, const std::string& reference) -> wolkabout::ActuatorStatus
-          {
-              if (deviceKey == "DEVICE_KEY_1" && reference == "SW")
-              {
-                  return wolkabout::ActuatorStatus(switchValue ? "true" : "false",
-                                                   wolkabout::ActuatorStatus::State::READY);
-              }
-              else if (deviceKey == "DEVICE_KEY_2" && reference == "SL")
-              {
-                  return wolkabout::ActuatorStatus(std::to_string(sliderValue),
-                                                   wolkabout::ActuatorStatus::State::READY);
-              }
+        .actuatorStatusProvider([&](const std::string& deviceKey,
+                                    const std::string& reference) -> wolkabout::ActuatorStatus {
+            if (deviceKey == "DEVICE_KEY_1" && reference == "SW")
+            {
+                return wolkabout::ActuatorStatus(switchValue ? "true" : "false",
+                                                 wolkabout::ActuatorStatus::State::READY);
+            }
+            else if (deviceKey == "DEVICE_KEY_2" && reference == "SL")
+            {
+                return wolkabout::ActuatorStatus(std::to_string(sliderValue), wolkabout::ActuatorStatus::State::READY);
+            }
 
-              return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
-          })
-        .deviceStatusProvider(
-          [](const std::string& deviceKey) -> wolkabout::DeviceStatus::Status
-          {
-              if (deviceKey == "DEVICE_KEY_1")
-              {
-                  return wolkabout::DeviceStatus::Status::CONNECTED;
-              }
-              else if (deviceKey == "DEVICE_KEY_2")
-              {
-                  return wolkabout::DeviceStatus::Status::CONNECTED;
-              }
+            return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
+        })
+        .deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus::Status {
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                return wolkabout::DeviceStatus::Status::CONNECTED;
+            }
+            else if (deviceKey == "DEVICE_KEY_2")
+            {
+                return wolkabout::DeviceStatus::Status::CONNECTED;
+            }
 
-              return wolkabout::DeviceStatus::Status::OFFLINE;
-          })
+            return wolkabout::DeviceStatus::Status::OFFLINE;
+        })
         .configurationHandler(
-          [&](const std::string& deviceKey, const std::vector<wolkabout::ConfigurationItem>& configuration)
-          {
+          [&](const std::string& deviceKey, const std::vector<wolkabout::ConfigurationItem>& configuration) {
               if (deviceKey == "DEVICE_KEY_1")
               {
                   // device1configuration = configuration;
@@ -204,20 +197,18 @@ int main(int argc, char** argv)
                   // device2configuration = configuration;
               }
           })
-        .configurationProvider(
-          [&](const std::string& deviceKey) -> std::vector<wolkabout::ConfigurationItem>
-          {
-              if (deviceKey == "DEVICE_KEY_1")
-              {
-                  return device1configuration;
-              }
-              else if (deviceKey == "DEVICE_KEY_2")
-              {
-                  return device2configuration;
-              }
+        .configurationProvider([&](const std::string& deviceKey) -> std::vector<wolkabout::ConfigurationItem> {
+            if (deviceKey == "DEVICE_KEY_1")
+            {
+                return device1configuration;
+            }
+            else if (deviceKey == "DEVICE_KEY_2")
+            {
+                return device2configuration;
+            }
 
-              return {};
-          })
+            return {};
+        })
         .withFirmwareUpdate(installer, provider)
         .host(appConfiguration.getLocalMqttUri())
         .build();

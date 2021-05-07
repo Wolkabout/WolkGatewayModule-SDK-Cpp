@@ -22,18 +22,18 @@
 #include "WolkBuilder.h"
 #include "core/connectivity/ConnectivityService.h"
 #include "core/model/ActuatorStatus.h"
-#include "model/Device.h"
 #include "core/model/SubdeviceUpdateRequest.h"
 #include "core/protocol/DataProtocol.h"
 #include "core/protocol/RegistrationProtocol.h"
 #include "core/protocol/StatusProtocol.h"
 #include "core/protocol/json/JsonDFUProtocol.h"
+#include "core/utilities/Logger.h"
+#include "core/utilities/StringUtils.h"
+#include "model/Device.h"
 #include "service/DataService.h"
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
 #include "service/FirmwareUpdateService.h"
-#include "core/utilities/Logger.h"
-#include "core/utilities/StringUtils.h"
 
 #include <algorithm>
 #include <memory>

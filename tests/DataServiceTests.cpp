@@ -71,12 +71,15 @@ public:
 
         dataService = std::unique_ptr<wolkabout::DataService>(new wolkabout::DataService(
           *dataProtocol, *persistence, *connectivityService,
-          [&](const std::string& key, const std::string& ref, const std::string& value)
-          { actuatorSetCommands.push_back(std::make_tuple(key, ref, value)); },
-          [&](const std::string& key, const std::string& ref)
-          { actuatorGetCommands.push_back(std::make_tuple(key, ref)); },
-          [&](const std::string& key, const std::vector<wolkabout::ConfigurationItem>& values)
-          { configurationSetCommands.push_back(std::make_tuple(key, values)); },
+          [&](const std::string& key, const std::string& ref, const std::string& value) {
+              actuatorSetCommands.push_back(std::make_tuple(key, ref, value));
+          },
+          [&](const std::string& key, const std::string& ref) {
+              actuatorGetCommands.push_back(std::make_tuple(key, ref));
+          },
+          [&](const std::string& key, const std::vector<wolkabout::ConfigurationItem>& values) {
+              configurationSetCommands.push_back(std::make_tuple(key, values));
+          },
           [&](const std::string& key) { configurationGetCommands.push_back(key); }));
     }
 
@@ -415,18 +418,16 @@ TEST_F(
 
     EXPECT_CALL(*persistence, getSensorReadingsKeys())
       .Times(testing::AtLeast(1))
-      .WillRepeatedly(testing::InvokeWithoutArgs(
-        [&]
-        {
-            std::vector<std::string> keys;
-            if (!removeCalledForKey1)
-                keys.push_back(key1);
-            if (!removeCalledForKey2)
-                keys.push_back(key2);
-            if (!removeCalledForKey3)
-                keys.push_back(key3);
-            return keys;
-        }));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] {
+          std::vector<std::string> keys;
+          if (!removeCalledForKey1)
+              keys.push_back(key1);
+          if (!removeCalledForKey2)
+              keys.push_back(key2);
+          if (!removeCalledForKey3)
+              keys.push_back(key3);
+          return keys;
+      }));
 
     EXPECT_CALL(*persistence, removeSensorReadings(key1, wolkabout::DataService::PUBLISH_BATCH_ITEMS_COUNT))
       .Times(1)
@@ -497,18 +498,16 @@ TEST_F(
 
     EXPECT_CALL(*persistence, getSensorReadingsKeys())
       .Times(testing::AtLeast(1))
-      .WillRepeatedly(testing::InvokeWithoutArgs(
-        [&]
-        {
-            std::vector<std::string> keys;
-            if (!removeCalledForKey1)
-                keys.push_back(key1);
-            if (!removeCalledForKey2)
-                keys.push_back(key2);
-            // if(!removeCalledForKey3)
-            keys.push_back(key3);
-            return keys;
-        }));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] {
+          std::vector<std::string> keys;
+          if (!removeCalledForKey1)
+              keys.push_back(key1);
+          if (!removeCalledForKey2)
+              keys.push_back(key2);
+          // if(!removeCalledForKey3)
+          keys.push_back(key3);
+          return keys;
+      }));
 
     EXPECT_CALL(*persistence, removeSensorReadings(key1, wolkabout::DataService::PUBLISH_BATCH_ITEMS_COUNT))
       .Times(1)
@@ -570,18 +569,16 @@ TEST_F(DataService,
 
     EXPECT_CALL(*persistence, getAlarmsKeys())
       .Times(testing::AtLeast(1))
-      .WillRepeatedly(testing::InvokeWithoutArgs(
-        [&]
-        {
-            std::vector<std::string> keys;
-            if (!removeCalledForKey1)
-                keys.push_back(key1);
-            if (!removeCalledForKey2)
-                keys.push_back(key2);
-            if (!removeCalledForKey3)
-                keys.push_back(key3);
-            return keys;
-        }));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] {
+          std::vector<std::string> keys;
+          if (!removeCalledForKey1)
+              keys.push_back(key1);
+          if (!removeCalledForKey2)
+              keys.push_back(key2);
+          if (!removeCalledForKey3)
+              keys.push_back(key3);
+          return keys;
+      }));
 
     EXPECT_CALL(*persistence, removeAlarms(key1, wolkabout::DataService::PUBLISH_BATCH_ITEMS_COUNT))
       .Times(1)
@@ -648,18 +645,16 @@ TEST_F(DataService,
 
     EXPECT_CALL(*persistence, getAlarmsKeys())
       .Times(testing::AtLeast(1))
-      .WillRepeatedly(testing::InvokeWithoutArgs(
-        [&]
-        {
-            std::vector<std::string> keys;
-            // if(!removeCalledForKey1)
-            keys.push_back(key1);
-            // if(!removeCalledForKey2)
-            keys.push_back(key2);
-            if (!removeCalledForKey3)
-                keys.push_back(key3);
-            return keys;
-        }));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] {
+          std::vector<std::string> keys;
+          // if(!removeCalledForKey1)
+          keys.push_back(key1);
+          // if(!removeCalledForKey2)
+          keys.push_back(key2);
+          if (!removeCalledForKey3)
+              keys.push_back(key3);
+          return keys;
+      }));
 
     EXPECT_CALL(*persistence, removeAlarms(key1, wolkabout::DataService::PUBLISH_BATCH_ITEMS_COUNT)).Times(0);
     EXPECT_CALL(*persistence, removeAlarms(key2, wolkabout::DataService::PUBLISH_BATCH_ITEMS_COUNT)).Times(0);
@@ -714,18 +709,16 @@ TEST_F(
 
     EXPECT_CALL(*persistence, getActuatorStatusesKeys())
       .Times(testing::AtLeast(1))
-      .WillRepeatedly(testing::InvokeWithoutArgs(
-        [&]
-        {
-            std::vector<std::string> keys;
-            if (!removeCalledForKey1)
-                keys.push_back(key1);
-            if (!removeCalledForKey2)
-                keys.push_back(key2);
-            if (!removeCalledForKey3)
-                keys.push_back(key3);
-            return keys;
-        }));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] {
+          std::vector<std::string> keys;
+          if (!removeCalledForKey1)
+              keys.push_back(key1);
+          if (!removeCalledForKey2)
+              keys.push_back(key2);
+          if (!removeCalledForKey3)
+              keys.push_back(key3);
+          return keys;
+      }));
 
     EXPECT_CALL(*persistence, removeActuatorStatus(key1))
       .Times(1)
@@ -786,18 +779,16 @@ TEST_F(
 
     EXPECT_CALL(*persistence, getActuatorStatusesKeys())
       .Times(testing::AtLeast(1))
-      .WillRepeatedly(testing::InvokeWithoutArgs(
-        [&]
-        {
-            std::vector<std::string> keys;
-            if (!removeCalledForKey1)
-                keys.push_back(key1);
-            if (!removeCalledForKey2)
-                keys.push_back(key2);
-            // if(!removeCalledForKey3)
-            keys.push_back(key3);
-            return keys;
-        }));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] {
+          std::vector<std::string> keys;
+          if (!removeCalledForKey1)
+              keys.push_back(key1);
+          if (!removeCalledForKey2)
+              keys.push_back(key2);
+          // if(!removeCalledForKey3)
+          keys.push_back(key3);
+          return keys;
+      }));
 
     EXPECT_CALL(*persistence, removeActuatorStatus(key1))
       .Times(1)
@@ -858,18 +849,16 @@ TEST_F(
 
     EXPECT_CALL(*persistence, getConfigurationKeys())
       .Times(testing::AtLeast(1))
-      .WillRepeatedly(testing::InvokeWithoutArgs(
-        [&]
-        {
-            std::vector<std::string> keys;
-            if (!removeCalledForKey1)
-                keys.push_back(key1);
-            if (!removeCalledForKey2)
-                keys.push_back(key2);
-            if (!removeCalledForKey3)
-                keys.push_back(key3);
-            return keys;
-        }));
+      .WillRepeatedly(testing::InvokeWithoutArgs([&] {
+          std::vector<std::string> keys;
+          if (!removeCalledForKey1)
+              keys.push_back(key1);
+          if (!removeCalledForKey2)
+              keys.push_back(key2);
+          if (!removeCalledForKey3)
+              keys.push_back(key3);
+          return keys;
+      }));
 
     EXPECT_CALL(*persistence, removeConfiguration(key1)).Times(1).WillOnce(testing::Assign(&removeCalledForKey1, true));
     EXPECT_CALL(*persistence, removeConfiguration(key2)).Times(1).WillOnce(testing::Assign(&removeCalledForKey2, true));
@@ -922,19 +911,16 @@ TEST_F(
       .Times(1)
       .WillRepeatedly(testing::InvokeWithoutArgs([&] { return new wolkabout::Message("", ""); }));
 
-    ON_CALL(*persistence, getConfigurationKeys())
-      .WillByDefault(testing::InvokeWithoutArgs(
-        [&]
-        {
-            std::vector<std::string> keys;
-            // if(!removeCalledForKey1)
-            keys.push_back(key1);
-            // if(!removeCalledForKey2)
-            keys.push_back(key2);
-            if (!removeCalledForKey3)
-                keys.push_back(key3);
-            return keys;
-        }));
+    ON_CALL(*persistence, getConfigurationKeys()).WillByDefault(testing::InvokeWithoutArgs([&] {
+        std::vector<std::string> keys;
+        // if(!removeCalledForKey1)
+        keys.push_back(key1);
+        // if(!removeCalledForKey2)
+        keys.push_back(key2);
+        if (!removeCalledForKey3)
+            keys.push_back(key3);
+        return keys;
+    }));
 
     EXPECT_CALL(*persistence, removeConfiguration(key1)).Times(0);
     EXPECT_CALL(*persistence, removeConfiguration(key2)).Times(0);

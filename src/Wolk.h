@@ -23,10 +23,10 @@
 #include "ConfigurationProviderPerDevice.h"
 #include "WolkBuilder.h"
 #include "core/model/ActuatorStatus.h"
-#include "model/Device.h"
 #include "core/model/DeviceStatus.h"
 #include "core/model/PlatformResult.h"
 #include "core/utilities/CommandBuffer.h"
+#include "model/Device.h"
 
 #include <functional>
 #include <map>
