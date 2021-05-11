@@ -27,6 +27,7 @@
 #include "core/connectivity/ConnectivityService.h"
 #include "core/model/ActuatorStatus.h"
 #include "core/model/DeviceStatus.h"
+#include "core/model/PlatformResult.h"
 #include "core/persistence/Persistence.h"
 #include "core/protocol/FirmwareUpdateProtocol.h"
 #include "model/Device.h"
@@ -179,6 +180,14 @@ public:
                                     std::shared_ptr<FirmwareVersionProvider> provider);
 
     /**
+     * @brief withRegistrationResponseHandler Enables a callback function that is called when a subdevice is registered.
+     * @param registrationResponseHandler The lambda expression called with the result.
+     * @return
+     */
+    WolkBuilder& withRegistrationResponseHandler(
+      std::function<void(const std::string&, PlatformResult::Code)> registrationResponseHandler);
+
+    /**
      * @brief Builds Wolk instance
      * @return Wolk instance as std::unique_ptr<Wolk>
      *
@@ -198,6 +207,8 @@ public:
 
 private:
     std::string m_host;
+
+    std::function<void(const std::string&, PlatformResult::Code)> m_registrationResponseHandler;
 
     std::function<void(const std::string&, const std::string&, const std::string&)> m_actuationHandlerLambda;
     std::shared_ptr<ActuationHandlerPerDevice> m_actuationHandler;

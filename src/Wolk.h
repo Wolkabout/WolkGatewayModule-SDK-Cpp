@@ -283,6 +283,8 @@ private:
 
     std::unique_ptr<ConnectivityService> m_connectivityService;
 
+    std::function<void(const std::string&, PlatformResult::Code)> m_registrationResponseHandler;
+
     std::unique_ptr<DataProtocol> m_dataProtocol;
     std::unique_ptr<StatusProtocol> m_statusProtocol;
     std::unique_ptr<RegistrationProtocol> m_registrationProtocol;

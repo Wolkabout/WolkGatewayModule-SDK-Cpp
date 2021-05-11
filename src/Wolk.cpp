@@ -830,6 +830,9 @@ void Wolk::handleRegistrationResponse(const std::string& deviceKey, PlatformResu
 
             publishFirmwareVersion(deviceKey);
         }
+
+        if (m_registrationResponseHandler)
+            m_registrationResponseHandler(deviceKey, result);
     });
 }
 
