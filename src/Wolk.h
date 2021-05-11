@@ -192,7 +192,7 @@ public:
     /**
      * @brief connect Establishes connection with WolkAbout IoT platform
      */
-    void connect();
+    void connect(bool publishRightAway = true);
 
     /**
      * @brief disconnect Disconnects from WolkAbout IoT platform
@@ -282,6 +282,8 @@ private:
     void handleUpdateResponse(const std::string& deviceKey, PlatformResult::Code result);
 
     std::unique_ptr<ConnectivityService> m_connectivityService;
+
+    std::function<void(const std::string&, PlatformResult::Code)> m_registrationResponseHandler;
 
     std::unique_ptr<DataProtocol> m_dataProtocol;
     std::unique_ptr<StatusProtocol> m_statusProtocol;

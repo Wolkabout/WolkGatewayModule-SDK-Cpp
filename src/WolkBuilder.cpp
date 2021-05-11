@@ -38,6 +38,7 @@
 #include <functional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace wolkabout
 {
@@ -137,6 +138,13 @@ WolkBuilder& WolkBuilder::withFirmwareUpdate(std::shared_ptr<FirmwareInstaller> 
     return *this;
 }
 
+WolkBuilder& WolkBuilder::withRegistrationResponseHandler(
+  std::function<void(const std::string&, PlatformResult::Code)> registrationResponseHandler)
+{
+    m_registrationResponseHandler = std::move(registrationResponseHandler);
+    return *this;
+}
+
 std::unique_ptr<Wolk> WolkBuilder::build()
 {
     if (!m_actuationHandlerLambda && !m_actuationHandler)
@@ -204,6 +212,9 @@ std::unique_ptr<Wolk> WolkBuilder::build()
 
     wolk->m_deviceStatusProvider = m_deviceStatusProvider;
     wolk->m_deviceStatusProviderLambda = m_deviceStatusProviderLambda;
+
+    if (m_registrationResponseHandler)
+        wolk->m_registrationResponseHandler = m_registrationResponseHandler;
 
     const auto rawPointer = wolk.get();
 
