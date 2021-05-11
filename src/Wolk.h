@@ -192,7 +192,7 @@ public:
     /**
      * @brief connect Establishes connection with WolkAbout IoT platform
      */
-    void connect();
+    void connect(bool publishRightAway = true);
 
     /**
      * @brief disconnect Disconnects from WolkAbout IoT platform

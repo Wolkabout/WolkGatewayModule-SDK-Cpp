@@ -204,32 +204,35 @@ void Wolk::addDeviceStatus(const std::string& deviceKey, DeviceStatus::Status st
     });
 }
 
-void Wolk::connect()
+void Wolk::connect(bool publishRightAway)
 {
     addToCommandBuffer([=]() -> void {
         if (m_connectivityService->connect())
         {
             m_connected = true;
             registerDevices();
-            publishFirmwareVersions();
-            publishDeviceStatuses();
-
-            for (const auto& kvp : m_devices)
+            if (publishRightAway)
             {
-                for (const std::string& actuatorReference : kvp.second.getActuatorReferences())
+                publishFirmwareVersions();
+                publishDeviceStatuses();
+
+                for (const auto& kvp : m_devices)
                 {
-                    publishActuatorStatus(kvp.first, actuatorReference);
+                    for (const std::string& actuatorReference : kvp.second.getActuatorReferences())
+                    {
+                        publishActuatorStatus(kvp.first, actuatorReference);
+                    }
+
+                    publishConfiguration(kvp.first);
                 }
 
-                publishConfiguration(kvp.first);
+                publish();
             }
-
-            publish();
         }
         else
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-            connect();
+            connect(publishRightAway);
         }
     });
 }
