@@ -64,7 +64,7 @@ add_subdirectory(WolkSDK-Cpp)
 include_directories("src")
 
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "src/*.hpp")
-file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "example/*.cpp")
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} WolkAboutCore Threads::Threads)

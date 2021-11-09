@@ -5,6 +5,9 @@
 
 WolkAbout C++11 Connector library for connecting devices to WolkAbout Gateway
 
+**Version 4.1.3**
+    - [BUGFIX] - Fixed tests executing example.
+
 **Version 4.1.2**
     - [IMPROVEMENT] - Added a RegistrationResponseHandler to Wolk, to allow a callback to be called once the registration of a subdevice is done.
     - [IMPROVEMENT] - Updated to the newest WolkSDK-Cpp submodule.
