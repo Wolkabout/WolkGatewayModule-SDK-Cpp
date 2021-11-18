@@ -28,6 +28,12 @@
 #include <string>
 #include <thread>
 
+namespace
+{
+const std::string DEVICE_KEY_1 = "DEVICE_KEY_1";
+const std::string DEVICE_KEY_2 = "DEVICE_KEY_2";
+}    // namespace
+
 int main(int argc, char** argv)
 {
     wolkabout::Logger::init(wolkabout::LogLevel::DEBUG, wolkabout::Logger::Type::CONSOLE);
@@ -85,11 +91,11 @@ int main(int argc, char** argv)
                                               {},
                                               {switchActuator, textActuator},
                                               "DFU"};
-    wolkabout::Device device1{"DEVICE_NAME_1", "DEVICE_KEY_1", deviceTemplate1};
+    wolkabout::Device device1{"DEVICE_NAME_1", DEVICE_KEY_1, deviceTemplate1};
 
     wolkabout::DeviceTemplate deviceTemplate2{
       {configurationItem3}, {pressureSensor, accelerationSensor}, {highHumidityAlarm}, {sliderActuator}, "DFU"};
-    wolkabout::Device device2{"DEVICE_NAME_2", "DEVICE_KEY_2", deviceTemplate2};
+    wolkabout::Device device2{"DEVICE_NAME_2", DEVICE_KEY_2, deviceTemplate2};
 
     static int device1firmwareVersion = 1;
     static int device2firmwareVersion = 1;
@@ -102,7 +108,7 @@ int main(int argc, char** argv)
                      std::function<void(const std::string& deviceKey)> onFail) override
         {
             LOG(INFO) << "Install firmware: " << firmwareFile << ", for device " << deviceKey;
-            if (deviceKey == "DEVICE_KEY_1")
+            if (deviceKey == DEVICE_KEY_1)
             {
                 ++device1firmwareVersion;
                 onSuccess(deviceKey);
@@ -125,11 +131,11 @@ int main(int argc, char** argv)
     public:
         std::string getFirmwareVersion(const std::string& deviceKey)
         {
-            if (deviceKey == "DEVICE_KEY_1")
+            if (deviceKey == DEVICE_KEY_1)
             {
                 return std::to_string(device1firmwareVersion) + ".0.0";
             }
-            else if (deviceKey == "DEVICE_KEY_2")
+            else if (deviceKey == DEVICE_KEY_2)
             {
                 return std::to_string(device2firmwareVersion) + ".0.0";
             }
@@ -145,11 +151,11 @@ int main(int argc, char** argv)
         .actuationHandler(
           [&](const std::string& deviceKey, const std::string& reference, const std::string& value) -> void {
               std::cout << "Actuation request received - Reference: " << reference << " value: " << value << std::endl;
-              if (deviceKey == "DEVICE_KEY_1" && reference == "SW")
+              if (deviceKey == DEVICE_KEY_1 && reference == "SW")
               {
                   switchValue = value == "true" ? true : false;
               }
-              else if (deviceKey == "DEVICE_KEY_2" && reference == "SL")
+              else if (deviceKey == DEVICE_KEY_2 && reference == "SL")
               {
                   try
                   {
@@ -162,12 +168,12 @@ int main(int argc, char** argv)
           })
         .actuatorStatusProvider([&](const std::string& deviceKey,
                                     const std::string& reference) -> wolkabout::ActuatorStatus {
-            if (deviceKey == "DEVICE_KEY_1" && reference == "SW")
+            if (deviceKey == DEVICE_KEY_1 && reference == "SW")
             {
                 return wolkabout::ActuatorStatus(switchValue ? "true" : "false",
                                                  wolkabout::ActuatorStatus::State::READY);
             }
-            else if (deviceKey == "DEVICE_KEY_2" && reference == "SL")
+            else if (deviceKey == DEVICE_KEY_2 && reference == "SL")
             {
                 return wolkabout::ActuatorStatus(std::to_string(sliderValue), wolkabout::ActuatorStatus::State::READY);
             }
@@ -175,11 +181,11 @@ int main(int argc, char** argv)
             return wolkabout::ActuatorStatus("", wolkabout::ActuatorStatus::State::READY);
         })
         .deviceStatusProvider([](const std::string& deviceKey) -> wolkabout::DeviceStatus::Status {
-            if (deviceKey == "DEVICE_KEY_1")
+            if (deviceKey == DEVICE_KEY_1)
             {
                 return wolkabout::DeviceStatus::Status::CONNECTED;
             }
-            else if (deviceKey == "DEVICE_KEY_2")
+            else if (deviceKey == DEVICE_KEY_2)
             {
                 return wolkabout::DeviceStatus::Status::CONNECTED;
             }
@@ -188,21 +194,21 @@ int main(int argc, char** argv)
         })
         .configurationHandler(
           [&](const std::string& deviceKey, const std::vector<wolkabout::ConfigurationItem>& configuration) {
-              if (deviceKey == "DEVICE_KEY_1")
+              if (deviceKey == DEVICE_KEY_1)
               {
-                  // device1configuration = configuration;
+                  device1configuration = configuration;
               }
-              else if (deviceKey == "DEVICE_KEY_2")
+              else if (deviceKey == DEVICE_KEY_2)
               {
-                  // device2configuration = configuration;
+                  device2configuration = configuration;
               }
           })
         .configurationProvider([&](const std::string& deviceKey) -> std::vector<wolkabout::ConfigurationItem> {
-            if (deviceKey == "DEVICE_KEY_1")
+            if (deviceKey == DEVICE_KEY_1)
             {
                 return device1configuration;
             }
-            else if (deviceKey == "DEVICE_KEY_2")
+            else if (deviceKey == DEVICE_KEY_2)
             {
                 return device2configuration;
             }
@@ -218,16 +224,16 @@ int main(int argc, char** argv)
 
     wolk->connect();
 
-    wolk->addSensorReading("DEVICE_KEY_1", "P", 1024);
-    wolk->addSensorReading("DEVICE_KEY_1", "T", 25.6);
+    wolk->addSensorReading(DEVICE_KEY_1, "P", 1024);
+    wolk->addSensorReading(DEVICE_KEY_1, "T", 25.6);
 
-    wolk->addSensorReading("DEVICE_KEY_2", "H", 52);
-    wolk->addAlarm("DEVICE_KEY_2", "HH", true);
+    wolk->addSensorReading(DEVICE_KEY_2, "H", 52);
+    wolk->addAlarm(DEVICE_KEY_2, "HH", true);
 
-    wolk->addSensorReading("DEVICE_KEY_2", "ACCELEROMETER_REF", {0, -5, 10});
+    wolk->addSensorReading(DEVICE_KEY_2, "ACCELEROMETER_REF", {0, -5, 10});
 
-    wolk->addDeviceStatus("DEVICE_KEY_1", wolkabout::DeviceStatus::Status::CONNECTED);
-    wolk->addDeviceStatus("DEVICE_KEY_2", wolkabout::DeviceStatus::Status::CONNECTED);
+    wolk->addDeviceStatus(DEVICE_KEY_1, wolkabout::DeviceStatus::Status::CONNECTED);
+    wolk->addDeviceStatus(DEVICE_KEY_2, wolkabout::DeviceStatus::Status::CONNECTED);
 
     while (true)
     {
