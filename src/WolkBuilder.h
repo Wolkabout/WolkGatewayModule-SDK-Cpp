@@ -24,6 +24,7 @@
 #include "DeviceStatusProvider.h"
 #include "FirmwareInstaller.h"
 #include "FirmwareVersionProvider.h"
+#include "api/PlatformStatusListener.h"
 #include "core/connectivity/ConnectivityService.h"
 #include "core/model/ActuatorStatus.h"
 #include "core/model/DeviceStatus.h"
@@ -31,6 +32,7 @@
 #include "core/persistence/Persistence.h"
 #include "core/protocol/FirmwareUpdateProtocol.h"
 #include "model/Device.h"
+#include "service/PlatformStatusService.h"
 
 #include <cstdint>
 #include <functional>
@@ -188,6 +190,20 @@ public:
       std::function<void(const std::string&, PlatformResult::Code)> registrationResponseHandler);
 
     /**
+     * Enables the platform status listener service with a `PlatformStatusListener` object.
+     * @param listener The listener object which will receive the ConnectivityStatus data.
+     * @return WolkBuilder instance - provides fluent interface.
+     */
+    WolkBuilder& withPlatformStatusListener(std::shared_ptr<PlatformStatusListener> listener);
+
+    /**
+     * Enables the platform status listener service with a PlatformStatus callback.
+     * @param callback The callback which will be called with the ConnectivityStatus data.
+     * @return WolkBuilder instance - provides fluent interface.
+     */
+    WolkBuilder& withPlatformStatusListener(PlatformStatusCallback callback);
+
+    /**
      * @brief Builds Wolk instance
      * @return Wolk instance as std::unique_ptr<Wolk>
      *
@@ -230,6 +246,9 @@ private:
 
     std::shared_ptr<FirmwareInstaller> m_firmwareInstaller;
     std::shared_ptr<FirmwareVersionProvider> m_firmwareVersionProvider;
+
+    std::shared_ptr<PlatformStatusListener> m_platformStatusListener;
+    PlatformStatusCallback m_platformStatusCallback;
 
     static const constexpr char* MESSAGE_BUS_HOST = "tcp://localhost:1883";
 };

@@ -34,6 +34,7 @@
 #include "service/DeviceRegistrationService.h"
 #include "service/DeviceStatusService.h"
 #include "service/FirmwareUpdateService.h"
+#include "protocol/json/JsonPlatformStatusProtocol.h"
 
 #include <functional>
 #include <stdexcept>
@@ -145,6 +146,20 @@ WolkBuilder& WolkBuilder::withRegistrationResponseHandler(
     return *this;
 }
 
+WolkBuilder& WolkBuilder::withPlatformStatusListener(std::shared_ptr<PlatformStatusListener> listener)
+{
+    m_platformStatusListener = std::move(listener);
+    m_platformStatusCallback = {};
+    return *this;
+}
+
+WolkBuilder& WolkBuilder::withPlatformStatusListener(PlatformStatusCallback callback)
+{
+    m_platformStatusCallback = std::move(callback);
+    m_platformStatusListener = {};
+    return *this;
+}
+
 std::unique_ptr<Wolk> WolkBuilder::build()
 {
     if (!m_actuationHandlerLambda && !m_actuationHandler)
@@ -191,10 +206,12 @@ std::unique_ptr<Wolk> WolkBuilder::build()
 
     wolk->m_inboundMessageHandler.reset(new InboundGatewayMessageHandler());
 
-    wolk->m_connectivityManager = std::make_shared<Wolk::ConnectivityFacade>(*wolk->m_inboundMessageHandler, [&] {
-        wolk->m_connected = false;
-        wolk->connect();
-    });
+    wolk->m_connectivityManager = std::make_shared<Wolk::ConnectivityFacade>(*wolk->m_inboundMessageHandler,
+                                                                             [&]
+                                                                             {
+                                                                                 wolk->m_connected = false;
+                                                                                 wolk->connect();
+                                                                             });
 
     wolk->m_connectivityService->setListener(wolk->m_connectivityManager);
 
@@ -220,15 +237,12 @@ std::unique_ptr<Wolk> WolkBuilder::build()
 
     wolk->m_dataService = std::make_shared<DataService>(
       *wolk->m_dataProtocol, *wolk->m_persistence, *wolk->m_connectivityService,
-      [rawPointer](const std::string& key, const std::string& reference, const std::string& value) {
-          rawPointer->handleActuatorSetCommand(key, reference, value);
-      },
-      [rawPointer](const std::string& key, const std::string& reference) {
-          rawPointer->handleActuatorGetCommand(key, reference);
-      },
-      [rawPointer](const std::string& key, const std::vector<ConfigurationItem>& configuration) {
-          rawPointer->handleConfigurationSetCommand(key, configuration);
-      },
+      [rawPointer](const std::string& key, const std::string& reference, const std::string& value)
+      { rawPointer->handleActuatorSetCommand(key, reference, value); },
+      [rawPointer](const std::string& key, const std::string& reference)
+      { rawPointer->handleActuatorGetCommand(key, reference); },
+      [rawPointer](const std::string& key, const std::vector<ConfigurationItem>& configuration)
+      { rawPointer->handleConfigurationSetCommand(key, configuration); },
       [rawPointer](const std::string& key) { rawPointer->handleConfigurationGetCommand(key); });
 
     wolk->m_deviceStatusService = std::make_shared<DeviceStatusService>(
@@ -237,12 +251,10 @@ std::unique_ptr<Wolk> WolkBuilder::build()
 
     wolk->m_deviceRegistrationService = std::make_shared<DeviceRegistrationService>(
       *wolk->m_registrationProtocol, *wolk->m_connectivityService,
-      [rawPointer](const std::string& key, PlatformResult::Code result) {
-          rawPointer->handleRegistrationResponse(key, result);
-      },
-      [rawPointer](const std::string& key, PlatformResult::Code result) {
-          rawPointer->handleUpdateResponse(key, result);
-      });
+      [rawPointer](const std::string& key, PlatformResult::Code result)
+      { rawPointer->handleRegistrationResponse(key, result); },
+      [rawPointer](const std::string& key, PlatformResult::Code result)
+      { rawPointer->handleUpdateResponse(key, result); });
 
     // Firmware update service
     if (m_firmwareInstaller != nullptr)
@@ -252,6 +264,22 @@ std::unique_ptr<Wolk> WolkBuilder::build()
                                                   m_firmwareVersionProvider, *wolk->m_connectivityService);
 
         wolk->m_inboundMessageHandler->addListener(wolk->m_firmwareUpdateService);
+    }
+
+    // Check if any of the platform status parameters are set
+    if (m_platformStatusListener != nullptr)
+    {
+        wolk->m_platformStatusProtocol = std::unique_ptr<JsonPlatformStatusProtocol>{new JsonPlatformStatusProtocol};
+        wolk->m_platformStatusService =
+          std::make_shared<PlatformStatusService>(*wolk->m_platformStatusProtocol, std::move(m_platformStatusListener));
+        wolk->m_inboundMessageHandler->addListener(wolk->m_platformStatusService);
+    }
+    else if (m_platformStatusCallback)
+    {
+        wolk->m_platformStatusProtocol = std::unique_ptr<JsonPlatformStatusProtocol>{new JsonPlatformStatusProtocol};
+        wolk->m_platformStatusService =
+          std::make_shared<PlatformStatusService>(*wolk->m_platformStatusProtocol, std::move(m_platformStatusCallback));
+        wolk->m_inboundMessageHandler->addListener(wolk->m_platformStatusService);
     }
 
     wolk->m_inboundMessageHandler->addListener(wolk->m_dataService);
