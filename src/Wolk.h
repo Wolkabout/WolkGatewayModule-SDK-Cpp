@@ -42,9 +42,11 @@ class DeviceStatusService;
 class DeviceRegistrationService;
 class FileDownloadService;
 class FirmwareUpdateService;
+class PlatformStatusService;
 class InboundGatewayMessageHandler;
 class InboundMessageHandler;
 class JsonDFUProtocol;
+class PlatformStatusProtocol;
 
 class Wolk
 {
@@ -289,6 +291,7 @@ private:
     std::unique_ptr<StatusProtocol> m_statusProtocol;
     std::unique_ptr<RegistrationProtocol> m_registrationProtocol;
     std::unique_ptr<JsonDFUProtocol> m_firmwareUpdateProtocol;
+    std::unique_ptr<PlatformStatusProtocol> m_platformStatusProtocol;
 
     std::unique_ptr<Persistence> m_persistence;
 
@@ -316,6 +319,7 @@ private:
     std::shared_ptr<DeviceStatusService> m_deviceStatusService;
     std::shared_ptr<DeviceRegistrationService> m_deviceRegistrationService;
     std::shared_ptr<FirmwareUpdateService> m_firmwareUpdateService;
+    std::shared_ptr<PlatformStatusService> m_platformStatusService;
 
     std::map<std::string, Device> m_devices;
 
